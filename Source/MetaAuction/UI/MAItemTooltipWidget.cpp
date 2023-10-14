@@ -2,6 +2,7 @@
 
 
 #include "UI/MAItemTooltipWidget.h"
+#include "Manager/ItemManager.h"
 
 #include <Components/TextBlock.h>
 #include <Components/Image.h>
@@ -71,14 +72,14 @@ void UMAItemTooltipWidget::UpdateText(const FItemData& InItemData)
 	BuyerNameText->SetText(FText::FromString(InItemData.BuyerName));
 	SellerNameText->SetText(FText::FromString(InItemData.SellerName));
 
-	// FNumberFormattingOptions °´Ã¼ »ý¼º
+	// FNumberFormattingOptions ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½
 	FNumberFormattingOptions NumberFormatOptions;
-	NumberFormatOptions.SetUseGrouping(true); // ¼ýÀÚ ±¸ºÐÀÚ »ç¿ë (ex. 1000000 -> 1,000,000
+	NumberFormatOptions.SetUseGrouping(true); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ (ex. 1000000 -> 1,000,000
 
 	StartPriceText->SetText(FText::AsNumber(InItemData.StartPrice, &NumberFormatOptions));
 	CurrentPriceText->SetText(FText::AsNumber(InItemData.CurrentPrice, &NumberFormatOptions));
 
-	// ¹è¿­ÀÇ ¿ä¼Ò¸¦ "."À¸·Î ±¸ºÐµÈ ¹®ÀÚ¿­·Î ÇÕÄ¡±â
+	// ï¿½è¿­ï¿½ï¿½ ï¿½ï¿½Ò¸ï¿½ "."ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ðµï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½
 	const int32 MaxEndTimeIndex = 5;
 	const TArray<uint16>& EndTime = InItemData.EndTime;
 	TArray<uint16> TempTime(0, MaxEndTimeIndex);
@@ -101,7 +102,7 @@ void UMAItemTooltipWidget::UpdateImage()
 	}
 	else
 	{
-		// ÀÌ¹ÌÁö ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.
+		// ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½.
 	}
 }
 
@@ -126,14 +127,14 @@ void UMAItemTooltipWidget::ItemImageNextButtonClicked()
 void UMAItemTooltipWidget::LoadAllImage(const FItemData& InItemData)
 {
 	CachedTextures.Empty();
-	for (const FString& ImgPath : InItemData.ImgPaths)
-	{
-		AddImage(ImgPath);
-	}
+	// for (const FString& ImgPath : InItemData.ImgPaths)
+	// {
+	// 	AddImage(ImgPath);
+	// }
 }
 
 void UMAItemTooltipWidget::AddImage(const FString& InFilePath)
 {
-	// ¿ÜºÎ ÀÌ¹ÌÁö¸¦ UTexture2D·Î ÀÓÆ÷Æ®
+	// ï¿½Üºï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ UTexture2Dï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 	CachedTextures.Emplace(FImageUtils::ImportFileAsTexture2D(InFilePath));
 }

@@ -10,93 +10,81 @@
  */
 FItemFileHandler::FItemFileHandler()
 {
-	// TODO: 사용되지 않을 로컬 모델링 파일 제거
+	// TODO: 사용되지 않을 로컬 모델링 파일 제거, 사진 파일 요청 필요
 }
 
 /**
- * 필요한 파일들을 요청하는 함수
- * @param InItemID : 요청할 물품의 ID
- * @param InFileCount : 요청할 파일의 갯수 ( .glb 파일과 사진 파일들 합친 갯수 )
+ * 해당 item ID의 모델링 파일을 지웁니다.
+ * @param InItemId : 지울 item의 id
  */
-void FItemFileHandler::RequestItemFiles(uint32 InItemID, uint8 InFileCount) const
+void FItemFileHandler::RemoveGlbFile(uint32 InItemId) const
 {
 	// 모델링 파일 경로에 접근한다.
-	FString basePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + FString::Printf(TEXT("Models/%d"), InItemID);
+	FString glbPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + FString::Printf(TEXT("Models/%d.glb"), InItemId);
+	
+	IPlatformFile& fileManager = FPlatformFileManager::Get().GetPlatformFile();
+	fileManager.DeleteFile(*glbPath);
+}
 
-	if (FPaths::DirectoryExists(basePath)) // 우선 로컬에 존재하는지 확인
+/**
+ * 해당 item ID의 모델링 파일(glb)를 요청합니다.
+ * @param InFunc : 요청이 완료되면 실행할 함수
+ * @param InItemId : 물품의 ItemId 
+ */
+void FItemFileHandler::RequestGlb(FRequestGlbCallback InFunc, uint32 InItemId) const
+{
+	// 모델링 파일 경로에 접근한다.
+	FString glbPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + FString::Printf(TEXT("Models/%d.glb"), InItemId);
+	
+	// FileExists가 case sensitive 하지 않네
+	if (FPaths::FileExists(glbPath)) // 우선 로컬에 존재하는지 확인
 	{
-		IPlatformFile& fileManager = FPlatformFileManager::Get().GetPlatformFile();
-
-		TArray<FString> files;
-		fileManager.FindFiles(files, *basePath, nullptr);
-
-		if (files.Num() == InFileCount) // 저장되어 있는 파일 갯수가 원래 요구하는 파일 갯수랑 같은지 확인해본다.
+		if(InFunc)
 		{
-			LOG_N(TEXT("file Exist!")); // 맞네 그럼 처리.
-			
-			for (const FString& file : files)
-			{
-				CompletedItemFileReq.Broadcast(InItemID, file);
-			}
-			return;
+			InFunc(glbPath);
 		}
-		// 아니면 파일 지우고 다시 요청할거임.
-		fileManager.DeleteDirectoryRecursively(*basePath);
+		return;
 	}
 
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance())) // 로컬에 없으니 다운로드를 함
+	// 없네. 요청
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
 	{
 		// HTTP 통신으로 관련 파일을 요청한다.
-		LOG_N(TEXT("Request Files ..."));
-
-		// 파일 갯수만큼 요청을 한다.
-		for (uint8 idx = 1; idx <= InFileCount; idx++)
+		LOG_N(TEXT("Request Item ID (%d) glb Files ..."), InItemId);
+		
+		if (UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
 		{
-			if (UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
-			{
-				TWeakPtr<FItemFileHandler> thisPtr = gameInstance->GetModelHandler(); // 만약을 대비해 Weak 캡처 추가
-				httpHandler->Request(DA_NETWORK(FileDownAddURL) + FString::Printf(TEXT("/%d/%d"), InItemID, idx),
-				                     EHttpRequestType::GET,
-				                     [InItemID, thisPtr](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+			TWeakPtr<FItemFileHandler> thisPtr = gameInstance->GetModelHandler(); // 만약을 대비해 Weak 캡처 추가
+			httpHandler->Request(DA_NETWORK(GlbFileDownAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
+				[thisPtr, InFunc, glbPath](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+			                     {
+				                     if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 				                     {
-					                     if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+					                     // 파일을 저장한다.
+					                     thisPtr.Pin()->_OnGlbRequestCompleted(InResponse);
+
+					                     if (InFunc)
 					                     {
-						                     // 파일을 저장한다.
-						                     thisPtr.Pin()->_OnFileRequestCompleted(InItemID, InResponse);
+						                     InFunc(glbPath);
 					                     }
-					                     else
-					                     {
-						                     LOG_ERROR(TEXT("ItemID : %d, 파일 요청 실패"), InItemID);
-					                     }
-				                     });
-			}
+				                     }
+				                     else
+				                     {
+					                     LOG_ERROR(TEXT("ItemID : %s, 파일 요청 실패"), *glbPath);
+				                     }
+			                     });
 		}
 	}
+	
 }
 
 /**
- * 해당 item ID의 파일들을 지웁니다.
- * @param InItemID : 지울 item의 id
- */
-void FItemFileHandler::RemoveItemFiles(uint32 InItemID)
-{
-	FString basePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + FString::Printf(TEXT("Models/%d"), InItemID);
-
-	if (FPaths::DirectoryExists(basePath)) // 존재하는지 확인
-	{
-		IPlatformFile& fileManager = FPlatformFileManager::Get().GetPlatformFile();
-		fileManager.DeleteDirectoryRecursively(*basePath); // 지우기
-	}
-}
-
-/**
- * 파일 요청이 완료되면 호출될 함수, 파일을 저장한다.
- * @param InItemID : 요청했던 물품의 ID
+ * glb 파일 요청이 완료되면 호출될 함수, /Saved/Models 아래에 파일을 저장한다.
  * @param InResponse : http 응답
  */
-void FItemFileHandler::_OnFileRequestCompleted(uint32 InItemID, FHttpResponsePtr InResponse) const
+void FItemFileHandler::_OnGlbRequestCompleted(FHttpResponsePtr InResponse) const
 {
-	FString basePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + FString::Printf(TEXT("Models/%d/"), InItemID);
+	FString basePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + TEXT("Models/");
 
 	IPlatformFile& platformFile = FPlatformFileManager::Get().GetPlatformFile();
 
@@ -113,10 +101,7 @@ void FItemFileHandler::_OnFileRequestCompleted(uint32 InItemID, FHttpResponsePtr
 		fileHandler->Flush();
 
 		delete fileHandler;
-		LOG_N(TEXT("Item : %d, file download is complete!"), InItemID);
-
-		// 파일 다운 완료 알림
-		CompletedItemFileReq.Broadcast(InItemID, fileSavedPath);
+		LOG_N(TEXT("%s, file download is complete!"), *fileName);
 	}
 	else
 	{

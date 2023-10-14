@@ -7,6 +7,7 @@
 #include "Actor/ItemActor.h"
 #include "MAItemTooltipWidget.generated.h"
 
+struct FItemData;
 /**
  * 
  */
@@ -25,16 +26,16 @@ protected:
 
 public:
 
-	// ÀÌ À§Á¬À» FItemData ±â¹ÝÀ¸·Î ¸ðµÎ ¾÷µ¥ÀÌÆ® ÇÕ´Ï´Ù.
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ FItemData ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Õ´Ï´ï¿½.
 	void UpdateAll(const FItemData& InItemData);
 
 private:
 
-	// ItemImagePrevButtonÀÌ Å¬¸¯µÇ¾úÀ» ¶§ È£ÃâµÇ´Â ÇÔ¼öÀÔ´Ï´Ù.
+	// ItemImagePrevButtonï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½ È£ï¿½ï¿½Ç´ï¿½ ï¿½Ô¼ï¿½ï¿½Ô´Ï´ï¿½.
 	UFUNCTION()
 	void ItemImagePrevButtonClicked();
 
-	// ItemImageNextButtonÀÌ Å¬¸¯µÇ¾úÀ» ¶§ È£ÃâµÇ´Â ÇÔ¼öÀÔ´Ï´Ù.
+	// ItemImageNextButtonï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½ È£ï¿½ï¿½Ç´ï¿½ ï¿½Ô¼ï¿½ï¿½Ô´Ï´ï¿½.
 	UFUNCTION()
 	void ItemImageNextButtonClicked();
 

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "Actor/ItemActor.h"
+#include "../Manager/ItemManager.h"
 #include "MAItemEntry.generated.h"
 
 /** UMAItemEntry

@@ -48,11 +48,35 @@ void UItemManager::BeginPlay()
 }
 
 /**
- * 상품 id로 webserver와 쿼리하여 정보를 가져온 후, 정보를 올바른 ItemActor에 등록한다.
+ * 새로운 상품이 등록되면, 서버에게 ItemData 요청 후 내 월드에 맞는 상품이면 배치합니다. 
  * 데디 서버에서만 실행 가능합니다.
  * @param InItemId : 쿼리할 상품의 ID
  */
-void UItemManager::Server_RequestItemDataAndRegister(uint32 InItemId)
+void UItemManager::Server_RegisterNewItem(uint32 InItemId)
+{
+	if(!IsRunningDedicatedServer())
+	{
+		LOG_WARN(TEXT("Client cannot run this func"));
+		return;
+	}
+
+	TWeakObjectPtr<UItemManager> thisPtr = this;
+	GetItemData([thisPtr, InItemId](const FItemData& InItemData)
+	{
+		// TODO: 월드 관리 어떻게 해야하지.. 일단 하드코딩
+		if(thisPtr.IsValid() && InItemData.World == TEXT("1"))
+		{
+			thisPtr->_Server_RegisterItemByLoc(InItemId, InItemData.Location);
+		}
+	}, InItemId);
+}
+
+
+/**
+ * 웹서버에 등록된 현재 월드에 배치되어 판매되고 있는 아이템들의 ID를 가져와 배치한다.
+ * 데디 서버에서만 실행 가능합니다.
+ */
+void UItemManager::Server_RegisterAllWorldItemID()
 {
 	if(!IsRunningDedicatedServer())
 	{
@@ -60,13 +84,59 @@ void UItemManager::Server_RequestItemDataAndRegister(uint32 InItemId)
 		return;
 	}
 	
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance())) // 로컬에 없으니 다운로드를 함
+	// 현재 월드에서, 구매 가능하게 배치되어 있는 상품을 검색하기 위한 Body를 만든다.
+	// TODO : 월드 어케 관리함 근데? 일단 1로 하드코딩
+	TSharedRef<FJsonObject> requestObj = MakeShared<FJsonObject>();
+	requestObj->SetStringField(TEXT("world"), TEXT("1"));
+	requestObj->SetBoolField(TEXT("isPossible"), true);
+	
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	{
+		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
+		TWeakObjectPtr<UItemManager> thisPtr = this;
+		httpHandler->Request(DA_NETWORK(ItemSearchAddURL), EHttpRequestType::POST,[thisPtr](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		                     {
+			                     if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+			                     {
+				                     // Json reader 생성
+				                     TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
+				                     TArray<TSharedPtr<FJsonValue>> jsonValues;
+				                     FJsonSerializer::Deserialize(reader, jsonValues);
+
+				                     for (TSharedPtr<FJsonValue>& itemInfo : jsonValues)
+				                     {
+					                     TSharedPtr<FJsonObject> itemInfoObj = itemInfo->AsObject();
+					                     uint32 itemID = itemInfoObj->GetNumberField(TEXT("id"));
+
+					                     FString locationStr;
+					                     itemInfoObj->TryGetStringField(TEXT("location"), locationStr);
+					                     uint8 itemLoc = FCString::Atoi(*locationStr);
+
+					                     // 알맞은 item actor에 물품 id를 할당
+					                     thisPtr->_Server_RegisterItemByLoc(itemID, itemLoc);
+				                     }
+
+				                     LOG_N(TEXT("Server : Get all this world's Item ID And Register Success!"));
+			                     }
+		                     }, httpHandler->JsonToString(requestObj));
+	}
+}
+
+/**
+ * 클라이언트에서 ItemID로 물품 정보를 요청합니다.
+ * 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
+ * @param InFunc : 정보가 도착하면 실행할 FOnGetItemDataCallback 형태의 함수 
+ * @param InItemId : 쿼리할 물품의 ID
+ */
+void UItemManager::GetItemData(FGetItemDataCallback InFunc, uint32 InItemId)
+{
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
 	{
 		FString RequestUrl = DA_NETWORK(ItemInfoAddURL) + FString::Printf(TEXT("/%d"), InItemId);
 
 		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
 		TWeakObjectPtr<UItemManager> thisPtr = this;
-		httpHandler->Request(RequestUrl, EHttpRequestType::GET, [thisPtr, InItemId](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		httpHandler->Request(RequestUrl, EHttpRequestType::GET, [thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 		{
 			if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 			{
@@ -78,63 +148,23 @@ void UItemManager::Server_RequestItemDataAndRegister(uint32 InItemId)
 				FItemData itemData;
 				thisPtr->_JsonToItemData(jsonObject, itemData);
 
-				LOG_N(TEXT("Server : Get Item Data(item id : %d) Success!"), InItemId);
+				if(InFunc) // 함수 실행
+				{
+					InFunc(itemData);
+				}
 				
-				// 상품을 등록한다.
-				thisPtr->_Server_RegisterItemByLoc(InItemId, itemData);
+				LOG_N(TEXT("Get Item Data(item id : %f) Success!"), jsonObject->GetNumberField(TEXT("id")));
 			}
 		});
 	}
 }
 
-
 /**
- * 웹서버에 등록된 아이템들의 정보를 모두 가져와 배치한다.
- * 데디 서버에서만 실행 가능합니다.
- */
-void UItemManager::Server_RegisterAllItem()
-{
-	if(!IsRunningDedicatedServer())
-	{
-		LOG_WARN(TEXT("Client cannot run this func"));
-		return;
-	}
-	
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance())) // 로컬에 없으니 다운로드를 함
-	{
-		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
-		TWeakObjectPtr<UItemManager> thisPtr = this;
-		httpHandler->Request(DA_NETWORK(AllItemAddURL), EHttpRequestType::GET,[thisPtr](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
-							 {
-								 if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
-								 {
-									 // Json reader 생성
-									 TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
-									 TArray<TSharedPtr<FJsonValue>> jsonValues;
-									 FJsonSerializer::Deserialize(reader, jsonValues);
-
-									 for (TSharedPtr<FJsonValue>& itemInfo : jsonValues)
-									 {
-										 TSharedPtr<FJsonObject> itemInfoObj = itemInfo->AsObject();
-										 uint32 itemID = itemInfoObj->GetNumberField(TEXT("id"));
-
-										 FItemData itemData;
-										 thisPtr->_JsonToItemData(itemInfoObj, itemData);
-										 thisPtr->_Server_RegisterItemByLoc(itemID, itemData);
-									 }
-
-									 LOG_N(TEXT("Server : Get All Item Data And Register Success!"));
-								 }
-							 });
-	}
-}
-
-/**
- * Item Data의 Location을 기준으로, 상품을 등록한다.
+ * Item Data의 Location을 기준으로, Item Actor에 상품ID를 등록한다. 데디 서버에서만 실행 가능합니다.
  * @param InItemId : 등록할 상품의 ID
- * @param InItemData : 등록할 상품의 data
+ * @param InItemLoc : 상품을 등록할 ItemActor의 위치
  */
-void UItemManager::_Server_RegisterItemByLoc(uint32 InItemId, const FItemData& InItemData)
+void UItemManager::_Server_RegisterItemByLoc(uint32 InItemId, uint8 InItemLoc)
 {
 	if(!IsRunningDedicatedServer())
 	{
@@ -142,17 +172,16 @@ void UItemManager::_Server_RegisterItemByLoc(uint32 InItemId, const FItemData& I
 		return;
 	}
 
-	uint8 registerIdx = InItemData.Location - 1;
+	const uint8 registerIdx = InItemLoc - 1;
 	
 	if(!ItemActors.IsValidIndex(registerIdx))
 	{
-		LOG_WARN(TEXT("%d Item Location is %d! InValid Location. Can't register Item."), InItemId, InItemData.Location);
+		LOG_WARN(TEXT("%d Item Location is %d! InValid Location. Can't register Item."), InItemId, InItemLoc);
 		return;
 	}
 	
 	if(ItemActors[registerIdx].IsValid())
 	{
-		ItemActors[registerIdx]->SetItemData(InItemData);
 		ItemActors[registerIdx]->SetItemID(InItemId);
 	}
 }
@@ -169,14 +198,19 @@ void UItemManager::_JsonToItemData(const TSharedPtr<FJsonObject>& InJsonObj, FIt
 	InJsonObj->TryGetStringField(TEXT("title"), OutItemData.Title);
 	InJsonObj->TryGetStringField(TEXT("itemInformation"), OutItemData.Information);
 
-	// TODO: 위치 표시가 어떻게 될지 바뀔 수도 있음
 	FString location;
 	InJsonObj->TryGetStringField(TEXT("location"), location);
 	OutItemData.Location = FCString::Atoi(*location);
 
-	InJsonObj->TryGetNumberField(TEXT("fileCount"), OutItemData.FileCount);
+	InJsonObj->TryGetStringField(TEXT("world"), OutItemData.World);
+	InJsonObj->TryGetStringField(TEXT("type"), OutItemData.Type);
+	InJsonObj->TryGetNumberField(TEXT("imgCount"), OutItemData.ImgCount);
 	InJsonObj->TryGetNumberField(TEXT("startPrice"), OutItemData.StartPrice);
 	InJsonObj->TryGetNumberField(TEXT("currentPrice"), OutItemData.CurrentPrice);
+
+	bool haveGlb = false;
+	InJsonObj->TryGetBoolField(TEXT("haveGLB"), haveGlb);
+	OutItemData.HaveGlb = haveGlb;
 
 	const TArray<TSharedPtr<FJsonValue>>* out; // 년 월 일 시간 분
 	InJsonObj->TryGetArrayField(TEXT("endTime"), out);

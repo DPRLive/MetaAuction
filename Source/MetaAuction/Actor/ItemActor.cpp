@@ -8,9 +8,7 @@
 
 #include <Net/UnrealNetwork.h>
 
-
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ItemActor)
-
 
 AItemActor::AItemActor()
 {
@@ -18,8 +16,6 @@ AItemActor::AItemActor()
 	bReplicates = true;
 	LevelPosition = 0;
 	ItemID = 0;
-	ItemData = FItemData();
-	RemainFileCnt = 0;
 
 	Model = nullptr;
 }
@@ -28,7 +24,6 @@ void AItemActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AItemActor, ItemID);
-	DOREPLIFETIME(AItemActor, ItemData);
 }
 
 /**
@@ -68,7 +63,6 @@ void AItemActor::Server_RemoveItem()
 	}
 
 	ItemID = 0;
-	ItemData = FItemData();
 }
 
 /**
@@ -81,21 +75,23 @@ void AItemActor::RedrawModel()
 		Model->Destroy();
 		Model = nullptr;
 	}
-
-	// 사진 경로도 비우고
-	ItemData.ImgPaths.Empty();
 	
 	if (UMAGameInstance* gameInstance = Cast<UMAGameInstance>(GetGameInstance()))
 	{
 		TWeakPtr<FItemFileHandler> handler = gameInstance->GetModelHandler();
 		if (handler.IsValid())
 		{
-			handler.Pin()->RemoveItemFiles(ItemID); // 파일을 지우고
+			handler.Pin()->RemoveGlbFile(ItemID); // 파일을 지우고
 
 			// 다시 요청.
-			ItemFileReqHandle = handler.Pin()->CompletedItemFileReq.AddUObject(this, &AItemActor::OnReqItemFileCompleted);
-			handler.Pin()->RequestItemFiles(ItemID, ItemData.FileCount);
-			RemainFileCnt = ItemData.FileCount;
+			TWeakObjectPtr<AItemActor> thisPtr = this;
+			handler.Pin()->RequestGlb([thisPtr](const FString& InGlbPath)
+			{
+				if(thisPtr.IsValid())
+				{
+					UglTFRuntimeFunctionLibrary::glTFLoadAssetFromFilenameAsync(InGlbPath, false, FglTFRuntimeConfig(), thisPtr->OnRequestModelCompleted);
+				}
+			}, ItemID);
 		}
 	}
 }
@@ -119,48 +115,20 @@ void AItemActor::OnRep_CreateItem()
 		return;
 	}
 
-	// TODO : 이미 배치되었던 물품이 있다면, 그 물품의 모델링 데이터를 지운다. -> 이건 ItemManager에서 명령 해야할듯
-
-	// 모델 파일을 요청한다.
 	if (UMAGameInstance* gameInstance = Cast<UMAGameInstance>(GetGameInstance()))
 	{
 		TWeakPtr<FItemFileHandler> handler = gameInstance->GetModelHandler();
 		if (handler.IsValid())
 		{
-			ItemFileReqHandle = handler.Pin()->CompletedItemFileReq.AddUObject(this, &AItemActor::OnReqItemFileCompleted);
-			handler.Pin()->RequestItemFiles(ItemID, ItemData.FileCount);
-			RemainFileCnt = ItemData.FileCount;
-		}
-	}
-}
-
-/**
- * item 관련 파일 요청이 끝나면 실행될 함수
- */
-void AItemActor::OnReqItemFileCompleted(uint32 InItemID, const FString& InFilePath)
-{
-	// 내가 요청한 파일 아니면 무시
-	if (InItemID != ItemID) { return; }
-
-	if (FPaths::GetExtension(InFilePath).Equals(TEXT("glb"), ESearchCase::IgnoreCase)) // glb 파일이면 모델 요청
-	{
-		UglTFRuntimeFunctionLibrary::glTFLoadAssetFromFilenameAsync(InFilePath, false, FglTFRuntimeConfig(), OnRequestModelCompleted);
-	}
-	else // 아니면 이미지 파일로, 경로 기억
-	{
-		ItemData.ImgPaths.Emplace(InFilePath);
-	}
-
-	// 다 다운되었으면 바인드 해제.
-	if (--RemainFileCnt == 0)
-	{
-		if (UMAGameInstance* gameInstance = Cast<UMAGameInstance>(GetGameInstance()))
-		{
-			TWeakPtr<FItemFileHandler> handler = gameInstance->GetModelHandler();
-			if (handler.IsValid())
+			// 파일 요청.
+			TWeakObjectPtr<AItemActor> thisPtr = this;
+			handler.Pin()->RequestGlb([thisPtr](const FString& InGlbPath)
 			{
-				handler.Pin()->CompletedItemFileReq.Remove(ItemFileReqHandle);
-			}
+				if(thisPtr.IsValid())
+				{
+					UglTFRuntimeFunctionLibrary::glTFLoadAssetFromFilenameAsync(InGlbPath, false, FglTFRuntimeConfig(), thisPtr->OnRequestModelCompleted);
+				}
+			}, ItemID);
 		}
 	}
 }

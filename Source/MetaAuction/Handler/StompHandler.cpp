@@ -54,7 +54,7 @@ void FStompHandler::_OnNewItem(const IStompMessage& InMessage)
 	{
 		if(gameState->GetItemManager() != nullptr)
 		{
-			gameState->GetItemManager()->Server_RequestItemDataAndRegister(itemID);
+			gameState->GetItemManager()->Server_RegisterNewItem(itemID);
 		}
 	}
 }

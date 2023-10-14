@@ -30,7 +30,15 @@ public:
 	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
 	FString ItemInfoAddURL = TEXT("/item");
 
-	// 상품 아이디로 파일을 요청하는 Url, 뒤에 /{itemID}/{fileNum}을 붙여서 사용.
+	// 상품 검색용 추가 Url, body에 searchString, world, type, isPossible 등을 담을 수 있음
+	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
+	FString ItemSearchAddURL = TEXT("/item/search");
+
+	// 상품 아이디로 glb 파일을 요청하는 Url, 뒤에 /{itemID} 붙여서 사용.
+	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
+	FString GlbFileDownAddURL = TEXT("/item/glb");
+	
+	// 상품 아이디로 파일을 요청하는 Url, 뒤에 /{itemID}/{fileNum}을 붙여서 사용. 1 : glb, 2~ 사진 파일
 	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
 	FString FileDownAddURL = TEXT("/item/download");
 

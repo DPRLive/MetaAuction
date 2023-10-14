@@ -7,6 +7,8 @@
 #include "../DataAsset/NetworkDataAsset.h"
 
 #include <HttpModule.h>
+#include <Serialization/JsonSerializer.h>
+#include <Serialization/JsonWriter.h>
 
 FHttpHandler::FHttpHandler()
 {
@@ -40,14 +42,29 @@ void FHttpHandler::Request(const FString& InAddUrl, const EHttpRequestType InTyp
 			httpRequest->SetHeader(TEXT("Authorization"), TEXT("Bearer ") + gameInstance->GetLoginData().JwtToken);
 		}
 	}
-
-	// POST 요청일 경우 Body를 담는다.
+	
+	// Body가 있을 경우 담는다.
+	// 왠지 모르겠는데 unreal에서 get요청에 바디 담으니까 요청을 못보냄
 	if(InType == EHttpRequestType::POST)
 	{
 		httpRequest->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
 		httpRequest->SetContentAsString(InBody);
 	}
-	
+
 	httpRequest->OnProcessRequestComplete().BindLambda(InFunc);
 	httpRequest->ProcessRequest();
 }
+
+/**
+ * HTTP Body를 혹시 FJsonObject로 만들었다면, string으로 변환해주는 함수
+ * @param InObj : string으로 변환할 JSonObject 
+ */
+FString FHttpHandler::JsonToString(const TSharedRef<FJsonObject>& InObj) const
+{
+	FString stringBody;
+	TSharedRef<TJsonWriter<>> writer = TJsonWriterFactory<>::Create(&stringBody);
+	FJsonSerializer::Serialize(InObj, writer);
+
+	return stringBody;
+}
+

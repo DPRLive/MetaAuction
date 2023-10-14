@@ -63,11 +63,6 @@ void UMAGameInstance::RequestLogin(const FString& InID, const FString& InPasswor
 	TSharedRef<FJsonObject> requestObj = MakeShared<FJsonObject>();
 	requestObj->SetStringField(TEXT("username"), InID);
 	requestObj->SetStringField(TEXT("password"), InPassword);
-
-	// Json -> string 변경
-	FString requestBody;
-	TSharedRef<TJsonWriter<>> writer = TJsonWriterFactory<>::Create(&requestBody);
-	FJsonSerializer::Serialize(requestObj, writer);
 	
 	if(HttpHandler.IsValid())
 	{
@@ -91,7 +86,7 @@ void UMAGameInstance::RequestLogin(const FString& InID, const FString& InPasswor
 			{
 				LOG_ERROR(TEXT("로그인 실패 !"))
 			}
-		}, requestBody);
+		}, HttpHandler->JsonToString(requestObj));
 	}
 }
 

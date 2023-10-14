@@ -8,6 +8,8 @@
 #include "Actor/ItemActor.h"
 #include "MAItemEntryWidget.generated.h"
 
+struct FItemData;
+
 /** UMAItemEntryWidget
  * Item의 정보를 표시하는 위젯으로 UMAItemListWidget의 리스트뷰의 엔트리 위젯입니다.
  */

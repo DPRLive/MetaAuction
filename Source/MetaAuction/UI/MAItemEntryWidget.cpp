@@ -63,14 +63,14 @@ void UMAItemEntryWidget::UpdateText(const FItemData& InItemData)
 	BuyerNameText->SetText(FText::FromString(InItemData.BuyerName));
 	SellerNameText->SetText(FText::FromString(InItemData.SellerName));
 
-	// FNumberFormattingOptions °´Ã¼ »ý¼º
+	// FNumberFormattingOptions ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½
 	FNumberFormattingOptions NumberFormatOptions;
-	NumberFormatOptions.SetUseGrouping(true); // ¼ýÀÚ ±¸ºÐÀÚ »ç¿ë (ex. 1000000 -> 1,000,000
+	NumberFormatOptions.SetUseGrouping(true); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ (ex. 1000000 -> 1,000,000
 
 	StartPriceText->SetText(FText::AsNumber(InItemData.StartPrice, &NumberFormatOptions));
 	CurrentPriceText->SetText(FText::AsNumber(InItemData.CurrentPrice, &NumberFormatOptions));
 
-	// ¹è¿­ÀÇ ¿ä¼Ò¸¦ "."À¸·Î ±¸ºÐµÈ ¹®ÀÚ¿­·Î ÇÕÄ¡±â
+	// ï¿½è¿­ï¿½ï¿½ ï¿½ï¿½Ò¸ï¿½ "."ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ðµï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½
 	const int32 MaxEndTimeIndex = 5;
 	const TArray<uint16>& EndTime = InItemData.EndTime;
 	TArray<uint16> TempTime;
@@ -88,14 +88,14 @@ void UMAItemEntryWidget::UpdateText(const FItemData& InItemData)
 
 void UMAItemEntryWidget::UpdateImage(const FItemData& InItemData)
 {
-	// À¯È¿ÇÑ ÀÌ¹ÌÁö°¡ ¹ß°ßµÇ¸é ÀÌ ÀÌ¹ÌÁö¸¦ Ç¥½ÃÇÑ´Ù.
-	for (const FString& ImgPath : InItemData.ImgPaths)
-	{
-		UTexture2D* Texture = FImageUtils::ImportFileAsTexture2D(ImgPath);
-		if (IsValid(Texture))
-		{
-			ItemImage->SetBrushFromTexture(Texture, false);
-			break;
-		}
-	}
+	// ï¿½ï¿½È¿ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ßµÇ¸ï¿½ ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½Ñ´ï¿½.
+	// for (const FString& ImgPath : InItemData.ImgPaths)
+	// {
+	// 	UTexture2D* Texture = FImageUtils::ImportFileAsTexture2D(ImgPath);
+	// 	if (IsValid(Texture))
+	// 	{
+	// 		ItemImage->SetBrushFromTexture(Texture, false);
+	// 		break;
+	// 	}
+	// }
 }
