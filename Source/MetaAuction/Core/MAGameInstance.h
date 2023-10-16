@@ -47,7 +47,7 @@ public:
 
 	// HttpHandler Getter
 	FORCEINLINE const TSharedPtr<FHttpHandler>& GetHttpHandler() const { return HttpHandler; }
-	
+
 private:
 	// 로그인 관련 정보를 들고있기 위한 LoginData
 	FLoginData LoginData;

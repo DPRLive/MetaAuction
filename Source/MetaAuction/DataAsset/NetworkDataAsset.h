@@ -38,9 +38,9 @@ public:
 	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
 	FString GlbFileDownAddURL = TEXT("/item/glb");
 	
-	// 상품 아이디로 파일을 요청하는 Url, 뒤에 /{itemID}/{fileNum}을 붙여서 사용. 1 : glb, 2~ 사진 파일
+	// 상품 아이디와 ImgIdx로 이미지 파일을 요청하는 Url, 뒤에 /{itemID}/{fileNum}을 붙여서 사용.
 	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
-	FString FileDownAddURL = TEXT("/item/download");
+	FString ImgViewAddURL = TEXT("/item/image");
 
 	// 입찰을 요청하는 추가 Url, 뒤에 /{itemID}를 붙여서 사용
 	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )

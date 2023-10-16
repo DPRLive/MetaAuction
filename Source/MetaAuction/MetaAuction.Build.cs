@@ -24,7 +24,9 @@ public class MetaAuction : ModuleRules
 			"Json",
 			//"JsonUtilities",
 			"HTTP",
-			"Stomp"
+			"Stomp",
+			"RHI",
+			"RenderCore"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
