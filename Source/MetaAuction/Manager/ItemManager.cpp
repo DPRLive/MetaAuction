@@ -197,6 +197,42 @@ void UItemManager::GetItemDataByOption(FGetItemDataByOptionCallback InFunc, cons
 }
 
 /**
+* HTTP 통신으로 웹서버에 입찰을 요청하는 함수입니다.
+* @param InItemID : 입찰할 item의 id
+* @param InPrice : 입찰할 가격
+*/
+void UItemManager::Client_RequestBid(uint32 InItemID, uint64 InPrice)
+{
+	if (IsRunningDedicatedServer()) return; // 데디면 하지 마라.
+
+	// Body를 만든다.
+	FString requestBody = FString::Printf(TEXT("%llu"), InPrice);
+
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance())) // 로컬에 없으니 다운로드를 함
+	{
+		httpHandler->Request(DA_NETWORK(BidAddURL) + FString::Printf(TEXT("/%d"), InItemID), EHttpRequestType::POST,
+		                     [](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		                     {
+			                     if (InbWasSuccessful && InResponse.IsValid())
+			                     {
+				                     if (EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+				                     {
+					                     // 입찰 성공
+					                     LOG_WARN(TEXT("Bid Success!"));
+				                     }
+				                     else
+				                     {
+					                     // 입찰 실패, InResponse->GetContentAsString() : 서버에서 알려준 입찰 실패 이유
+					                     LOG_WARN(TEXT("bid Failed!"));
+					                     // Json reader 생성
+					                     UE_LOG(LogTemp, Warning, TEXT("%s"), *InResponse->GetContentAsString());
+				                     }
+			                     }
+		                     }, requestBody);
+	}
+}
+
+/**
  * Item Data의 Location을 기준으로, Item Actor에 상품ID를 등록한다. 데디 서버에서만 실행 가능합니다.
  * @param InItemId : 등록할 상품의 ID
  * @param InItemLoc : 상품을 등록할 ItemActor의 위치

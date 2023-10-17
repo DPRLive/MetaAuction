@@ -131,6 +131,9 @@ public:
 	// 옵션을 걸어 물품 정보들을 요청합니다.
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
 	void GetItemDataByOption(FGetItemDataByOptionCallback InFunc, const FItemSearchOption& InSearchOption);
+
+	// HTTP 통신으로 웹서버에 입찰을 요청하는 함수입니다.
+	void Client_RequestBid(uint32 InItemID, uint64 InPrice);
 protected:
 	virtual void BeginPlay() override;
 

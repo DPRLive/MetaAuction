@@ -63,7 +63,4 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "UI|ChatLog")
 	FChatLogEventSignature OnReceivedChatLog;
-	
-	// HTTP 통신으로 웹서버에 입찰을 요청하는 함수입니다.
-	void RequestBid(uint32 InItemID, uint64 InPrice);
 };
