@@ -11,6 +11,7 @@
 
 #include "Common/MALog.h"
 #include "Common/Enum.h"
+#include "Util/UtilEnum.h"
 #include "Common/Typedef.h"
 #include "DataAsset/MADataAssetHelper.h"
 #include "Handler/HttpHandler.h"

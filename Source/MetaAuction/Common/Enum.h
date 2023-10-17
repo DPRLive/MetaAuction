@@ -16,12 +16,20 @@ enum class EHttpRequestType : uint8
 	POST
 };
 
-// 테스트용
+// 상품의 판매 타입(경매인가 판매인가)
 UENUM(BlueprintType)
-enum class MyEnum
+enum class EItemDealType : uint8
 {
-	None,
-	First,
-	Max
+	None		UMETA( Tooltip = "판매 타입 지정 안됨" ),
+	Auction		UMETA( Tooltip = "경매 타입" ),
+	Normal		UMETA( Tooltip = "일반 판매 타입" )
 };
-ENUM_RANGE_BY_COUNT(MyEnum, MyEnum::Max)
+
+// 상품이 현재 판매중인지
+UENUM(BlueprintType)
+enum class EItemCanDeal : uint8
+{
+	None		UMETA( Tooltip = "판매중인지 지정 안됨" ),
+	Possible	UMETA( Tooltip = "판매중" ),
+	Impossible	UMETA( Tooltip = "판매중 아님" )
+};

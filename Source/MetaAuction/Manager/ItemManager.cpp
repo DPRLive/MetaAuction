@@ -61,7 +61,7 @@ void UItemManager::Server_RegisterNewItem(uint32 InItemId)
 	}
 
 	TWeakObjectPtr<UItemManager> thisPtr = this;
-	GetItemData([thisPtr, InItemId](const FItemData& InItemData)
+	GetItemDataByID([thisPtr, InItemId](const FItemData& InItemData)
 	{
 		// TODO: 월드 관리 어떻게 해야하지.. 일단 하드코딩
 		if(thisPtr.IsValid() && InItemData.World == TEXT("1"))
@@ -86,40 +86,21 @@ void UItemManager::Server_RegisterAllWorldItemID()
 	
 	// 현재 월드에서, 구매 가능하게 배치되어 있는 상품을 검색하기 위한 Body를 만든다.
 	// TODO : 월드 어케 관리함 근데? 일단 1로 하드코딩
-	TSharedRef<FJsonObject> requestObj = MakeShared<FJsonObject>();
-	requestObj->SetStringField(TEXT("world"), TEXT("1"));
-	requestObj->SetBoolField(TEXT("isPossible"), true);
-	
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	FItemSearchOption option;
+	option.World = TEXT("1");
+	option.CanDeal = EItemCanDeal::Possible;
+
+	TWeakObjectPtr<UItemManager> thisPtr = this;
+	GetItemDataByOption([thisPtr](const TArray<FItemData>& InItemData)
 	{
-		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
-		TWeakObjectPtr<UItemManager> thisPtr = this;
-		httpHandler->Request(DA_NETWORK(ItemSearchAddURL), EHttpRequestType::POST,[thisPtr](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
-		                     {
-			                     if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
-			                     {
-				                     // Json reader 생성
-				                     TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
-				                     TArray<TSharedPtr<FJsonValue>> jsonValues;
-				                     FJsonSerializer::Deserialize(reader, jsonValues);
-
-				                     for (TSharedPtr<FJsonValue>& itemInfo : jsonValues)
-				                     {
-					                     TSharedPtr<FJsonObject> itemInfoObj = itemInfo->AsObject();
-					                     uint32 itemID = itemInfoObj->GetNumberField(TEXT("id"));
-
-					                     FString locationStr;
-					                     itemInfoObj->TryGetStringField(TEXT("location"), locationStr);
-					                     uint8 itemLoc = FCString::Atoi(*locationStr);
-
-					                     // 알맞은 item actor에 물품 id를 할당
-					                     thisPtr->_Server_RegisterItemByLoc(itemID, itemLoc);
-				                     }
-
-				                     LOG_N(TEXT("Server : Get all this world's Item ID And Register Success!"));
-			                     }
-		                     }, httpHandler->JsonToString(requestObj));
-	}
+		if(!thisPtr.IsValid())
+			return;
+		
+		for(const FItemData& data : InItemData)
+		{
+			thisPtr->_Server_RegisterItemByLoc(data.ItemID, data.Location);
+		}
+	}, option);
 }
 
 /**
@@ -128,7 +109,7 @@ void UItemManager::Server_RegisterAllWorldItemID()
  * @param InFunc : 정보가 도착하면 실행할 FOnGetItemDataCallback 형태의 함수 
  * @param InItemId : 쿼리할 물품의 ID
  */
-void UItemManager::GetItemData(FGetItemDataCallback InFunc, uint32 InItemId)
+void UItemManager::GetItemDataByID(FGetItemDataByIdCallback InFunc, uint32 InItemId)
 {
 	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
 	{
@@ -153,9 +134,65 @@ void UItemManager::GetItemData(FGetItemDataCallback InFunc, uint32 InItemId)
 					InFunc(itemData);
 				}
 				
-				LOG_N(TEXT("Get Item Data(item id : %f) Success!"), jsonObject->GetNumberField(TEXT("id")));
+				LOG_N(TEXT("Get Item Data(item id : %d) Success!"), itemData.ItemID);
 			}
 		});
+	}
+}
+
+/**
+ * 옵션을 걸어 물품 정보들을 요청합니다.
+ * 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
+ * @param InFunc : 정보가 도착하면 실행할 FGetItemDataByOptionCallback 형태의 함수 
+ * @param InSearchOption : 물품 검색 시 사용할 옵션, 필요한 옵션만 설정 후 넣어서 사용하면 됩니다.
+ */
+void UItemManager::GetItemDataByOption(FGetItemDataByOptionCallback InFunc, const FItemSearchOption& InSearchOption)
+{
+	// 옵션 설정
+	TSharedRef<FJsonObject> requestObj = MakeShared<FJsonObject>();
+	if(InSearchOption.SearchString != TEXT(""))
+		requestObj->SetStringField(TEXT("searchString"), InSearchOption.SearchString.ToLower());
+	
+	if(InSearchOption.World != TEXT(""))
+		requestObj->SetStringField(TEXT("world"), InSearchOption.World.ToLower());
+
+	if(InSearchOption.ItemType != EItemDealType::None)
+		requestObj->SetStringField(TEXT("type"), ENUM_TO_STRING(EItemDealType, InSearchOption.ItemType).ToLower());
+
+	if(InSearchOption.CanDeal == EItemCanDeal::Possible)
+		requestObj->SetBoolField(TEXT("isPossible"), true);
+	else if(InSearchOption.CanDeal == EItemCanDeal::Impossible)
+		requestObj->SetBoolField(TEXT("isPossible"), false);
+	
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	{
+		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
+		TWeakObjectPtr<UItemManager> thisPtr = this;
+		httpHandler->Request(DA_NETWORK(ItemSearchAddURL), EHttpRequestType::POST,[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+							 {
+								 if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+								 {
+									 // Json reader 생성
+									 TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
+									 TArray<TSharedPtr<FJsonValue>> jsonValues;
+									 FJsonSerializer::Deserialize(reader, jsonValues);
+
+									 TArray<FItemData> itemDatas;
+									 for (TSharedPtr<FJsonValue>& itemInfo : jsonValues)
+									 {
+										 TSharedPtr<FJsonObject> itemInfoObj = itemInfo->AsObject();
+										 itemDatas.Emplace(FItemData());
+										 thisPtr->_JsonToItemData(itemInfoObj, *itemDatas.rbegin());
+									 }
+
+									 if (InFunc)
+									 {
+										 InFunc(itemDatas);
+									 }
+								 	
+									 LOG_N(TEXT("Search Items Success!"));
+								 }
+							 }, httpHandler->JsonToString(requestObj));
 	}
 }
 
@@ -193,6 +230,7 @@ void UItemManager::_Server_RegisterItemByLoc(uint32 InItemId, uint8 InItemLoc)
  */
 void UItemManager::_JsonToItemData(const TSharedPtr<FJsonObject>& InJsonObj, FItemData& OutItemData) const
 {
+	InJsonObj->TryGetNumberField(TEXT("id"), OutItemData.ItemID);
 	InJsonObj->TryGetStringField(TEXT("sellerUsername"), OutItemData.SellerName);
 	InJsonObj->TryGetStringField(TEXT("buyerUsername"), OutItemData.BuyerName);
 	InJsonObj->TryGetStringField(TEXT("title"), OutItemData.Title);
@@ -203,7 +241,12 @@ void UItemManager::_JsonToItemData(const TSharedPtr<FJsonObject>& InJsonObj, FIt
 	OutItemData.Location = FCString::Atoi(*location);
 
 	InJsonObj->TryGetStringField(TEXT("world"), OutItemData.World);
-	InJsonObj->TryGetStringField(TEXT("type"), OutItemData.Type);
+
+	FString type;
+	InJsonObj->TryGetStringField(TEXT("type"), type);
+	if(type == TEXT("auction")) OutItemData.Type = EItemDealType::Auction;
+	else if(type == TEXT("normal")) OutItemData.Type = EItemDealType::Normal;
+	
 	InJsonObj->TryGetNumberField(TEXT("imgCount"), OutItemData.ImgCount);
 	InJsonObj->TryGetNumberField(TEXT("startPrice"), OutItemData.StartPrice);
 	InJsonObj->TryGetNumberField(TEXT("currentPrice"), OutItemData.CurrentPrice);

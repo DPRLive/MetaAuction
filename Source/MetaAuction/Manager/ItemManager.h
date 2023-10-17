@@ -16,8 +16,12 @@ struct FItemData
 {
 	GENERATED_BODY()
 
-	FItemData() : SellerName(TEXT("")), BuyerName(TEXT("")), Title(TEXT("")), Information(TEXT("")),
-	Location(0), World(TEXT("")), Type(TEXT("")), ImgCount(0), StartPrice(0), CurrentPrice(0), HaveGlb(false) {}
+	FItemData() : ItemID(0), SellerName(TEXT("")), BuyerName(TEXT("")), Title(TEXT("")), Information(TEXT("")),
+	Location(0), World(TEXT("")), Type(EItemDealType::None), ImgCount(0), StartPrice(0), CurrentPrice(0), HaveGlb(false) {}
+
+	// 물품 ID
+	UPROPERTY()
+	uint32 ItemID;
 	
 	// 판매자 이름
 	UPROPERTY()
@@ -45,7 +49,7 @@ struct FItemData
 
 	// 판매 타입이 무엇인지, auction or normal
 	UPROPERTY()
-	FString Type;
+	EItemDealType Type;
 	
 	// 이미지 파일의 갯수
 	UPROPERTY()
@@ -69,6 +73,30 @@ struct FItemData
 };
 
 /**
+ *  물품 검색 시 사용할 Option struct
+ *  필요한 옵션만 넣어서 사용하면 됩니다.
+ */
+USTRUCT()
+struct FItemSearchOption
+{
+	GENERATED_BODY()
+
+	FItemSearchOption() : SearchString(TEXT("")), World(TEXT("")), ItemType(EItemDealType::None), CanDeal(EItemCanDeal::None) {}
+	
+	// 제목 또는 내용에 해당 문자열이 포함되어 있는지 확인
+	FString SearchString;
+
+	// 어떤 월드에 해당하는 물품인지
+	FString World;
+
+	// 판매 타입이 어떤것인지
+	EItemDealType ItemType;
+
+	// 현재 판매중인(구매가 가능한) 상품인지
+	EItemCanDeal CanDeal;
+};
+
+/**
  *  전체적인 물품들의 상태를 관리해주는 Item Manager
  *  GameState에서 관리하여 물품에 대한 관리는 server가 주도함.
  *  TODO: 물품 관리에 대한 쿼리용 함수 작성
@@ -79,8 +107,9 @@ class METAAUCTION_API UItemManager : public UActorComponent
 {
 	GENERATED_BODY()
 
-	// Client_GetItemData에 넣을때 쓸 람다 타입
-	using FGetItemDataCallback = TFunction<void(const FItemData&)>;
+	// GetItemData에 넣을때 쓸 람다 타입
+	using FGetItemDataByIdCallback = TFunction<void(const FItemData&)>;
+	using FGetItemDataByOptionCallback = TFunction<void(const TArray<FItemData>&)>;
 
 public:	
 	UItemManager();
@@ -97,9 +126,11 @@ public:
 
 	// ItemID로 물품 정보를 요청합니다. 
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
-	// TODO : 옵션 바디 추가해야함
-	 void GetItemData(FGetItemDataCallback InFunc, uint32 InItemId);
-	
+	void GetItemDataByID(FGetItemDataByIdCallback InFunc, uint32 InItemId);
+
+	// 옵션을 걸어 물품 정보들을 요청합니다.
+	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
+	void GetItemDataByOption(FGetItemDataByOptionCallback InFunc, const FItemSearchOption& InSearchOption);
 protected:
 	virtual void BeginPlay() override;
 
