@@ -127,7 +127,7 @@ void UItemManager::GetItemDataByID(FGetItemDataByIdCallback InFunc, uint32 InIte
 				FJsonSerializer::Deserialize(reader, jsonObject);
 
 				FItemData itemData;
-				thisPtr->_JsonToItemData(jsonObject, itemData);
+				thisPtr->_JsonToData(jsonObject, itemData);
 
 				if(InFunc) // 함수 실행
 				{
@@ -143,10 +143,10 @@ void UItemManager::GetItemDataByID(FGetItemDataByIdCallback InFunc, uint32 InIte
 /**
  * 옵션을 걸어 물품 정보들을 요청합니다.
  * 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
- * @param InFunc : 정보가 도착하면 실행할 FGetItemDataByOptionCallback 형태의 함수 
+ * @param InFunc : 정보가 도착하면 실행할 FCallbackRefArray 형태의 함수 
  * @param InSearchOption : 물품 검색 시 사용할 옵션, 필요한 옵션만 설정 후 넣어서 사용하면 됩니다.
  */
-void UItemManager::GetItemDataByOption(FGetItemDataByOptionCallback InFunc, const FItemSearchOption& InSearchOption)
+void UItemManager::GetItemDataByOption(FCallbackRefArray<FItemData> InFunc, const FItemSearchOption& InSearchOption)
 {
 	// 옵션 설정
 	TSharedRef<FJsonObject> requestObj = MakeShared<FJsonObject>();
@@ -182,7 +182,7 @@ void UItemManager::GetItemDataByOption(FGetItemDataByOptionCallback InFunc, cons
 									 {
 										 TSharedPtr<FJsonObject> itemInfoObj = itemInfo->AsObject();
 										 itemDatas.Emplace(FItemData());
-										 thisPtr->_JsonToItemData(itemInfoObj, *itemDatas.rbegin());
+										 thisPtr->_JsonToData(itemInfoObj, *itemDatas.rbegin());
 									 }
 
 									 if (InFunc)
@@ -198,10 +198,10 @@ void UItemManager::GetItemDataByOption(FGetItemDataByOptionCallback InFunc, cons
 
 /**
 * HTTP 통신으로 웹서버에 입찰을 요청하는 함수입니다.
-* @param InItemID : 입찰할 item의 id
+* @param InItemId : 입찰할 item의 id
 * @param InPrice : 입찰할 가격
 */
-void UItemManager::Client_RequestBid(uint32 InItemID, uint64 InPrice)
+void UItemManager::Client_RequestBid(uint32 InItemId, uint64 InPrice)
 {
 	if (IsRunningDedicatedServer()) return; // 데디면 하지 마라.
 
@@ -210,7 +210,7 @@ void UItemManager::Client_RequestBid(uint32 InItemID, uint64 InPrice)
 
 	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance())) // 로컬에 없으니 다운로드를 함
 	{
-		httpHandler->Request(DA_NETWORK(BidAddURL) + FString::Printf(TEXT("/%d"), InItemID), EHttpRequestType::POST,
+		httpHandler->Request(DA_NETWORK(BidAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::POST,
 		                     [](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 		                     {
 			                     if (InbWasSuccessful && InResponse.IsValid())
@@ -229,6 +229,46 @@ void UItemManager::Client_RequestBid(uint32 InItemID, uint64 InPrice)
 				                     }
 			                     }
 		                     }, requestBody);
+	}
+}
+
+/**
+ * ItemID로 물품에 대한 입찰 기록을 조회합니다. DB에서 입찰 순서대로 내림차순해서 정렬하여 주니, 그대로 배열을 사용하시면 됩니다.
+ * 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
+ * @param InFunc : 정보가 도착하면 실행할 FCallbackRefArray 형태의 함수 
+ * @param InItemId : 입찰 기록을 조회할 상품의 ID
+ */
+void UItemManager::GetBidRecordByItemId(FCallbackRefArray<FBidRecord> InFunc, uint32 InItemId)
+{
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	{
+		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
+		TWeakObjectPtr<UItemManager> thisPtr = this;
+		httpHandler->Request(DA_NETWORK(BidRecordAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+							 {
+								 if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+								 {
+									 // Json reader 생성
+									 TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
+									 TArray<TSharedPtr<FJsonValue>> jsonValues;
+									 FJsonSerializer::Deserialize(reader, jsonValues);
+
+									 TArray<FBidRecord> BidRecords;
+									 for (TSharedPtr<FJsonValue>& bidInfo : jsonValues)
+									 {
+										 TSharedPtr<FJsonObject> bidInfoObj = bidInfo->AsObject();
+										 BidRecords.Emplace(FBidRecord());
+										 thisPtr->_JsonToData(bidInfoObj, *BidRecords.rbegin());
+									 }
+
+									 if (InFunc)
+									 {
+										 InFunc(BidRecords);
+									 }
+								 	
+									 LOG_N(TEXT("Get Bid Records Success!"));
+								 }
+							 });
 	}
 }
 
@@ -264,7 +304,7 @@ void UItemManager::_Server_RegisterItemByLoc(uint32 InItemId, uint8 InItemLoc)
  * @param InJsonObj : Json 형태의 itemData String
  * @param OutItemData : 파싱한 정보를 담아갈 ItemData
  */
-void UItemManager::_JsonToItemData(const TSharedPtr<FJsonObject>& InJsonObj, FItemData& OutItemData) const
+void UItemManager::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FItemData& OutItemData) const
 {
 	InJsonObj->TryGetNumberField(TEXT("id"), OutItemData.ItemID);
 	InJsonObj->TryGetStringField(TEXT("sellerUsername"), OutItemData.SellerName);
@@ -297,5 +337,25 @@ void UItemManager::_JsonToItemData(const TSharedPtr<FJsonObject>& InJsonObj, FIt
 	for (const TSharedPtr<FJsonValue>& value : *out) // 파싱한다.
 	{
 		OutItemData.EndTime.Emplace(value->AsNumber());
+	}
+}
+
+/**
+ * Json 형태의 BidRecord JsonObject를 FBidRecord로 변환한다.
+ * @param InJsonObj : Json 형태의 BidRecord String
+ * @param OutBidRecord : 파싱한 정보를 담아갈 BidRecord
+ */
+void UItemManager::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FBidRecord& OutBidRecord) const
+{
+	InJsonObj->TryGetNumberField(TEXT("id"), OutBidRecord.Order);
+	InJsonObj->TryGetNumberField(TEXT("bidPrice"), OutBidRecord.BidPrice);
+	InJsonObj->TryGetStringField(TEXT("bidUser"), OutBidRecord.BidUser);
+	
+	const TArray<TSharedPtr<FJsonValue>>* out; // 년 월 일 시간 분
+	InJsonObj->TryGetArrayField(TEXT("bidTime"), out);
+
+	for (const TSharedPtr<FJsonValue>& value : *out) // 파싱한다.
+	{
+		OutBidRecord.BidTime.Emplace(value->AsNumber());
 	}
 }

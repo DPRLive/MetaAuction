@@ -45,6 +45,10 @@ public:
 	// 입찰을 요청하는 추가 Url, 뒤에 /{itemID}를 붙여서 사용
 	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
 	FString BidAddURL = TEXT("/bid");
+
+	// 입찰을 요청하는 추가 Url, 뒤에 /{itemID}를 붙여서 사용
+	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
+	FString BidRecordAddURL = TEXT("/bid/record");
 	
 	// STOMP WebSocket 기본 연결 URL
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )

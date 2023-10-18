@@ -97,6 +97,27 @@ struct FItemSearchOption
 };
 
 /**
+ *  어떠한 물품 ID의 입찰 기록에 대한 정보를 담는 구조체
+ */
+USTRUCT()
+struct FBidRecord
+{
+	GENERATED_BODY()
+	
+	// 입찰 순서
+	uint32 Order;
+
+	// 입찰 가격
+	uint64 BidPrice;
+
+	// 입찰 시각, 배열에 순서대로 년 / 월 / 일 / 시간 / 분 / 초 / 밀리세컨드 인데 쓸만큼만 쓰셔도 될것 같아요
+	TArray<uint16> BidTime;
+
+	// 입찰한 사람
+	FString BidUser;
+};
+
+/**
  *  전체적인 물품들의 상태를 관리해주는 Item Manager
  *  GameState에서 관리하여 물품에 대한 관리는 server가 주도함.
  *  TODO: 물품 관리에 대한 쿼리용 함수 작성
@@ -109,7 +130,10 @@ class METAAUCTION_API UItemManager : public UActorComponent
 
 	// GetItemData에 넣을때 쓸 람다 타입
 	using FGetItemDataByIdCallback = TFunction<void(const FItemData&)>;
-	using FGetItemDataByOptionCallback = TFunction<void(const TArray<FItemData>&)>;
+
+	// const TArray<T>& 타입의 람다 타입
+	template<typename T>
+	using FCallbackRefArray = TFunction<void(const TArray<T>&)>;
 
 public:	
 	UItemManager();
@@ -130,10 +154,14 @@ public:
 
 	// 옵션을 걸어 물품 정보들을 요청합니다.
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
-	void GetItemDataByOption(FGetItemDataByOptionCallback InFunc, const FItemSearchOption& InSearchOption);
+	void GetItemDataByOption(FCallbackRefArray<FItemData> InFunc, const FItemSearchOption& InSearchOption);
 
 	// HTTP 통신으로 웹서버에 입찰을 요청하는 함수입니다.
-	void Client_RequestBid(uint32 InItemID, uint64 InPrice);
+	void Client_RequestBid(uint32 InItemId, uint64 InPrice);
+
+	// ItemID로 물품에 대한 입찰 기록을 조회합니다. DB에서 입찰 순서대로 내림차순해서 정렬하여 주니, 그대로 배열을 사용하시면 됩니다.
+	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
+	void GetBidRecordByItemId(FCallbackRefArray<FBidRecord> InFunc, uint32 InItemId);
 protected:
 	virtual void BeginPlay() override;
 
@@ -142,8 +170,11 @@ private:
 	// 데디 서버에서만 실행 가능합니다.
 	void _Server_RegisterItemByLoc(uint32 InItemId, uint8 InItemLoc);
 	
-	// Json 형태의 ItemData JsonObejct를 FItemData로 변환한다.
-	void _JsonToItemData(const TSharedPtr<FJsonObject>& InJsonObj, FItemData& OutItemData) const;
+	// Json 형태의 ItemData JsonObject를 FItemData로 변환한다.
+	void _JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FItemData& OutItemData) const;
+
+	// Json 형태의 BidRecord JsonObject를 FBidRecord로 변환한다.
+	void _JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FBidRecord& OutBidRecord) const;
 	
 	// 물품을 배치할 수 있는 ItemActor에 대한 포인터들. 사용자에게 표시는 1부터 할거지만 접근은 인덱스 0부터 해주세요.
 	// 클라이언트들에서도 읽을 수 있습니다.
