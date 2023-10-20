@@ -45,11 +45,14 @@ void UMAItemTooltipWidget::UpdateById(uint32 InItemID)
 	}
 
 	TWeakObjectPtr<ThisClass> ThisPtr(this);
-	auto GetItemDataByID = [ThisPtr](const FItemData& InData)
-		{
-			ThisPtr->UpdateAll(InData);
-		};
-	ItemManager->GetItemDataByID(GetItemDataByID, InItemID);
+	if (ThisPtr.IsValid())
+	{
+		auto GetItemDataByID = [ThisPtr](const FItemData& InData)
+			{
+				ThisPtr->UpdateAll(InData);
+			};
+		ItemManager->RequestItemDataByID(GetItemDataByID, InItemID);
+	}
 }
 
 void UMAItemTooltipWidget::UpdateAll(const FItemData& InItemData)
