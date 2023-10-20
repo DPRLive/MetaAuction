@@ -18,26 +18,6 @@ void UMAItemEntryWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	TitleText = Cast<UTextBlock>(GetWidgetFromName(TEXT("TitleText")));
-	ensure(TitleText);
-
-	BuyerNameText = Cast<UTextBlock>(GetWidgetFromName(TEXT("BuyerNameText")));
-	ensure(BuyerNameText);
-
-	SellerNameText = Cast<UTextBlock>(GetWidgetFromName(TEXT("SellerNameText")));
-	ensure(SellerNameText);
-
-	StartPriceText = Cast<UTextBlock>(GetWidgetFromName(TEXT("StartPriceText")));
-	ensure(StartPriceText);
-
-	CurrentPriceText = Cast<UTextBlock>(GetWidgetFromName(TEXT("CurrentPriceText")));
-	ensure(CurrentPriceText);
-
-	EndTimeText = Cast<UTextBlock>(GetWidgetFromName(TEXT("EndTimeText")));
-	ensure(EndTimeText);
-
-	ItemImage = Cast<UImage>(GetWidgetFromName(TEXT("ItemImage")));
-	ensure(ItemImage);
 }
 
 void UMAItemEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
@@ -63,14 +43,12 @@ void UMAItemEntryWidget::UpdateText(const FItemData& InItemData)
 	BuyerNameText->SetText(FText::FromString(InItemData.BuyerName));
 	SellerNameText->SetText(FText::FromString(InItemData.SellerName));
 
-	// FNumberFormattingOptions ��ü ����
 	FNumberFormattingOptions NumberFormatOptions;
-	NumberFormatOptions.SetUseGrouping(true); // ���� ������ ��� (ex. 1000000 -> 1,000,000
+	NumberFormatOptions.SetUseGrouping(true);
 
 	StartPriceText->SetText(FText::AsNumber(InItemData.StartPrice, &NumberFormatOptions));
 	CurrentPriceText->SetText(FText::AsNumber(InItemData.CurrentPrice, &NumberFormatOptions));
 
-	// �迭�� ��Ҹ� "."���� ���е� ���ڿ��� ��ġ��
 	const int32 MaxEndTimeIndex = 5;
 	const TArray<uint16>& EndTime = InItemData.EndTime;
 	TArray<uint16> TempTime;

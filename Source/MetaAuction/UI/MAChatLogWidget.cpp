@@ -23,15 +23,7 @@ void UMAChatLogWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	WBP_ChatLogList = Cast<UMAChatLogListWidget>(GetWidgetFromName(TEXT("WBP_ChatLogList")));
-	ensure(WBP_ChatLogList);
-
-	InputScrollBox = Cast<UScrollBox>(GetWidgetFromName(TEXT("InputScrollBox")));
-	ensure(InputScrollBox);
-
-	InputText = Cast<UEditableText>(GetWidgetFromName(TEXT("InputText")));
-	ensure(InputText);
-	if (IsValid(InputText))
+	if (ensure(InputText))
 	{
 		InputText->OnTextCommitted.AddDynamic(this, &ThisClass::InputTextCommitted);
 		InputText->OnTextChanged.AddDynamic(this, &ThisClass::InputTextChanged);

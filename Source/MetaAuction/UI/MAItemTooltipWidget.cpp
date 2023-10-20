@@ -7,6 +7,7 @@
 #include <Components/TextBlock.h>
 #include <Components/Image.h>
 #include <Components/Button.h>
+#include <GameFramework/GameState.h>
 #include <ImageUtils.h>
 
 UMAItemTooltipWidget::UMAItemTooltipWidget(const FObjectInitializer& ObjectInitializer)
@@ -19,43 +20,36 @@ void UMAItemTooltipWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	TitleText = Cast<UTextBlock>(GetWidgetFromName(TEXT("TitleText")));
-	ensure(TitleText);
-
-	InformationText = Cast<UTextBlock>(GetWidgetFromName(TEXT("InformationText")));
-	ensure(InformationText);
-
-	BuyerNameText = Cast<UTextBlock>(GetWidgetFromName(TEXT("BuyerNameText")));
-	ensure(BuyerNameText);
-
-	SellerNameText = Cast<UTextBlock>(GetWidgetFromName(TEXT("SellerNameText")));
-	ensure(SellerNameText);
-
-	StartPriceText = Cast<UTextBlock>(GetWidgetFromName(TEXT("StartPriceText")));
-	ensure(StartPriceText);
-
-	CurrentPriceText = Cast<UTextBlock>(GetWidgetFromName(TEXT("CurrentPriceText")));
-	ensure(CurrentPriceText);
-
-	EndTimeText = Cast<UTextBlock>(GetWidgetFromName(TEXT("EndTimeText")));
-	ensure(EndTimeText);
-
-	ItemImage = Cast<UImage>(GetWidgetFromName(TEXT("ItemImage")));
-	ensure(ItemImage);
-
-	ItemImagePrevButton = Cast<UButton>(GetWidgetFromName(TEXT("ItemImagePrevButton")));
-	ensure(ItemImagePrevButton);
-	if (IsValid(ItemImagePrevButton))
+	if (ensure(ItemImagePrevButton))
 	{
 		ItemImagePrevButton->OnClicked.AddDynamic(this, &ThisClass::ItemImagePrevButtonClicked);
 	}
 
-	ItemImageNextButton = Cast<UButton>(GetWidgetFromName(TEXT("ItemImageNextButton")));
-	ensure(ItemImageNextButton);
-	if (IsValid(ItemImageNextButton))
+	if (ensure(ItemImageNextButton))
 	{
 		ItemImageNextButton->OnClicked.AddDynamic(this, &ThisClass::ItemImageNextButtonClicked);
 	}
+}
+
+void UMAItemTooltipWidget::UpdateById(uint32 InItemID)
+{
+	AGameState* GameState = IsValid(GetWorld()) ? GetWorld()->GetGameState<AGameState>() : nullptr;
+	if (!ensure(GameState))
+	{
+		return;
+	}
+	UItemManager* ItemManager = GameState->GetComponentByClass<UItemManager>();
+	if (!ensure(ItemManager))
+	{
+		return;
+	}
+
+	TWeakObjectPtr<ThisClass> ThisPtr(this);
+	auto GetItemDataByID = [ThisPtr](const FItemData& InData)
+		{
+			ThisPtr->UpdateAll(InData);
+		};
+	ItemManager->GetItemDataByID(GetItemDataByID, InItemID);
 }
 
 void UMAItemTooltipWidget::UpdateAll(const FItemData& InItemData)
@@ -72,14 +66,12 @@ void UMAItemTooltipWidget::UpdateText(const FItemData& InItemData)
 	BuyerNameText->SetText(FText::FromString(InItemData.BuyerName));
 	SellerNameText->SetText(FText::FromString(InItemData.SellerName));
 
-	// FNumberFormattingOptions ��ü ����
 	FNumberFormattingOptions NumberFormatOptions;
-	NumberFormatOptions.SetUseGrouping(true); // ���� ������ ��� (ex. 1000000 -> 1,000,000
+	NumberFormatOptions.SetUseGrouping(true);
 
 	StartPriceText->SetText(FText::AsNumber(InItemData.StartPrice, &NumberFormatOptions));
 	CurrentPriceText->SetText(FText::AsNumber(InItemData.CurrentPrice, &NumberFormatOptions));
 
-	// �迭�� ��Ҹ� "."���� ���е� ���ڿ��� ��ġ��
 	const int32 MaxEndTimeIndex = 5;
 	const TArray<uint16>& EndTime = InItemData.EndTime;
 	TArray<uint16> TempTime(0, MaxEndTimeIndex);
@@ -99,10 +91,6 @@ void UMAItemTooltipWidget::UpdateImage()
 	if (CachedTextures.IsValidIndex(CurrentImageIndex))
 	{
 		ItemImage->SetBrushFromTexture(CachedTextures[CurrentImageIndex], false);
-	}
-	else
-	{
-		// �̹��� ������ �������� �ʽ��ϴ�.
 	}
 }
 
@@ -126,15 +114,19 @@ void UMAItemTooltipWidget::ItemImageNextButtonClicked()
 
 void UMAItemTooltipWidget::LoadAllImage(const FItemData& InItemData)
 {
-	CachedTextures.Empty();
-	// for (const FString& ImgPath : InItemData.ImgPaths)
+	// AGameState* GameState = IsValid(GetWorld()) ? GetWorld()->GetGameState<AGameState>() : nullptr;
+	// if (!IsValid(GameState))
 	// {
-	// 	AddImage(ImgPath);
+	// 	return;
+	// }
+	// UItemManager* ItemManager = GameState->GetComponentByClass<UItemManager>();
+	// if (!IsValid(ItemManager))
+	// {
+	// 	return;
 	// }
 }
 
 void UMAItemTooltipWidget::AddImage(const FString& InFilePath)
 {
-	// �ܺ� �̹����� UTexture2D�� ����Ʈ
 	CachedTextures.Emplace(FImageUtils::ImportFileAsTexture2D(InFilePath));
 }
