@@ -17,7 +17,7 @@ AItemActor::AItemActor()
 	LevelPosition = 0;
 	ItemID = 0;
 
-	Model = nullptr;
+	Client_Model = nullptr;
 }
 
 void AItemActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -34,7 +34,7 @@ void AItemActor::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	// BeginPlay 전 item id가 들어오는 경우(Replicate)가 있는거 같음, post init에서 bind
-	OnRequestModelCompleted.BindDynamic(this, &AItemActor::_DrawModel);
+	Client_OnRequestModelCompleted.BindDynamic(this, &AItemActor::_Client_DrawModel);
 }
 
 void AItemActor::BeginPlay()
@@ -56,29 +56,26 @@ void AItemActor::BeginDestroy()
  */
 void AItemActor::Server_RemoveItem()
 {
-	if (!IsRunningDedicatedServer())
-	{
-		LOG_WARN(TEXT("Client cannot run this func"));
-		return;
-	}
-
+	CHECK_DEDI_FUNC;
 	ItemID = 0;
 }
 
 /**
  * 이 액터에 배치된 모델링을 다시 다운받아 그립니다.
  */
-void AItemActor::RedrawModel()
+void AItemActor::Client_RedrawModel()
 {
-	if (Model.IsValid()) // 모델을 지우고
+	if(IsRunningDedicatedServer()) return; // 데디 ㄴㄴ
+	
+	if (Client_Model.IsValid()) // 모델을 지우고
 	{
-		Model->Destroy();
-		Model = nullptr;
+		Client_Model->Destroy();
+		Client_Model = nullptr;
 	}
 	
 	if (UMAGameInstance* gameInstance = Cast<UMAGameInstance>(GetGameInstance()))
 	{
-		TWeakPtr<FItemFileHandler> handler = gameInstance->GetModelHandler();
+		TWeakPtr<FItemFileHandler> handler = gameInstance->GetItemFileHandler();
 		if (handler.IsValid())
 		{
 			handler.Pin()->RemoveGlbFile(ItemID); // 파일을 지우고
@@ -89,11 +86,12 @@ void AItemActor::RedrawModel()
 			{
 				if(thisPtr.IsValid())
 				{
-					UglTFRuntimeFunctionLibrary::glTFLoadAssetFromFilenameAsync(InGlbPath, false, FglTFRuntimeConfig(), thisPtr->OnRequestModelCompleted);
+					UglTFRuntimeFunctionLibrary::glTFLoadAssetFromFilenameAsync(InGlbPath, false, FglTFRuntimeConfig(), thisPtr->Client_OnRequestModelCompleted);
 				}
 			}, ItemID);
 		}
 	}
+	
 }
 
 /**
@@ -106,10 +104,10 @@ void AItemActor::OnRep_CreateItem()
 	{
 		LOG_N(TEXT("Item ID is Zero!"));
 
-		if (Model.IsValid()) // 모델이 있다면 지움
+		if (Client_Model.IsValid()) // 모델이 있다면 지움
 		{
-			Model->Destroy();
-			Model = nullptr;
+			Client_Model->Destroy();
+			Client_Model = nullptr;
 		}
 
 		return;
@@ -117,7 +115,7 @@ void AItemActor::OnRep_CreateItem()
 
 	if (UMAGameInstance* gameInstance = Cast<UMAGameInstance>(GetGameInstance()))
 	{
-		TWeakPtr<FItemFileHandler> handler = gameInstance->GetModelHandler();
+		TWeakPtr<FItemFileHandler> handler = gameInstance->GetItemFileHandler();
 		if (handler.IsValid())
 		{
 			// 파일 요청.
@@ -126,7 +124,7 @@ void AItemActor::OnRep_CreateItem()
 			{
 				if(thisPtr.IsValid())
 				{
-					UglTFRuntimeFunctionLibrary::glTFLoadAssetFromFilenameAsync(InGlbPath, false, FglTFRuntimeConfig(), thisPtr->OnRequestModelCompleted);
+					UglTFRuntimeFunctionLibrary::glTFLoadAssetFromFilenameAsync(InGlbPath, false, FglTFRuntimeConfig(), thisPtr->Client_OnRequestModelCompleted);
 				}
 			}, ItemID);
 		}
@@ -136,8 +134,10 @@ void AItemActor::OnRep_CreateItem()
 /**
  * 모델을 그린다. (glTFRumtimeAsset을 기반으로 actor을 하나 생성하고, 그 포인터를 들고 있음)
  */
-void AItemActor::_DrawModel(UglTFRuntimeAsset* InAsset)
+void AItemActor::_Client_DrawModel(UglTFRuntimeAsset* InAsset)
 {
+	if(IsRunningDedicatedServer()) return; // 데디 ㄴㄴ
+	
 	UE_SCOPED_TIMER(TEXT("Draw Model"), LogTemp, Warning);
 
 	if (InAsset == nullptr)
@@ -146,19 +146,19 @@ void AItemActor::_DrawModel(UglTFRuntimeAsset* InAsset)
 		return;
 	}
 
-	if (Model.IsValid()) // 이미 뭐가 그려져 있으면 지워버림.
+	if (Client_Model.IsValid()) // 이미 뭐가 그려져 있으면 지워버림.
 	{
-		Model->Destroy();
-		Model = nullptr;
+		Client_Model->Destroy();
+		Client_Model = nullptr;
 	}
 
 	// UglTFRuntimeAsset을 기반으로 모델을 spawn 한다.
-	Model = GetWorld()->SpawnActorDeferred<AglTFRuntimeAssetActor>(AglTFRuntimeAssetActor::StaticClass(),GetActorTransform(), this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-	if (Model == nullptr)
+	Client_Model = GetWorld()->SpawnActorDeferred<AglTFRuntimeAssetActor>(AglTFRuntimeAssetActor::StaticClass(),GetActorTransform(), this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+	if (Client_Model == nullptr)
 	{
 		LOG_ERROR(TEXT("Spawn AglTFRuntimeAssetActor Failed!"));
 		return;
 	}
-	Model->Asset = InAsset;
-	Model->FinishSpawning(GetActorTransform());
+	Client_Model->Asset = InAsset;
+	Client_Model->FinishSpawning(GetActorTransform());
 }

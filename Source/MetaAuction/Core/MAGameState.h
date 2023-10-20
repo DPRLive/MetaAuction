@@ -18,7 +18,7 @@ class METAAUCTION_API AMAGameState : public AGameStateBase
 
 public:
 	// ItemManager Getter
-	FORCEINLINE UItemManager* GetItemManager() const { return ItemManager; }
+	FORCEINLINE TObjectPtr<UItemManager> GetItemManager() const { return ItemManager; }
 	
 protected:
 	virtual void BeginPlay() override;

@@ -1,12 +1,10 @@
 ﻿#include "StompHandler.h"
-#include "../core/MAGameMode.h"
 #include "Core/MAGameState.h"
 #include "..\Manager\ItemManager.h"
 
 #include <Modules/ModuleManager.h>
 #include <StompModule.h>
 #include <IStompMessage.h>
-
 
 /**
  *  Stomp WebSocket에 연결하고 기능을 수행하는 handler
@@ -35,16 +33,24 @@ void FStompHandler::_OnConnectedSuccess(const FString& InProtocolVersion, const 
 	LOG_N(TEXT("SessionID : %s"), *InSessionId);
 	LOG_N(TEXT("ServerString : %s"), *InServerString);
 
-	// New Item용 구독
-	OnNewItem.BindRaw(this, &FStompHandler::_OnNewItem);
-	Stomp->Subscribe(DA_NETWORK(NewItemAddURL), OnNewItem);	
+	// 서버가 구독
+	if(IsRunningDedicatedServer())
+	{
+		Server_OnNewItem.BindRaw(this, &FStompHandler::_Server_OnNewItem);
+		Stomp->Subscribe(DA_NETWORK(WSNewItemAddURL), Server_OnNewItem);
+		
+		Server_OnRemoveItem.BindRaw(this, &FStompHandler::_Server_OnRemoveItem);
+		Stomp->Subscribe(DA_NETWORK(WSRemoveItemAddURL), Server_OnRemoveItem);	
+	}
 }
 
 /**
  *  New Item 알림 Subscribe 한 곳에 이벤트 도착시 호출될 함수
  */
-void FStompHandler::_OnNewItem(const IStompMessage& InMessage)
+void FStompHandler::_Server_OnNewItem(const IStompMessage& InMessage) const
 {
+	CHECK_DEDI_FUNC;
+
 	uint32 itemID = FCString::Atoi(*InMessage.GetBodyAsString());
 
 	LOG_N(TEXT("Server : On New Item %d!"), itemID);
@@ -55,6 +61,24 @@ void FStompHandler::_OnNewItem(const IStompMessage& InMessage)
 		if(gameState->GetItemManager() != nullptr)
 		{
 			gameState->GetItemManager()->Server_RegisterNewItem(itemID);
+		}
+	}
+}
+
+void FStompHandler::_Server_OnRemoveItem(const IStompMessage& InMessage) const
+{
+	CHECK_DEDI_FUNC;
+
+	uint32 itemID = FCString::Atoi(*InMessage.GetBodyAsString());
+
+	LOG_N(TEXT("Server : Remove Item %d!"), itemID);
+	
+	// Item Manager에게 아이템 삭제를 요청한다.
+	if(AMAGameState* gameState = Cast<AMAGameState>(MAGetWorld()->GetGameState()))
+	{
+		if(gameState->GetItemManager() != nullptr)
+		{
+			gameState->GetItemManager()->Server_UnregisterItem(itemID);
 		}
 	}
 }

@@ -8,7 +8,6 @@
 
 AMAGameMode::AMAGameMode()
 {
-	StompHandler = nullptr;
 }
 
 /**
@@ -26,8 +25,6 @@ void AMAGameMode::BeginPlay()
 void AMAGameMode::StartPlay()
 {
 	Super::StartPlay();
-
-	StompHandler = MakeShareable(new FStompHandler());
 }
 
 /**

@@ -16,6 +16,13 @@
 #include "DataAsset/MADataAssetHelper.h"
 #include "Handler/HttpHandler.h"
 
+#define CHECK_DEDI_FUNC									\
+	if(!IsRunningDedicatedServer())						\
+	{													\
+		LOG_WARN(TEXT("Client cannot run this func"));	\
+		return;	\
+	}
+
 // 월드를 반환한다.
 UWorld* MAGetWorld( UObject* InObject = nullptr );
 

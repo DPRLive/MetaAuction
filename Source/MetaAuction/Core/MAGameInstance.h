@@ -6,6 +6,7 @@
 #include "MAGameInstance.generated.h"
 
 class FItemFileHandler;
+class FStompHandler;
 
 // 로그인 관련 정보를 담는 struct
 struct FLoginData
@@ -43,11 +44,13 @@ public:
 	FORCEINLINE const FLoginData& GetLoginData() const { return LoginData; }
 
 	// ModelHandler Getter
-	FORCEINLINE const TSharedPtr<FItemFileHandler>& GetModelHandler() const { return ItemFileHandler; }
+	FORCEINLINE const TSharedPtr<FItemFileHandler>& GetItemFileHandler() const { return ItemFileHandler; }
 
 	// HttpHandler Getter
 	FORCEINLINE const TSharedPtr<FHttpHandler>& GetHttpHandler() const { return HttpHandler; }
-
+	
+	// StompHandler Getter
+	FORCEINLINE const TSharedPtr<FStompHandler>& GetStompHandler() const { return StompHandler; }
 private:
 	// 로그인 관련 정보를 들고있기 위한 LoginData
 	FLoginData LoginData;
@@ -57,4 +60,7 @@ private:
 
 	// HTTP 통신을 위한 HttpHandler
 	TSharedPtr<FHttpHandler> HttpHandler;
+
+	// WebSocket 통신을 위한 Stomp Handler
+	TSharedPtr<FStompHandler> StompHandler;
 };

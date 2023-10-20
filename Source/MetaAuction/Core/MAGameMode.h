@@ -25,11 +25,4 @@ public:
 
 	// 소멸자 용도로 쓸 BeginDestroy
 	virtual void BeginDestroy() override;
-
-	// StompHandler Getter
-	FORCEINLINE const TSharedPtr<FStompHandler>& GetStompHandler() const { return StompHandler; }
-
-private:
-	// WebSocket 통신을 위한 Stomp Handler
-	TSharedPtr<FStompHandler> StompHandler;
 };
