@@ -59,7 +59,7 @@ void FItemFileHandler::RequestGlb(FRequestGlbCallback InFunc, uint32 InItemId) c
 		
 		if (UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
 		{
-			TWeakPtr<FItemFileHandler> thisPtr = gameInstance->GetModelHandler(); // 만약을 대비해 Weak 캡처 추가
+			TWeakPtr<FItemFileHandler> thisPtr = gameInstance->GetItemFileHandler(); // 만약을 대비해 Weak 캡처 추가
 			httpHandler->Request(DA_NETWORK(GlbFileDownAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
 				[thisPtr, InFunc, glbPath](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 			                     {
@@ -97,7 +97,7 @@ void FItemFileHandler::RequestImg(FRequestImgCallback InFunc, uint32 InItemId, u
 		
 		if (UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
 		{
-			TWeakPtr<FItemFileHandler> thisPtr = gameInstance->GetModelHandler(); // 만약을 대비해 Weak 캡처 추가
+			TWeakPtr<FItemFileHandler> thisPtr = gameInstance->GetItemFileHandler(); // 만약을 대비해 Weak 캡처 추가
 			httpHandler->Request(DA_NETWORK(ImgViewAddURL) + FString::Printf(TEXT("/%d/%d"), InItemId, InImgIdx), EHttpRequestType::GET,
 				[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 								 {

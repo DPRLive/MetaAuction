@@ -48,20 +48,37 @@ void UItemManager::BeginPlay()
 }
 
 /**
+ * 상품이 삭제 되었을 때, 서버에게 ItemData 요청 후 내 월드에 있었던 상품이면 지웁니다.
+ * 데디 서버에서만 실행 가능합니다.
+ * @param InItemId : 쿼리할 상품의 ID
+ */
+void UItemManager::Server_UnregisterItem(uint32 InItemId)
+{
+	CHECK_DEDI_FUNC;
+	
+	// 선형 검색..
+	for(const TWeakObjectPtr<AItemActor>& itemActor : ItemActors)
+	{
+		// 어 내 월드에 있던 물품이었네 -> 삭제
+		if(itemActor.IsValid() && itemActor->GetItemID() == InItemId)
+		{
+			itemActor->Server_RemoveItem();
+			break;
+		}
+	}
+}
+
+/**
  * 새로운 상품이 등록되면, 서버에게 ItemData 요청 후 내 월드에 맞는 상품이면 배치합니다. 
  * 데디 서버에서만 실행 가능합니다.
  * @param InItemId : 쿼리할 상품의 ID
  */
 void UItemManager::Server_RegisterNewItem(uint32 InItemId)
 {
-	if(!IsRunningDedicatedServer())
-	{
-		LOG_WARN(TEXT("Client cannot run this func"));
-		return;
-	}
-
+	CHECK_DEDI_FUNC;
+	
 	TWeakObjectPtr<UItemManager> thisPtr = this;
-	GetItemDataByID([thisPtr, InItemId](const FItemData& InItemData)
+	RequestItemDataByID([thisPtr, InItemId](const FItemData& InItemData)
 	{
 		// TODO: 월드 관리 어떻게 해야하지.. 일단 하드코딩
 		if(thisPtr.IsValid() && InItemData.World == TEXT("1"))
@@ -78,11 +95,7 @@ void UItemManager::Server_RegisterNewItem(uint32 InItemId)
  */
 void UItemManager::Server_RegisterAllWorldItemID()
 {
-	if(!IsRunningDedicatedServer())
-	{
-		LOG_WARN(TEXT("Client cannot run this func"));
-		return;
-	}
+	CHECK_DEDI_FUNC;
 	
 	// 현재 월드에서, 구매 가능하게 배치되어 있는 상품을 검색하기 위한 Body를 만든다.
 	// TODO : 월드 어케 관리함 근데? 일단 1로 하드코딩
@@ -91,7 +104,7 @@ void UItemManager::Server_RegisterAllWorldItemID()
 	option.CanDeal = EItemCanDeal::Possible;
 
 	TWeakObjectPtr<UItemManager> thisPtr = this;
-	GetItemDataByOption([thisPtr](const TArray<FItemData>& InItemData)
+	RequestItemDataByOption([thisPtr](const TArray<FItemData>& InItemData)
 	{
 		if(!thisPtr.IsValid())
 			return;
@@ -109,7 +122,7 @@ void UItemManager::Server_RegisterAllWorldItemID()
  * @param InFunc : 정보가 도착하면 실행할 FOnGetItemDataCallback 형태의 함수 
  * @param InItemId : 쿼리할 물품의 ID
  */
-void UItemManager::GetItemDataByID(FGetItemDataByIdCallback InFunc, uint32 InItemId)
+void UItemManager::RequestItemDataByID(FGetItemDataByIdCallback InFunc, uint32 InItemId)
 {
 	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
 	{
@@ -146,7 +159,7 @@ void UItemManager::GetItemDataByID(FGetItemDataByIdCallback InFunc, uint32 InIte
  * @param InFunc : 정보가 도착하면 실행할 FCallbackRefArray 형태의 함수 
  * @param InSearchOption : 물품 검색 시 사용할 옵션, 필요한 옵션만 설정 후 넣어서 사용하면 됩니다.
  */
-void UItemManager::GetItemDataByOption(FCallbackRefArray<FItemData> InFunc, const FItemSearchOption& InSearchOption)
+void UItemManager::RequestItemDataByOption(FCallbackRefArray<FItemData> InFunc, const FItemSearchOption& InSearchOption)
 {
 	// 옵션 설정
 	TSharedRef<FJsonObject> requestObj = MakeShared<FJsonObject>();
@@ -238,7 +251,7 @@ void UItemManager::Client_RequestBid(uint32 InItemId, uint64 InPrice)
  * @param InFunc : 정보가 도착하면 실행할 FCallbackRefArray 형태의 함수 
  * @param InItemId : 입찰 기록을 조회할 상품의 ID
  */
-void UItemManager::GetBidRecordByItemId(FCallbackRefArray<FBidRecord> InFunc, uint32 InItemId)
+void UItemManager::RequestBidRecordByItemId(FCallbackRefArray<FBidRecord> InFunc, uint32 InItemId)
 {
 	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
 	{
@@ -273,17 +286,93 @@ void UItemManager::GetBidRecordByItemId(FCallbackRefArray<FBidRecord> InFunc, ui
 }
 
 /**
+ * ItemId로 물품을 삭제합니다. (JWT 토큰 확인으로 내 물품이 맞을 경우만 삭제함, 판매 종료 3시간 전에는 삭제 불가)
+ * @param InItemId : 삭제할 상품의 ID
+ */
+void UItemManager::RequestRemoveItem(uint32 InItemId)
+{
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	{
+		httpHandler->Request(DA_NETWORK(RemoveItemAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::POST,[](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+							 {
+								 if (InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+								 {
+								 	if (InbWasSuccessful && InResponse.IsValid())
+								 	{
+										 if (EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+										 {
+											 // 삭제 성공
+											 LOG_WARN(TEXT("Remove Success!"));
+										 }
+										 else
+										 {
+											 // 삭제 실패, InResponse->GetContentAsString() : 서버에서 알려준 삭제 실패 이유
+											 LOG_WARN(TEXT("Remove Item Failed!"));
+											 // Json reader 생성
+											 UE_LOG(LogTemp, Warning, TEXT("%s"), *InResponse->GetContentAsString());
+										 }
+									 }
+								 }
+							 });
+	}
+}
+
+/**
+ * Type : Sell (내가 판매했던 or 판매 중인 or 판매했는데 입찰 실패한 물품을 요청합니다.)
+ * Type : Buy (내가 구매 성공한 물품을 요청합니다.)
+ * id 순으로 내림차순 정렬이 되어, 최근에 업로드한 물품이 배열의 앞쪽에 등장합니다. (로그인 된 상태여야함)
+ * 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
+ * @param InFunc : 정보가 도착하면 실행할 FCallbackRefArray 형태의 함수
+ * @param InMyItemReqType : 어떠한 내 아이템을 요청할 것인지 설정합니다. 
+ */
+void UItemManager::RequestMyItem(FCallbackRefArray<FItemData> InFunc, EMyItemReqType InMyItemReqType)
+{
+	FString reqAddURL;
+	if(InMyItemReqType == EMyItemReqType::Buy)
+		reqAddURL = DA_NETWORK(MyBuyItemAddURL);
+	else if(InMyItemReqType == EMyItemReqType::Sell)
+		reqAddURL = DA_NETWORK(MySellItemAddURL);
+	
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	{
+		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
+		TWeakObjectPtr<UItemManager> thisPtr = this;
+		httpHandler->Request(reqAddURL, EHttpRequestType::GET,[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+							 {
+								 if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+								 {
+									 // Json reader 생성
+									 TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
+									 TArray<TSharedPtr<FJsonValue>> jsonValues;
+									 FJsonSerializer::Deserialize(reader, jsonValues);
+
+									 TArray<FItemData> itemDatas;
+									 for (TSharedPtr<FJsonValue>& itemInfo : jsonValues)
+									 {
+										 TSharedPtr<FJsonObject> itemInfoObj = itemInfo->AsObject();
+										 itemDatas.Emplace(FItemData());
+										 thisPtr->_JsonToData(itemInfoObj, *itemDatas.rbegin());
+									 }
+
+									 if (InFunc)
+									 {
+										 InFunc(itemDatas);
+									 }
+								 	
+									 LOG_N(TEXT("Get My Items Success!"));
+								 }
+							 });
+	}
+}
+
+/**
  * Item Data의 Location을 기준으로, Item Actor에 상품ID를 등록한다. 데디 서버에서만 실행 가능합니다.
  * @param InItemId : 등록할 상품의 ID
  * @param InItemLoc : 상품을 등록할 ItemActor의 위치
  */
 void UItemManager::_Server_RegisterItemByLoc(uint32 InItemId, uint8 InItemLoc)
 {
-	if(!IsRunningDedicatedServer())
-	{
-		LOG_WARN(TEXT("Client cannot run this func"));
-		return;
-	}
+	CHECK_DEDI_FUNC;
 
 	const uint8 registerIdx = InItemLoc - 1;
 	

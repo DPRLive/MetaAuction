@@ -139,31 +139,46 @@ public:
 	UItemManager();
 	
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+protected:
+	virtual void BeginPlay() override;
+
+public:
+	// 상품이 삭제 되었을 때, 서버에게 ItemData 요청 후 내 월드에 있었던 상품이면 지웁니다.
+	// 데디 서버에서만 실행 가능합니다.
+	void Server_UnregisterItem(uint32 InItemId);
 	
 	// 새로운 상품이 등록되면, 서버에게 ItemData 요청 후 내 월드에 맞는 상품이면 배치합니다. 
 	// 데디 서버에서만 실행 가능합니다.
 	void Server_RegisterNewItem(uint32 InItemId);
-
+	
 	// 웹서버에 등록된 현재 월드에 배치되어 판매되고 있는 아이템들의 ID를 가져와 배치한다.
 	// 데디 서버에서만 실행 가능합니다.
 	void Server_RegisterAllWorldItemID();
 
 	// ItemID로 물품 정보를 요청합니다. 
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
-	void GetItemDataByID(FGetItemDataByIdCallback InFunc, uint32 InItemId);
+	void RequestItemDataByID(FGetItemDataByIdCallback InFunc, uint32 InItemId);
 
 	// 옵션을 걸어 물품 정보들을 요청합니다.
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
-	void GetItemDataByOption(FCallbackRefArray<FItemData> InFunc, const FItemSearchOption& InSearchOption);
+	void RequestItemDataByOption(FCallbackRefArray<FItemData> InFunc, const FItemSearchOption& InSearchOption);
 
 	// HTTP 통신으로 웹서버에 입찰을 요청하는 함수입니다.
 	void Client_RequestBid(uint32 InItemId, uint64 InPrice);
 
-	// ItemID로 물품에 대한 입찰 기록을 조회합니다. DB에서 입찰 순서대로 내림차순해서 정렬하여 주니, 그대로 배열을 사용하시면 됩니다.
+	// ItemID로 물품에 대한 입찰 기록을 조회합니다. DB에서 입찰 순서대로 내림차순(최근 입찰 기록이 먼저)해서 정렬하여 주니, 그대로 배열을 사용하시면 됩니다.
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
-	void GetBidRecordByItemId(FCallbackRefArray<FBidRecord> InFunc, uint32 InItemId);
-protected:
-	virtual void BeginPlay() override;
+	void RequestBidRecordByItemId(FCallbackRefArray<FBidRecord> InFunc, uint32 InItemId);
+
+	// ItemId로 물품을 삭제합니다. (JWT 토큰 확인으로 내 물품이 맞을 경우만 삭제함, 판매 종료 3시간 전에는 삭제 불가)
+	void RequestRemoveItem(uint32 InItemId);
+
+	// Type : Sell (내가 판매했던 or 판매 중인 or 판매했는데 입찰 실패한 물품을 요청합니다.)
+	// Type : Buy (내가 구매 성공한 물품을 요청합니다.)
+	// id 순으로 내림차순 정렬이 되어, 최근에 업로드한 물품이 배열의 앞쪽에 등장합니다. (로그인 된 상태여야함)
+	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
+	void RequestMyItem(FCallbackRefArray<FItemData> InFunc, EMyItemReqType InMyItemReqType);
 
 private:
 	// Item Data의 Location을 기준으로, Item Actor에 상품ID를 등록한다.
@@ -178,6 +193,7 @@ private:
 	
 	// 물품을 배치할 수 있는 ItemActor에 대한 포인터들. 사용자에게 표시는 1부터 할거지만 접근은 인덱스 0부터 해주세요.
 	// 클라이언트들에서도 읽을 수 있습니다.
+	// TODO : 근데 클라이언트에서 접근할 일이 있을까?
 	UPROPERTY( Replicated )
 	TArray<TWeakObjectPtr<AItemActor>> ItemActors;
 };
