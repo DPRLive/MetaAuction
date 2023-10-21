@@ -12,21 +12,18 @@ class FItemFileHandler
 {
 public:
 	FItemFileHandler();
-
-	// RequestGlb에 쓸 Callback
-	using FRequestGlbCallback = TFunction<void(const FString&)>;
-
-	// RequestImg에 쓸 Callback
-	using FRequestImgCallback = TFunction<void(UTexture2DDynamic*)>;
+	
+	// 캐시 파일들 (Saved/Models/에 저장되는 모델 파일들)을 지웁니다.
+	void RemoveCacheFile(ERemoveCacheType InRemoveCacheType);
 	
 	// 해당 item ID의 파일들을 지웁니다.
 	void RemoveGlbFile(uint32 InItemId) const;
 
 	// 해당 item ID의 모델링 파일(glb)를 요청합니다.
-	void RequestGlb(FRequestGlbCallback InFunc, uint32 InItemId) const;
+	void RequestGlb(FCallbackOneParam<const FString&> InFunc, uint32 InItemId) const;
 
 	// 해당 item Id의 index번째 이미지를 요청합니다.
-	void RequestImg(FRequestImgCallback InFunc, uint32 InItemId, uint8 InImgIdx);
+	void RequestImg(FCallbackOneParam<UTexture2DDynamic*> InFunc, uint32 InItemId, uint8 InImgIdx);
 private:
 	// glb 파일 요청이 완료되면 호출될 함수, 파일을 저장한다.
 	void _OnGlbRequestCompleted(const FHttpResponsePtr& InResponse) const;

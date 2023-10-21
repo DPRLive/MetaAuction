@@ -61,6 +61,10 @@ public:
 	// 내가 구매 성공한 물품을 요청하는 추가 Url
 	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
 	FString MyBuyItemAddURL = TEXT("/buyer/myproduct");
+
+	// 내가 구매(입찰) 시도한 물품을 요청하는 추가 Url
+	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
+	FString MyBidItemAddURL = TEXT("/buyer/tryrecord");
 	
 	// STOMP WebSocket 기본 연결 URL
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
@@ -72,5 +76,5 @@ public:
 
 	// STOMP WebSocket 물품 삭제 구독용 추가 url
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
-	FString WSRemoveItemAddURL = TEXT("/sub/deleteItem");
+	FString WSRemoveItemAddURL = TEXT("/sub/endItem");
 };

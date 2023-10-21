@@ -127,14 +127,7 @@ UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class METAAUCTION_API UItemManager : public UActorComponent
 {
 	GENERATED_BODY()
-
-	// GetItemData에 넣을때 쓸 람다 타입
-	using FGetItemDataByIdCallback = TFunction<void(const FItemData&)>;
-
-	// const TArray<T>& 타입의 람다 타입
-	template<typename T>
-	using FCallbackRefArray = TFunction<void(const TArray<T>&)>;
-
+	
 public:	
 	UItemManager();
 	
@@ -158,7 +151,7 @@ public:
 
 	// ItemID로 물품 정보를 요청합니다. 
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
-	void RequestItemDataByID(FGetItemDataByIdCallback InFunc, uint32 InItemId);
+	void RequestItemDataByID(FCallbackOneParam<const FItemData&> InFunc, uint32 InItemId);
 
 	// 옵션을 걸어 물품 정보들을 요청합니다.
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
@@ -171,7 +164,7 @@ public:
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
 	void RequestBidRecordByItemId(FCallbackRefArray<FBidRecord> InFunc, uint32 InItemId);
 
-	// ItemId로 물품을 삭제합니다. (JWT 토큰 확인으로 내 물품이 맞을 경우만 삭제함, 판매 종료 3시간 전에는 삭제 불가)
+	// ItemId로 물품을 삭제합니다. (로그인 된 상태여야 함), (JWT 토큰 확인으로 내 물품이 맞을 경우만 삭제함, 판매 종료 3시간 전에는 삭제 불가)
 	void RequestRemoveItem(uint32 InItemId);
 
 	// Type : Sell (내가 판매했던 or 판매 중인 or 판매했는데 입찰 실패한 물품을 요청합니다.)
@@ -180,6 +173,10 @@ public:
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
 	void RequestMyItem(FCallbackRefArray<FItemData> InFunc, EMyItemReqType InMyItemReqType);
 
+	// 현재 판매중인 물품이면서, 내가 입찰을 시도 했던 물품들을 보여줍니다. (로그인 된 상태여야함)
+	// 최근에 입찰한게 배열의 앞쪽에 등장합니다.
+	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
+	void RequestMyBidItem(FCallbackRefArray<FItemData> InFunc);
 private:
 	// Item Data의 Location을 기준으로, Item Actor에 상품ID를 등록한다.
 	// 데디 서버에서만 실행 가능합니다.

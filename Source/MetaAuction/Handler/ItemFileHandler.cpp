@@ -9,13 +9,79 @@
 #include <Engine/Texture2DDynamic.h>
 #include <RenderingThread.h>
 #include <TextureResource.h>
+#include <Serialization/JsonReader.h>
+#include <Serialization/JsonSerializer.h>
 
 /**
  * 생성자
  */
 FItemFileHandler::FItemFileHandler()
 {
-	// TODO: 사용되지 않을 로컬 모델링 파일 제거, 사진 파일 요청 필요
+}
+
+/**
+ * 캐시 파일들 (Saved/Models/에 저장되는 모델 파일들)을 지웁니다.
+ * 아마 프로그램 실행 시 메인 화면에서 로그인 후 레벨 넘어가기 전 unuseable로 한번 호출해주면 좋을듯해요
+ * @param InRemoveCacheType : 파일을 지울때의 옵션, Unuseable일 경우 로그인 된 상태에서 해주세요.
+ */
+void FItemFileHandler::RemoveCacheFile(ERemoveCacheType InRemoveCacheType)
+{
+	FString basePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + TEXT("Models/");
+	
+	if(InRemoveCacheType == ERemoveCacheType::All) // 다 지워버리렴!
+	{
+		IPlatformFile& platformFile = FPlatformFileManager::Get().GetPlatformFile();
+		platformFile.DeleteDirectoryRecursively(*basePath);
+
+		return;
+	}
+
+	// 판매중인 물품은 캐시 파일 지울 목록에서 제외
+	// 옵션 설정
+	TSharedRef<FJsonObject> requestObj = MakeShared<FJsonObject>();
+	requestObj->SetBoolField(TEXT("isPossible"), true);
+	
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	{
+		httpHandler->Request(DA_NETWORK(ItemSearchAddURL), EHttpRequestType::POST,[basePath](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+							 {
+								 if (InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+								 {
+									 // Json reader 생성
+									 TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
+									 TArray<TSharedPtr<FJsonValue>> jsonValues;
+									 FJsonSerializer::Deserialize(reader, jsonValues);
+
+								 	// 지우지 않아야 할 물품 번호들을 뽑는다
+									 TSet<uint32> sellItemIds;
+									 for (TSharedPtr<FJsonValue>& itemInfo : jsonValues)
+									 {
+										 TSharedPtr<FJsonObject> itemInfoObj = itemInfo->AsObject();
+										 uint32 id;
+										 if(itemInfoObj->TryGetNumberField(TEXT("id"), id))
+										 {
+										 	sellItemIds.Emplace(id);
+										 }
+									 }
+
+								 	// 확인해가며 파일을 지운다
+								 	TArray<FString> files;
+								 	IPlatformFile& platformFile = FPlatformFileManager::Get().GetPlatformFile();
+								 	platformFile.FindFiles(files, *basePath, nullptr);
+
+								 	for(const FString& file : files)
+								 	{
+								 		FString path, fileName, extension;
+								 		FPaths::Split(file, path, fileName, extension);
+
+								 		if(sellItemIds.Find(FCString::Atoi(*fileName)) == nullptr)
+								 		{
+								 			platformFile.DeleteFile(*file);
+								 		}
+								 	}
+								 }
+							 }, httpHandler->JsonToString(requestObj));
+	}
 }
 
 /**
@@ -33,10 +99,10 @@ void FItemFileHandler::RemoveGlbFile(uint32 InItemId) const
 
 /**
  * 해당 item ID의 모델링 파일(glb)를 요청합니다.
- * @param InFunc : 요청이 완료되면 실행할 람다 함수, FRequestGlbCallback과 형식이 같아야 하며 람다 내부에서 클래스 멤버 접근시 weak 캡처 해주세요!
+ * @param InFunc : 요청이 완료되면 실행할 람다 함수, 형식이 같아야 하며 람다 내부에서 클래스 멤버 접근시 weak 캡처 해주세요!
  * @param InItemId : 물품의 ItemId 
  */
-void FItemFileHandler::RequestGlb(FRequestGlbCallback InFunc, uint32 InItemId) const
+void FItemFileHandler::RequestGlb(FCallbackOneParam<const FString&> InFunc, uint32 InItemId) const
 {
 	// 모델링 파일 경로에 접근한다.
 	FString glbPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + FString::Printf(TEXT("Models/%d.glb"), InItemId);
@@ -84,11 +150,11 @@ void FItemFileHandler::RequestGlb(FRequestGlbCallback InFunc, uint32 InItemId) c
 
 /**
  * 해당 item Id의 index번째 이미지를 요청합니다.
- * @param InFunc : 요청이 완료되면 실행할 람다 함수, FRequestImgCallback과 형식이 같아야 하며 람다 내부에서 클래스 멤버 접근시 weak 캡처 해주세요! 
+ * @param InFunc : 요청이 완료되면 실행할 람다 함수, 형식이 같아야 하며 람다 내부에서 클래스 멤버 접근시 weak 캡처 해주세요! 
  * @param InItemId : 요청할 Item의 id
  * @param InImgIdx : 요청할 Item의 몇번째 사진인지?
  */
-void FItemFileHandler::RequestImg(FRequestImgCallback InFunc, uint32 InItemId, uint8 InImgIdx)
+void FItemFileHandler::RequestImg(FCallbackOneParam<UTexture2DDynamic*> InFunc, uint32 InItemId, uint8 InImgIdx)
 {
 	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
 	{

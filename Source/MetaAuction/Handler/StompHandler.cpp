@@ -36,9 +36,11 @@ void FStompHandler::_OnConnectedSuccess(const FString& InProtocolVersion, const 
 	// 서버가 구독
 	if(IsRunningDedicatedServer())
 	{
+		// 새 아이템 등록 알림 구독
 		Server_OnNewItem.BindRaw(this, &FStompHandler::_Server_OnNewItem);
 		Stomp->Subscribe(DA_NETWORK(WSNewItemAddURL), Server_OnNewItem);
-		
+
+		// 아이템의 삭제 / 종료 알림 구독
 		Server_OnRemoveItem.BindRaw(this, &FStompHandler::_Server_OnRemoveItem);
 		Stomp->Subscribe(DA_NETWORK(WSRemoveItemAddURL), Server_OnRemoveItem);	
 	}

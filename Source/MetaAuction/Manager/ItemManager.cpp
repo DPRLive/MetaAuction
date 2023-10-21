@@ -119,10 +119,10 @@ void UItemManager::Server_RegisterAllWorldItemID()
 /**
  * 클라이언트에서 ItemID로 물품 정보를 요청합니다.
  * 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
- * @param InFunc : 정보가 도착하면 실행할 FOnGetItemDataCallback 형태의 함수 
+ * @param InFunc : 정보가 도착하면 실행할 람다 함수 
  * @param InItemId : 쿼리할 물품의 ID
  */
-void UItemManager::RequestItemDataByID(FGetItemDataByIdCallback InFunc, uint32 InItemId)
+void UItemManager::RequestItemDataByID(FCallbackOneParam<const FItemData&> InFunc, uint32 InItemId)
 {
 	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
 	{
@@ -360,6 +360,45 @@ void UItemManager::RequestMyItem(FCallbackRefArray<FItemData> InFunc, EMyItemReq
 									 }
 								 	
 									 LOG_N(TEXT("Get My Items Success!"));
+								 }
+							 });
+	}
+}
+
+/**
+ * 현재 판매중인 물품이면서, 내가 입찰을 시도 했던 물품들을 보여줍니다. (로그인 된 상태여야함)
+ * 최근에 입찰한게 배열의 앞쪽에 등장합니다.
+ * @param InFunc : 정보가 도착하면 실행할 FCallbackRefArray 형태의 함수
+ */
+void UItemManager::RequestMyBidItem(FCallbackRefArray<FItemData> InFunc)
+{
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	{
+		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
+		TWeakObjectPtr<UItemManager> thisPtr = this;
+		httpHandler->Request(DA_NETWORK(MyBidItemAddURL), EHttpRequestType::GET,[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+							 {
+								 if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+								 {
+									 // Json reader 생성
+									 TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
+									 TArray<TSharedPtr<FJsonValue>> jsonValues;
+									 FJsonSerializer::Deserialize(reader, jsonValues);
+
+									 TArray<FItemData> itemDatas;
+									 for (TSharedPtr<FJsonValue>& itemInfo : jsonValues)
+									 {
+										 TSharedPtr<FJsonObject> itemInfoObj = itemInfo->AsObject();
+										 itemDatas.Emplace(FItemData());
+										 thisPtr->_JsonToData(itemInfoObj, *itemDatas.rbegin());
+									 }
+
+									 if (InFunc)
+									 {
+										 InFunc(itemDatas);
+									 }
+								 	
+									 LOG_N(TEXT("Get My Bid Items Success!"));
 								 }
 							 });
 	}

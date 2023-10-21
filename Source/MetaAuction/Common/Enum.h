@@ -42,3 +42,11 @@ enum class EMyItemReqType : uint8
 	Sell		UMETA( Tooltip = "내가 판매했던 or 판매 중인 or 판매했는데 입찰 실패한 물품" ),
 	Buy			UMETA( Tooltip = "내가 구매 성공한 물품" )
 };
+
+// 캐시 파일을 지울때 옵션입니다.
+UENUM(BlueprintType)
+enum class ERemoveCacheType : uint8
+{
+	All			UMETA( Tooltip = "모든 파일 지우기" ),
+	Unuseable	UMETA( Tooltip = "사용 가능성 낮은 파일 지우기" )
+};

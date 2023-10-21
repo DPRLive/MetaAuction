@@ -25,18 +25,19 @@ void UMAGameInstance::Init()
 	Super::Init();
 
 	HttpHandler = MakeShareable(new FHttpHandler());
-	StompHandler = MakeShareable(new FStompHandler());
 	
 	//if(IsRunningDedicatedServer()) // 테스트, 데디 서버면 자동 로그인
 	//{
 		LOG_WARN(TEXT("Is Running Dedicated Server! Auto Login!"));
 		RequestLogin(TEXT("test"), TEXT("test"));
 	//}
-
+	
 	if(!IsRunningDedicatedServer())
 	{
 		ItemFileHandler = MakeShareable(new FItemFileHandler());
 	}
+	
+	StompHandler = MakeShareable(new FStompHandler());
 	
 }
 
