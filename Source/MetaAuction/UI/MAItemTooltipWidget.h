@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Actor/ItemActor.h"
+#include "Manager/ItemManager.h"
 #include "MAItemTooltipWidget.generated.h"
 
 struct FItemData;
@@ -38,11 +39,7 @@ private:
 
 	void UpdateAll(const FItemData& InItemData);
 	void UpdateText(const FItemData& InItemData);
-	void UpdateImage();
-	void LoadAllImage(const FItemData& InItemData);
-
-	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
-	void AddImage(const FString& InFilePath);
+	void UpdateImage(const FItemData& InItemData);
 
 private:
 
@@ -77,8 +74,11 @@ private:
 	TObjectPtr<class UButton> ItemImageNextButton;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TArray<TObjectPtr<UTexture2D>> CachedTextures;
+	int32 CurrentImageIndex;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	int32 CurrentImageIndex;
+	int32 MaxImageIndex;
+
+	UPROPERTY()
+	FItemData CachedItemData;
 };

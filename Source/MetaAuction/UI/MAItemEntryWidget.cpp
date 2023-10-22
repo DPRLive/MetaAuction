@@ -3,6 +3,8 @@
 
 #include "UI/MAItemEntryWidget.h"
 #include "UI/MAItemEntry.h"
+#include "UI/MAWidgetUtils.h"
+#include "Handler/ItemFileHandler.h"
 
 #include <Components/Image.h>
 #include <Components/TextBlock.h>
@@ -66,7 +68,6 @@ void UMAItemEntryWidget::UpdateText(const FItemData& InItemData)
 
 void UMAItemEntryWidget::UpdateImage(const FItemData& InItemData)
 {
-	// ��ȿ�� �̹����� �߰ߵǸ� �� �̹����� ǥ���Ѵ�.
 	// for (const FString& ImgPath : InItemData.ImgPaths)
 	// {
 	// 	UTexture2D* Texture = FImageUtils::ImportFileAsTexture2D(ImgPath);
@@ -76,4 +77,23 @@ void UMAItemEntryWidget::UpdateImage(const FItemData& InItemData)
 	// 		break;
 	// 	}
 	// }
+
+	TWeakPtr<FItemFileHandler> ItemFileHandler = UMAWidgetUtils::GetItemFileHandler(GetWorld());
+	if (ItemFileHandler.IsValid())
+	{
+		LOG_SCREEN(FColor::Green, TEXT("Request %s"), *FString(__FUNCTION__));
+		TWeakObjectPtr<ThisClass> ThisPtr(this);
+		if (ThisPtr.IsValid())
+		{
+			auto Func = [ThisPtr](UTexture2DDynamic* InImage)
+				{
+					if (ThisPtr.IsValid())
+					{
+						ThisPtr->ItemImage->SetBrushFromTextureDynamic(InImage);
+						LOG_SCREEN(FColor::Green, TEXT("Successed %s"), *FString(__FUNCTION__));
+					}
+				};
+			ItemFileHandler.Pin()->RequestImg(Func, InItemData.ItemID, 0);
+		}
+	}
 }

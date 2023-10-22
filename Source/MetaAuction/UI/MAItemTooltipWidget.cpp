@@ -2,18 +2,19 @@
 
 
 #include "UI/MAItemTooltipWidget.h"
-#include "Manager/ItemManager.h"
+#include "UI/MAWidgetUtils.h"
+#include "Handler/ItemFileHandler.h"
 
 #include <Components/TextBlock.h>
 #include <Components/Image.h>
 #include <Components/Button.h>
-#include <GameFramework/GameState.h>
 #include <ImageUtils.h>
 
 UMAItemTooltipWidget::UMAItemTooltipWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	CurrentImageIndex = 0;
+	MaxImageIndex = 0;
 }
 
 void UMAItemTooltipWidget::NativeConstruct()
@@ -35,12 +36,7 @@ void UMAItemTooltipWidget::NativeConstruct()
 
 void UMAItemTooltipWidget::UpdateById(uint32 InItemID)
 {
-	AGameState* GameState = IsValid(GetWorld()) ? GetWorld()->GetGameState<AGameState>() : nullptr;
-	if (!IsValid(GameState))
-	{
-		return;
-	}
-	UItemManager* ItemManager = GameState->GetComponentByClass<UItemManager>();
+	UItemManager* ItemManager = UMAWidgetUtils::GetItemManager(GetWorld());
 	if (!IsValid(ItemManager))
 	{
 		return;
@@ -49,19 +45,25 @@ void UMAItemTooltipWidget::UpdateById(uint32 InItemID)
 	TWeakObjectPtr<ThisClass> ThisPtr(this);
 	if (ThisPtr.IsValid())
 	{
-		auto GetItemDataByID = [ThisPtr](const FItemData& InData)
+		auto Func = [ThisPtr](const FItemData& InData)
 			{
-				ThisPtr->UpdateAll(InData);
+				if (ThisPtr.IsValid())
+				{
+					ThisPtr->UpdateAll(InData);
+				}
 			};
-		ItemManager->RequestItemDataByID(GetItemDataByID, InItemID);
+		ItemManager->RequestItemDataByID(Func, InItemID);
 	}
 }
 
 void UMAItemTooltipWidget::UpdateAll(const FItemData& InItemData)
 {
 	UpdateText(InItemData);
-	LoadAllImage(InItemData);
-	UpdateImage();
+	UpdateImage(InItemData);
+
+	CachedItemData = InItemData;
+	CurrentImageIndex = 0;
+	MaxImageIndex = InItemData.ImgCount;
 }
 
 void UMAItemTooltipWidget::UpdateText(const FItemData& InItemData)
@@ -91,11 +93,25 @@ void UMAItemTooltipWidget::UpdateText(const FItemData& InItemData)
 	EndTimeText->SetText(FText::FromString(EndTimeString));
 }
 
-void UMAItemTooltipWidget::UpdateImage()
+void UMAItemTooltipWidget::UpdateImage(const FItemData& InItemData)
 {
-	if (CachedTextures.IsValidIndex(CurrentImageIndex))
+	TWeakPtr<FItemFileHandler> ItemFileHandler = UMAWidgetUtils::GetItemFileHandler(GetWorld());
+	if (ItemFileHandler.IsValid())
 	{
-		ItemImage->SetBrushFromTexture(CachedTextures[CurrentImageIndex], false);
+		LOG_SCREEN(FColor::Green, TEXT("Request %s"), *FString(__FUNCTION__));
+		TWeakObjectPtr<ThisClass> ThisPtr(this);
+		if (ThisPtr.IsValid())
+		{
+			auto Func = [ThisPtr](UTexture2DDynamic* InImage)
+				{
+					if (ThisPtr.IsValid())
+					{
+						ThisPtr->ItemImage->SetBrushFromTextureDynamic(InImage);
+						LOG_SCREEN(FColor::Green, TEXT("Successed %s"), *FString(__FUNCTION__));
+					}
+				};
+			ItemFileHandler.Pin()->RequestImg(Func, InItemData.ItemID, CurrentImageIndex);
+		}
 	}
 }
 
@@ -104,34 +120,15 @@ void UMAItemTooltipWidget::ItemImagePrevButtonClicked()
 	if (CurrentImageIndex > 0)
 	{
 		CurrentImageIndex--;
-		UpdateImage();
+		UpdateImage(CachedItemData);
 	}
 }
 
 void UMAItemTooltipWidget::ItemImageNextButtonClicked()
 {
-	if (CurrentImageIndex < CachedTextures.Num())
+	if (CurrentImageIndex < MaxImageIndex)
 	{
 		CurrentImageIndex++;
-		UpdateImage();
+		UpdateImage(CachedItemData);
 	}
-}
-
-void UMAItemTooltipWidget::LoadAllImage(const FItemData& InItemData)
-{
-	// AGameState* GameState = IsValid(GetWorld()) ? GetWorld()->GetGameState<AGameState>() : nullptr;
-	// if (!IsValid(GameState))
-	// {
-	// 	return;
-	// }
-	// UItemManager* ItemManager = GameState->GetComponentByClass<UItemManager>();
-	// if (!IsValid(ItemManager))
-	// {
-	// 	return;
-	// }
-}
-
-void UMAItemTooltipWidget::AddImage(const FString& InFilePath)
-{
-	CachedTextures.Emplace(FImageUtils::ImportFileAsTexture2D(InFilePath));
 }

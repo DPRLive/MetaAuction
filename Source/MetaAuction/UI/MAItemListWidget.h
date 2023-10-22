@@ -30,9 +30,7 @@ public:
 
 private:
 
-	
 	void UpdateItems(const TArray<FItemData>& ItemData);
-	UItemManager* GetItemManager();
 
 private:
 
