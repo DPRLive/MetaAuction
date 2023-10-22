@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Manager/ItemManager.h"
 #include "MAItemListWidget.generated.h"
 
 /** UMAItemListWidget
@@ -21,6 +22,17 @@ public:
 protected:
 
 	virtual void NativeConstruct() override;
+
+public:
+
+	void UpdateSearchItems(const FItemSearchOption& InItemOption);
+	void UpdateMyItems(EMyItemReqType InType);
+
+private:
+
+	
+	void UpdateItems(const TArray<FItemData>& ItemData);
+	UItemManager* GetItemManager();
 
 private:
 

@@ -2,11 +2,76 @@
 
 
 #include "UI/MAAuctionWidget.h"
+#include "UI/MAItemListWidget.h"
+#include "UI/MAItemFilterWidget.h"
+#include "Common/MALog.h"
+
+#include <Components/HorizontalBox.h>
+#include <Components/Button.h>
 
 UMAAuctionWidget::UMAAuctionWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	SetIsFocusable(true);
+
+	PreviousButton = nullptr;
+	CurrentButton = nullptr;
+}
+
+void UMAAuctionWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	ensure(MenuBox);
+	if (IsValid(MenuBox))
+	{
+		TArray<UWidget*> Widgets = MenuBox->GetAllChildren();
+		for (UWidget* Widget : Widgets)
+		{
+			UButton* Button = Cast<UButton>(Widget);
+			if(IsValid(Button))
+			{
+				AllMenuButtons.Emplace(Button);
+			}
+		}
+	}
+
+	ensure(ItemSearchButton);
+	if (IsValid(ItemSearchButton))
+	{
+		ItemSearchButton->OnClicked.AddDynamic(this, &ThisClass::ItemSearchButtonClicked);
+	}
+
+	ensure(ItemBidOnButton);
+	if (IsValid(ItemBidOnButton))
+	{
+		ItemBidOnButton->OnClicked.AddDynamic(this, &ThisClass::ItemBidOnButtonClicked);
+	}
+
+	ensure(ItemRegisteredButton);
+	if (IsValid(ItemRegisteredButton))
+	{
+		ItemRegisteredButton->OnClicked.AddDynamic(this, &ThisClass::ItemRegisteredButtonClicked);
+	}
+
+	ensure(RegisterItemButton);
+	if (IsValid(RegisterItemButton))
+	{
+		RegisterItemButton->OnClicked.AddDynamic(this, &ThisClass::RegisterItemButtonClicked);
+	}
+
+	ensure(TransactionHistoryButton);
+	if (IsValid(TransactionHistoryButton))
+	{
+		TransactionHistoryButton->OnClicked.AddDynamic(this, &ThisClass::TransactionHistoryButtonClicked);
+	}
+
+	ensure(WBP_ItemList);
+	ensure(WBP_ItemFilter);
+	if (IsValid(WBP_ItemFilter))
+	{
+		WBP_ItemFilter->OnSearch.AddDynamic(this, &ThisClass::Search);
+	}
 }
 
 void UMAAuctionWidget::ToggleWidget()
@@ -64,4 +129,71 @@ void UMAAuctionWidget::ToggleWidget()
 		// 포커스 설정
 		SetFocus();
 	}
+}
+
+void UMAAuctionWidget::ItemSearchButtonClicked()
+{
+	if (MenuButtonClicked(ItemSearchButton))
+	{
+		WBP_ItemList->UpdateSearchItems(WBP_ItemFilter->GetCurrentOption());
+	}
+}
+
+void UMAAuctionWidget::ItemBidOnButtonClicked()
+{
+	if (MenuButtonClicked(ItemBidOnButton))
+	{
+		WBP_ItemList->UpdateMyItems(EMyItemReqType::Buy);
+	}
+}
+
+void UMAAuctionWidget::ItemRegisteredButtonClicked()
+{
+	if (MenuButtonClicked(ItemRegisteredButton))
+	{
+		WBP_ItemList->UpdateMyItems(EMyItemReqType::Sell);
+	}
+}
+
+void UMAAuctionWidget::RegisterItemButtonClicked()
+{
+	if (MenuButtonClicked(RegisterItemButton))
+	{
+
+	}
+}
+
+void UMAAuctionWidget::TransactionHistoryButtonClicked()
+{
+	if (MenuButtonClicked(TransactionHistoryButton))
+	{
+
+	}
+}
+
+bool UMAAuctionWidget::MenuButtonClicked(UButton* ClickedButton)
+{
+	if (CurrentButton == ClickedButton)
+	{
+		return false;
+	}
+
+	PreviousButton = CurrentButton;
+	CurrentButton = ClickedButton;
+
+	if (IsValid(PreviousButton))
+	{
+		PreviousButton->SetStyle(CurrentButton->GetStyle());
+	}
+
+	FButtonStyle NewStyle = CurrentButton->GetStyle();
+	NewStyle.SetNormal(NewStyle.Pressed);
+	CurrentButton->SetStyle(NewStyle);
+
+	return true;
+}
+
+void UMAAuctionWidget::Search(const FItemSearchOption& InOption)
+{
+	WBP_ItemList->UpdateSearchItems(InOption);
 }

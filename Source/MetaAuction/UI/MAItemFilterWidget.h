@@ -4,7 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Manager/ItemManager.h"
 #include "MAItemFilterWidget.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSearchSignature, const FItemSearchOption&, Option);
+
 
 /**
  * 
@@ -27,6 +31,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Search();
 
+	FItemSearchOption GetCurrentOption();
+
 private:
 
 	UFUNCTION()
@@ -34,6 +40,10 @@ private:
 
 	UFUNCTION()
 	void SearchTextCommitted(const FText& Text, ETextCommit::Type CommitMethod);
+
+public:
+
+	FSearchSignature OnSearch;
 
 private:
 

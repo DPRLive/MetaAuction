@@ -2,7 +2,6 @@
 
 
 #include "UI/MAItemFilterWidget.h"
-#include "Manager/ItemManager.h"
 
 #include <GameFramework/GameState.h>
 #include <Components/EditableText.h>
@@ -58,8 +57,18 @@ void UMAItemFilterWidget::Search()
 {
 	if (!SearchText->GetText().IsEmpty())
 	{
-		
+		OnSearch.Broadcast(GetCurrentOption());
 	}
+}
+
+FItemSearchOption UMAItemFilterWidget::GetCurrentOption()
+{
+	FItemSearchOption NewOption;
+	NewOption.SearchString = SearchText->GetText().ToString();
+	// TODO: NewOption.World = ???
+	NewOption.ItemType = static_cast<EItemDealType>(ItemDealTypeComboBox->GetSelectedIndex());
+	NewOption.CanDeal = static_cast<EItemCanDeal>(ItemCanDealComboBox->GetSelectedIndex());
+	return NewOption;
 }
 
 void UMAItemFilterWidget::SearchButtonClicked()

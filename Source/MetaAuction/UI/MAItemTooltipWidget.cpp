@@ -20,12 +20,14 @@ void UMAItemTooltipWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	if (ensure(ItemImagePrevButton))
+	ensure(ItemImagePrevButton);
+	if (IsValid(ItemImagePrevButton))
 	{
 		ItemImagePrevButton->OnClicked.AddDynamic(this, &ThisClass::ItemImagePrevButtonClicked);
 	}
-
-	if (ensure(ItemImageNextButton))
+	
+	ensure(ItemImageNextButton);
+	if (IsValid(ItemImageNextButton))
 	{
 		ItemImageNextButton->OnClicked.AddDynamic(this, &ThisClass::ItemImageNextButtonClicked);
 	}
@@ -34,12 +36,12 @@ void UMAItemTooltipWidget::NativeConstruct()
 void UMAItemTooltipWidget::UpdateById(uint32 InItemID)
 {
 	AGameState* GameState = IsValid(GetWorld()) ? GetWorld()->GetGameState<AGameState>() : nullptr;
-	if (!ensure(GameState))
+	if (!IsValid(GameState))
 	{
 		return;
 	}
 	UItemManager* ItemManager = GameState->GetComponentByClass<UItemManager>();
-	if (!ensure(ItemManager))
+	if (!IsValid(ItemManager))
 	{
 		return;
 	}
