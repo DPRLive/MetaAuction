@@ -3,6 +3,7 @@
 #pragma once
 
 #include <Components/ActorComponent.h> 
+#include <IStompClient.h>
 #include "ItemManager.generated.h"
 
 class AItemActor;
@@ -177,6 +178,7 @@ public:
 	// 최근에 입찰한게 배열의 앞쪽에 등장합니다.
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
 	void RequestMyBidItem(FCallbackRefArray<FItemData> InFunc);
+
 private:
 	// Item Data의 Location을 기준으로, Item Actor에 상품ID를 등록한다.
 	// 데디 서버에서만 실행 가능합니다.
@@ -187,10 +189,44 @@ private:
 
 	// Json 형태의 BidRecord JsonObject를 FBidRecord로 변환한다.
 	void _JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FBidRecord& OutBidRecord) const;
+
+	// Stomp를 통해 들어오는 새 아이템 등록 알림을 처리한다.
+	void _Server_OnNewItem(const IStompMessage& InMessage);
+
+	// Stomp를 통해 들어오는 아이템 제거 알림을 처리한다.
+	void _Server_OnRemoveItem(const IStompMessage& InMessage);
+
+	// Stomp 메세지로 온 아이템 가격 변동 알림을 받는다.
+	void _Server_OnChangePrice(const IStompMessage& InMessage) const;
+
+	// 서버 -> RPC로 모두에게 가격 변동 알림을 줍니다.
+	UFUNCTION( NetMulticast, Reliable )
+	void _ChangePrice(const uint32& InItemId, const uint64& InPrice) const;
 	
+	// Stomp 메세지로 아이템 정보 변동 알림을 받는다.
+	void _Server_OnChangeItemData(const IStompMessage& InMessage) const;
+public:
+	// 가격 변동 알림을 받아내는 Delegate
+	// UI서 아이템 확인시 구독, 확인 끝날시 구독 해제를 통해서 실시간으로 가격이 변동되게 해주세요.
+	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnChangePrice, const uint32&, const uint64&)
+	FOnChangePrice OnChangePrice;
+	
+private:
 	// 물품을 배치할 수 있는 ItemActor에 대한 포인터들. 사용자에게 표시는 1부터 할거지만 접근은 인덱스 0부터 해주세요.
 	// 클라이언트들에서도 읽을 수 있습니다.
 	// TODO : 근데 클라이언트에서 접근할 일이 있을까?
 	UPROPERTY( Replicated )
 	TArray<TWeakObjectPtr<AItemActor>> ItemActors;
+
+	// New Item 알림 WebSocket에 Subscribe 한 곳에 이벤트 도착시 호출, 서버에서 사용
+	FStompSubscriptionEvent Server_EventNewItem;
+
+	// Remove Item 알림 WebSocket에 Subscribe 한 곳에 이벤트 도착시 호출, 서버에서 사용
+	FStompSubscriptionEvent Server_EventRemoveItem;
+
+	// Change Price 알림 Subscribe 한 곳에 이벤트 도착시 호출, 서버에서 사용
+	FStompSubscriptionEvent Server_EventChangePrice;
+
+	// Item Data 변경 알림 Subscribe 한 곳에 이벤트 도착시 호출, 서버에서 사용
+	FStompSubscriptionEvent Server_EventChangeItemData;
 };

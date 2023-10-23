@@ -77,4 +77,12 @@ public:
 	// STOMP WebSocket 물품 삭제 구독용 추가 url
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
 	FString WSRemoveItemAddURL = TEXT("/sub/endItem");
+
+	// STOMP WebSocket 물품 가격 변동 구독용 추가 url
+	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
+	FString WSChangePriceAddURL = TEXT("/sub/changePrice");
+
+	// STOMP WebSocket 물품 정보 변동 구독용 추가 url
+	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
+	FString WSChangeDataAddURL = TEXT("/sub/modify");
 };

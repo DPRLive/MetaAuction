@@ -1,11 +1,14 @@
 
 #include "ItemManager.h"
 #include "../Actor/ItemActor.h"
+#include "Core/MAGameInstance.h"
 
 #include <Kismet/GameplayStatics.h>
 #include <Interfaces/IHttpResponse.h>
 #include <Serialization/JsonSerializer.h>
 #include <Net/UnrealNetwork.h>
+#include <IStompMessage.h>
+
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ItemManager)
 
@@ -44,6 +47,26 @@ void UItemManager::BeginPlay()
 		{
 			return a1->GetLevelPosition() < a2->GetLevelPosition();
 		});
+
+		// 서버에서 WebSocket에 구독할 것들을 구독한다.
+		if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
+		{
+			const TSharedPtr<FStompHandler>& stomp = gameInstance->GetStompHandler();
+			if(stomp.IsValid())
+			{
+				// 새 아이템 등록 알림 구독
+				Server_EventNewItem.BindUObject(this, &UItemManager::_Server_OnNewItem);
+				stomp->Subscribe(DA_NETWORK(WSNewItemAddURL), Server_EventNewItem);
+
+				// 아이템의 삭제 / 종료 알림 구독
+				Server_EventRemoveItem.BindUObject(this, &UItemManager::_Server_OnRemoveItem);
+				stomp->Subscribe(DA_NETWORK(WSRemoveItemAddURL), Server_EventRemoveItem);
+
+				// 아이템 가격 변동 구독
+				Server_EventChangePrice.BindUObject(this, &UItemManager::_Server_OnChangePrice);
+				stomp->Subscribe(DA_NETWORK(WSChangePriceAddURL), Server_EventChangePrice);
+			}
+		}
 	}
 }
 
@@ -485,5 +508,79 @@ void UItemManager::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FBidRec
 	for (const TSharedPtr<FJsonValue>& value : *out) // 파싱한다.
 	{
 		OutBidRecord.BidTime.Emplace(value->AsNumber());
+	}
+}
+
+/**
+ * Stomp를 통해 들어오는 새 아이템 등록 알림을 처리한다.
+ */
+void UItemManager::_Server_OnNewItem(const IStompMessage& InMessage)
+{
+	CHECK_DEDI_FUNC;
+
+	uint32 itemID = FCString::Atoi(*InMessage.GetBodyAsString());
+
+	LOG_N(TEXT("Server : On New Item %d!"), itemID);
+	
+	// 새로운 아이템을 등록한다.
+	Server_RegisterNewItem(itemID);
+}
+
+/**
+ * Stomp를 통해 들어오는 아이템 제거 알림을 처리한다.
+ */
+void UItemManager::_Server_OnRemoveItem(const IStompMessage& InMessage)
+{
+	CHECK_DEDI_FUNC;
+
+	uint32 itemID = FCString::Atoi(*InMessage.GetBodyAsString());
+
+	LOG_N(TEXT("Server : Remove Item %d!"), itemID);
+	
+	// Item Manager에게 아이템 삭제를 요청한다.
+	Server_UnregisterItem(itemID);
+}
+
+/**
+ *  Stomp 메세지로 온 아이템 가격 변동 알림을 받는다.
+ */
+void UItemManager::_Server_OnChangePrice(const IStompMessage& InMessage) const
+{
+	CHECK_DEDI_FUNC;
+
+	TArray<FString> idAndPrice;
+	InMessage.GetBodyAsString().ParseIntoArray(idAndPrice, TEXT("-"), true);
+
+	if(idAndPrice.Num() == 2)
+	{
+		_ChangePrice(FCString::Atoi(*idAndPrice[0]), FCString::Atoi64(*idAndPrice[1]));
+	}
+}
+
+/**
+ * 서버에서 RPC로 가격 변동을 알립니다.
+ * @param InItemId : 가격이 변동된 상품의 ID
+ * @param InPrice : 현재 가격
+ */
+void UItemManager::_ChangePrice_Implementation(const uint32& InItemId, const uint64& InPrice) const
+{
+	LOG_WARN(TEXT("id[%d] change price : %lld"), InItemId, InPrice);
+
+	if(OnChangePrice.IsBound())
+		OnChangePrice.Broadcast(InItemId, InPrice);
+}
+
+/**
+ *  Stomp 메세지로 아이템 정보 변동 알림을 받는다.
+ *  TODO : 할게 많네.
+ */
+void UItemManager::_Server_OnChangeItemData(const IStompMessage& InMessage) const
+{
+	CHECK_DEDI_FUNC;
+	
+	// glb에 변동이 있었는지 확인한다
+	if(InMessage.GetBodyAsString().Contains(TEXT("glb")))
+	{
+		// 변동이 있다면 로컬 파일에서 지운 후 ..
 	}
 }

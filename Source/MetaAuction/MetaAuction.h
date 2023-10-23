@@ -15,6 +15,7 @@
 #include "Common/Typedef.h"
 #include "DataAsset/MADataAssetHelper.h"
 #include "Handler/HttpHandler.h"
+#include "Handler/StompHandler.h"
 
 #define CHECK_DEDI_FUNC									\
 	if(!IsRunningDedicatedServer())						\
