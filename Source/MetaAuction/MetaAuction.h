@@ -15,7 +15,9 @@
 #include "Common/Typedef.h"
 #include "DataAsset/MADataAssetHelper.h"
 #include "Handler/HttpHandler.h"
+#include "Handler/ItemFileHandler.h"
 #include "Handler/StompHandler.h"
+#include "Manager/ItemManager.h"
 
 #define CHECK_DEDI_FUNC									\
 	if(!IsRunningDedicatedServer())						\
@@ -32,3 +34,9 @@ UGameInstance* MAGetGameInstance( UWorld* InWorld = nullptr );
 
 // Http Handler 반환 
 FHttpHandler* MAGetHttpHandler(UGameInstance* InGameInstance);
+
+// ItemFileHandler 반환
+FItemFileHandler* MAGetItemFileHandler(UGameInstance* InGameInstance);
+
+// StompHandler 반환
+FStompHandler* MAGetStompHandler(UGameInstance* InGameInstance);

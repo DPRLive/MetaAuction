@@ -73,25 +73,20 @@ void AItemActor::Client_RedrawModel()
 		Client_Model = nullptr;
 	}
 	
-	if (UMAGameInstance* gameInstance = Cast<UMAGameInstance>(GetGameInstance()))
+	if (FItemFileHandler* fileHandler = MAGetItemFileHandler(GetGameInstance()))
 	{
-		TWeakPtr<FItemFileHandler> handler = gameInstance->GetItemFileHandler();
-		if (handler.IsValid())
-		{
-			handler.Pin()->RemoveGlbFile(ItemID); // 파일을 지우고
+		fileHandler->RemoveGlbFile(ItemID); // 파일을 지우고
 
-			// 다시 요청.
-			TWeakObjectPtr<AItemActor> thisPtr = this;
-			handler.Pin()->RequestGlb([thisPtr](const FString& InGlbPath)
+		// 다시 요청.
+		TWeakObjectPtr<AItemActor> thisPtr = this;
+		fileHandler->RequestGlb([thisPtr](const FString& InGlbPath)
+		{
+			if (thisPtr.IsValid())
 			{
-				if(thisPtr.IsValid())
-				{
-					UglTFRuntimeFunctionLibrary::glTFLoadAssetFromFilenameAsync(InGlbPath, false, FglTFRuntimeConfig(), thisPtr->Client_OnRequestModelCompleted);
-				}
-			}, ItemID);
-		}
+				UglTFRuntimeFunctionLibrary::glTFLoadAssetFromFilenameAsync(InGlbPath, false, FglTFRuntimeConfig(), thisPtr->Client_OnRequestModelCompleted);
+			}
+		}, ItemID);
 	}
-	
 }
 
 /**
@@ -113,21 +108,17 @@ void AItemActor::OnRep_CreateItem()
 		return;
 	}
 
-	if (UMAGameInstance* gameInstance = Cast<UMAGameInstance>(GetGameInstance()))
+	if (FItemFileHandler* fileHandler = MAGetItemFileHandler(GetGameInstance()))
 	{
-		TWeakPtr<FItemFileHandler> handler = gameInstance->GetItemFileHandler();
-		if (handler.IsValid())
+		// 파일 요청.
+		TWeakObjectPtr<AItemActor> thisPtr = this;
+		fileHandler->RequestGlb([thisPtr](const FString& InGlbPath)
 		{
-			// 파일 요청.
-			TWeakObjectPtr<AItemActor> thisPtr = this;
-			handler.Pin()->RequestGlb([thisPtr](const FString& InGlbPath)
+			if (thisPtr.IsValid())
 			{
-				if(thisPtr.IsValid())
-				{
-					UglTFRuntimeFunctionLibrary::glTFLoadAssetFromFilenameAsync(InGlbPath, false, FglTFRuntimeConfig(), thisPtr->Client_OnRequestModelCompleted);
-				}
-			}, ItemID);
-		}
+				UglTFRuntimeFunctionLibrary::glTFLoadAssetFromFilenameAsync(InGlbPath, false, FglTFRuntimeConfig(), thisPtr->Client_OnRequestModelCompleted);
+			}
+		}, ItemID);
 	}
 }
 

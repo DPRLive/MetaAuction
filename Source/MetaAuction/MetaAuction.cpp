@@ -49,3 +49,33 @@ FHttpHandler* MAGetHttpHandler(UGameInstance* InGameInstance)
 	}
 	return nullptr;
 }
+
+/**
+ * Item File Handler 반환
+ */
+FItemFileHandler* MAGetItemFileHandler(UGameInstance* InGameInstance)
+{
+	if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(InGameInstance))
+	{
+		if(gameInstance->GetHttpHandler().IsValid())
+		{
+			return gameInstance->GetItemFileHandler().Get();
+		}
+	}
+	return nullptr;
+}
+
+/**
+ * Stomp Handler 반환
+ */
+FStompHandler* MAGetStompHandler(UGameInstance* InGameInstance)
+{
+	if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(InGameInstance))
+	{
+		if(gameInstance->GetHttpHandler().IsValid())
+		{
+			return gameInstance->GetStompHandler().Get();
+		}
+	}
+	return nullptr;
+}

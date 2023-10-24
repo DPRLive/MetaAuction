@@ -138,7 +138,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	// 상품이 삭제 되었을 때, 서버에게 ItemData 요청 후 내 월드에 있었던 상품이면 지웁니다.
+	// 상품이 삭제 되었을 때, 내 월드에 있었던 상품이면 지웁니다.
 	// 데디 서버에서만 실행 가능합니다.
 	void Server_UnregisterItem(uint32 InItemId);
 	
@@ -217,16 +217,4 @@ private:
 	// TODO : 근데 클라이언트에서 접근할 일이 있을까?
 	UPROPERTY( Replicated )
 	TArray<TWeakObjectPtr<AItemActor>> ItemActors;
-
-	// New Item 알림 WebSocket에 Subscribe 한 곳에 이벤트 도착시 호출, 서버에서 사용
-	FStompSubscriptionEvent Server_EventNewItem;
-
-	// Remove Item 알림 WebSocket에 Subscribe 한 곳에 이벤트 도착시 호출, 서버에서 사용
-	FStompSubscriptionEvent Server_EventRemoveItem;
-
-	// Change Price 알림 Subscribe 한 곳에 이벤트 도착시 호출, 서버에서 사용
-	FStompSubscriptionEvent Server_EventChangePrice;
-
-	// Item Data 변경 알림 Subscribe 한 곳에 이벤트 도착시 호출, 서버에서 사용
-	FStompSubscriptionEvent Server_EventChangeItemData;
 };

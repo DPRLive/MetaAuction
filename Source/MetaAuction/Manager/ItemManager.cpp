@@ -1,6 +1,7 @@
 
 #include "ItemManager.h"
 #include "../Actor/ItemActor.h"
+#include "Handler/ItemFileHandler.h"
 #include "Core/MAGameInstance.h"
 
 #include <Kismet/GameplayStatics.h>
@@ -8,7 +9,6 @@
 #include <Serialization/JsonSerializer.h>
 #include <Net/UnrealNetwork.h>
 #include <IStompMessage.h>
-
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ItemManager)
 
@@ -49,29 +49,34 @@ void UItemManager::BeginPlay()
 		});
 
 		// 서버에서 WebSocket에 구독할 것들을 구독한다.
-		if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
+		if(FStompHandler* stompHandler = MAGetStompHandler(GetOwner()->GetGameInstance()))
 		{
-			const TSharedPtr<FStompHandler>& stomp = gameInstance->GetStompHandler();
-			if(stomp.IsValid())
-			{
-				// 새 아이템 등록 알림 구독
-				Server_EventNewItem.BindUObject(this, &UItemManager::_Server_OnNewItem);
-				stomp->Subscribe(DA_NETWORK(WSNewItemAddURL), Server_EventNewItem);
+			// 새 아이템 등록 알림 구독
+			FStompSubscriptionEvent Server_EventNewItem;
+			Server_EventNewItem.BindUObject(this, &UItemManager::_Server_OnNewItem);
+			stompHandler->Subscribe(DA_NETWORK(WSNewItemAddURL), Server_EventNewItem);
 
-				// 아이템의 삭제 / 종료 알림 구독
-				Server_EventRemoveItem.BindUObject(this, &UItemManager::_Server_OnRemoveItem);
-				stomp->Subscribe(DA_NETWORK(WSRemoveItemAddURL), Server_EventRemoveItem);
+			// 아이템의 삭제 / 종료 알림 구독
+			FStompSubscriptionEvent Server_EventRemoveItem;
+			Server_EventRemoveItem.BindUObject(this, &UItemManager::_Server_OnRemoveItem);
+			stompHandler->Subscribe(DA_NETWORK(WSRemoveItemAddURL), Server_EventRemoveItem);
 
-				// 아이템 가격 변동 구독
-				Server_EventChangePrice.BindUObject(this, &UItemManager::_Server_OnChangePrice);
-				stomp->Subscribe(DA_NETWORK(WSChangePriceAddURL), Server_EventChangePrice);
-			}
+			// 아이템 가격 변동 구독
+			FStompSubscriptionEvent Server_EventChangePrice;
+			Server_EventChangePrice.BindUObject(this, &UItemManager::_Server_OnChangePrice);
+			stompHandler->Subscribe(DA_NETWORK(WSChangePriceAddURL), Server_EventChangePrice);
+
+			// 아이템 정보 변동 구독
+			FStompSubscriptionEvent Server_EventChangeItemData;
+			Server_EventChangeItemData.BindUObject(this, &UItemManager::_Server_OnChangeItemData);
+			stompHandler->Subscribe(DA_NETWORK(WSChangeDataAddURL), Server_EventChangeItemData);
+			
 		}
 	}
 }
 
 /**
- * 상품이 삭제 되었을 때, 서버에게 ItemData 요청 후 내 월드에 있었던 상품이면 지웁니다.
+ * 상품이 삭제 되었을 때, 내 월드에 있었던 상품이면 지웁니다.
  * 데디 서버에서만 실행 가능합니다.
  * @param InItemId : 쿼리할 상품의 ID
  */
@@ -147,7 +152,7 @@ void UItemManager::Server_RegisterAllWorldItemID()
  */
 void UItemManager::RequestItemDataByID(FCallbackOneParam<const FItemData&> InFunc, uint32 InItemId)
 {
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance()))
 	{
 		FString RequestUrl = DA_NETWORK(ItemInfoAddURL) + FString::Printf(TEXT("/%d"), InItemId);
 
@@ -200,7 +205,7 @@ void UItemManager::RequestItemDataByOption(FCallbackRefArray<FItemData> InFunc, 
 	else if(InSearchOption.CanDeal == EItemCanDeal::Impossible)
 		requestObj->SetBoolField(TEXT("isPossible"), false);
 	
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance()))
 	{
 		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
 		TWeakObjectPtr<UItemManager> thisPtr = this;
@@ -244,7 +249,7 @@ void UItemManager::Client_RequestBid(uint32 InItemId, uint64 InPrice)
 	// Body를 만든다.
 	FString requestBody = FString::Printf(TEXT("%llu"), InPrice);
 
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance())) // 로컬에 없으니 다운로드를 함
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance())) // 로컬에 없으니 다운로드를 함
 	{
 		httpHandler->Request(DA_NETWORK(BidAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::POST,
 		                     [](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
@@ -276,7 +281,7 @@ void UItemManager::Client_RequestBid(uint32 InItemId, uint64 InPrice)
  */
 void UItemManager::RequestBidRecordByItemId(FCallbackRefArray<FBidRecord> InFunc, uint32 InItemId)
 {
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance()))
 	{
 		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
 		TWeakObjectPtr<UItemManager> thisPtr = this;
@@ -314,7 +319,7 @@ void UItemManager::RequestBidRecordByItemId(FCallbackRefArray<FBidRecord> InFunc
  */
 void UItemManager::RequestRemoveItem(uint32 InItemId)
 {
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance()))
 	{
 		httpHandler->Request(DA_NETWORK(RemoveItemAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::POST,[](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 							 {
@@ -356,7 +361,7 @@ void UItemManager::RequestMyItem(FCallbackRefArray<FItemData> InFunc, EMyItemReq
 	else if(InMyItemReqType == EMyItemReqType::Sell)
 		reqAddURL = DA_NETWORK(MySellItemAddURL);
 	
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance()))
 	{
 		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
 		TWeakObjectPtr<UItemManager> thisPtr = this;
@@ -395,7 +400,7 @@ void UItemManager::RequestMyItem(FCallbackRefArray<FItemData> InFunc, EMyItemReq
  */
 void UItemManager::RequestMyBidItem(FCallbackRefArray<FItemData> InFunc)
 {
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance()))
 	{
 		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
 		TWeakObjectPtr<UItemManager> thisPtr = this;
@@ -582,5 +587,6 @@ void UItemManager::_Server_OnChangeItemData(const IStompMessage& InMessage) cons
 	if(InMessage.GetBodyAsString().Contains(TEXT("glb")))
 	{
 		// 변동이 있다면 로컬 파일에서 지운 후 ..
+		
 	}
 }
