@@ -68,9 +68,13 @@ struct FItemData
 	UPROPERTY()
 	uint8 HaveGlb:1;
 	
-	// 종료 시각. 배열에 순서대로 년 / 월 / 일 / 시간 / 분 
+	// 종료 시각. 년 / 월 / 일 / 시간 / 분 
 	UPROPERTY()
-	TArray<uint16> EndTime;
+	FDateTime EndTime;
+
+	// 최종 정보가 수정된 시간. 년 / 월 / 일 / 시간 / 분 / 초
+	UPROPERTY()
+	FDateTime LastModifyTime;
 };
 
 /**
@@ -199,15 +203,20 @@ private:
 	// Stomp 메세지로 온 아이템 가격 변동 알림을 받는다.
 	void _Server_OnChangePrice(const IStompMessage& InMessage) const;
 
-	// 서버 -> RPC로 모두에게 가격 변동 알림을 줍니다.
+	// 서버 -> RPC로 모든 클라에게 가격 변동 알림을 줍니다.
 	UFUNCTION( NetMulticast, Reliable )
 	void _ChangePrice(const uint32& InItemId, const uint64& InPrice) const;
+
+	// 서버 -> RPC로 모든 클라에게 glb 변경 알림을 줍니다.
+	UFUNCTION( NetMulticast, Reliable )
+	void _RemoveGlb(const uint32& InItemId);
 	
 	// Stomp 메세지로 아이템 정보 변동 알림을 받는다.
-	void _Server_OnChangeItemData(const IStompMessage& InMessage) const;
+	void _Server_OnChangeItemData(const IStompMessage& InMessage);
 public:
 	// 가격 변동 알림을 받아내는 Delegate
 	// UI서 아이템 확인시 구독, 확인 끝날시 구독 해제를 통해서 실시간으로 가격이 변동되게 해주세요.
+	// 물품 id , 변동된 이후 가격이 broadcast 됩니다.
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnChangePrice, const uint32&, const uint64&)
 	FOnChangePrice OnChangePrice;
 	

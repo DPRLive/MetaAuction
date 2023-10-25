@@ -93,7 +93,7 @@ void AItemActor::Client_RedrawModel()
  * 물품 배치 해주는 함수, ItemID가 Replicate 되면 호출
  * 서버에서는 OnRep_ 함수가 호출되지 않음
  */
-void AItemActor::OnRep_CreateItem()
+void AItemActor::OnRep_PlaceItem()
 {
 	if (ItemID == 0)
 	{

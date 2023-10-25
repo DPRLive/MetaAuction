@@ -12,11 +12,18 @@
 #include <Serialization/JsonReader.h>
 #include <Serialization/JsonSerializer.h>
 
+#include "HAL/FileManagerGeneric.h"
+
 /**
  * 생성자
  */
 FItemFileHandler::FItemFileHandler()
 {
+	// FFileManagerGeneric fileManager;
+	// FDateTime time = fileManager.GetTimeStamp(*(FPaths::ProjectSavedDir() + TEXT("Models/1.glb")));
+	// FDateTime time2 = fileManager.GetAccessTimeStamp(*(FPaths::ProjectSavedDir() + TEXT("Models/1.glb")));
+	// LOG_WARN(TEXT("%s"), *time.ToString());
+	// LOG_WARN(TEXT("%s"), *time2.ToString());
 }
 
 /**
@@ -98,7 +105,7 @@ void FItemFileHandler::RemoveGlbFile(uint32 InItemId) const
 }
 
 /**
- * 해당 item ID의 모델링 파일(glb)를 요청합니다.
+ * 해당 item ID의 모델링 파일(glb)를 요청합니다. 로컬에 있을경우 그 파일을 사용하며, 없을 경우 웹으로 새로 요청합니다. 
  * @param InFunc : 요청이 완료되면 실행할 람다 함수, 형식이 같아야 하며 람다 내부에서 클래스 멤버 접근시 weak 캡처 해주세요!
  * @param InItemId : 물품의 ItemId 
  */

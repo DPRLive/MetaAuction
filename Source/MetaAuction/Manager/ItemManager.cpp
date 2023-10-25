@@ -489,10 +489,25 @@ void UItemManager::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FItemDa
 
 	const TArray<TSharedPtr<FJsonValue>>* out; // 년 월 일 시간 분
 	InJsonObj->TryGetArrayField(TEXT("endTime"), out);
-
-	for (const TSharedPtr<FJsonValue>& value : *out) // 파싱한다.
+	if(out->Num() >= 5) // 년 월 일 시간 분 을 모두 파싱할 수 있을지
 	{
-		OutItemData.EndTime.Emplace(value->AsNumber());
+		OutItemData.EndTime = FDateTime((*out)[0]->AsNumber(),
+										(*out)[1]->AsNumber(),
+											(*out)[2]->AsNumber(),
+											(*out)[3]->AsNumber(),
+											(*out)[4]->AsNumber());
+	}
+
+	const TArray<TSharedPtr<FJsonValue>>* out2; // 년 월 일 시간 분 초
+	InJsonObj->TryGetArrayField(TEXT("lastModifiedTime"), out2);
+	if (out2->Num() >= 6) // 년 월 일 시간 분 초를  모두 파싱할 수 있을지
+	{
+		OutItemData.LastModifyTime = FDateTime((*out2)[0]->AsNumber(),
+		                                       (*out2)[1]->AsNumber(),
+		                                       (*out2)[2]->AsNumber(),
+		                                       (*out2)[3]->AsNumber(),
+		                                       (*out2)[4]->AsNumber(),
+		                                       (*out2)[5]->AsNumber());
 	}
 }
 
@@ -563,7 +578,7 @@ void UItemManager::_Server_OnChangePrice(const IStompMessage& InMessage) const
 }
 
 /**
- * 서버에서 RPC로 가격 변동을 알립니다.
+ * 서버 -> RPC로 모든 클라에게 가격 변동 알림을 줍니다.
  * @param InItemId : 가격이 변동된 상품의 ID
  * @param InPrice : 현재 가격
  */
@@ -576,17 +591,47 @@ void UItemManager::_ChangePrice_Implementation(const uint32& InItemId, const uin
 }
 
 /**
+ *  서버 -> RPC로 모든 클라에게 glb 변경 알림을 줍니다.
+ *	@param InItemId : 지워야할 InItemId
+ */
+void UItemManager::_RemoveGlb_Implementation(const uint32& InItemId)
+{
+	if(!IsRunningDedicatedServer())
+	{
+		// 클라이언트에서 glb파일을 지운다.
+		if(FItemFileHandler* fileHandler = MAGetItemFileHandler(GetOwner()->GetGameInstance()))
+		{
+			fileHandler->RemoveGlbFile(InItemId);
+		}
+	}
+}
+
+/**
  *  Stomp 메세지로 아이템 정보 변동 알림을 받는다.
  *  TODO : 할게 많네.
  */
-void UItemManager::_Server_OnChangeItemData(const IStompMessage& InMessage) const
+void UItemManager::_Server_OnChangeItemData(const IStompMessage& InMessage)
 {
 	CHECK_DEDI_FUNC;
+
+	TArray<FString> parseArr;
+	InMessage.GetBodyAsString().ParseIntoArray(parseArr, TEXT("-"), true);
+
+	if(parseArr.Num() <= 2) // 내용이 없으면 뭐야 이거
+		return;
+
+	const uint32 itemID = FCString::Atoi(*parseArr[0]);
 	
 	// glb에 변동이 있었는지 확인한다
 	if(InMessage.GetBodyAsString().Contains(TEXT("glb")))
 	{
-		// 변동이 있다면 로컬 파일에서 지운 후 ..
-		
+
+
+		// 위치도 같이 변경된 상태라면 아예 새로 등록한다
+		if(InMessage.GetBodyAsString().Contains(TEXT("location")))
+		{
+			Server_UnregisterItem(itemID);
+			Server_RegisterNewItem(itemID);
+		}
 	}
 }

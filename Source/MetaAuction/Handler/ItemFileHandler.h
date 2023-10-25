@@ -19,7 +19,7 @@ public:
 	// 해당 item ID의 파일들을 지웁니다.
 	void RemoveGlbFile(uint32 InItemId) const;
 
-	// 해당 item ID의 모델링 파일(glb)를 요청합니다.
+	// 해당 item ID의 모델링 파일(glb)를 요청합니다. 로컬에 있을경우 그 파일을 사용하며, 없을 경우 웹으로 새로 요청합니다. 
 	void RequestGlb(FCallbackOneParam<const FString&> InFunc, uint32 InItemId) const;
 
 	// 해당 item Id의 index번째 이미지를 요청합니다.
