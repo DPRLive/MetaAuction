@@ -11,8 +11,7 @@
 #include <TextureResource.h>
 #include <Serialization/JsonReader.h>
 #include <Serialization/JsonSerializer.h>
-
-#include "HAL/FileManagerGeneric.h"
+#include <HAL/FileManagerGeneric.h>
 
 /**
  * 생성자
@@ -117,39 +116,42 @@ void FItemFileHandler::RequestGlb(FCallbackOneParam<const FString&> InFunc, uint
 	// FileExists가 case sensitive 하지 않네
 	if (FPaths::FileExists(glbPath)) // 우선 로컬에 존재하는지 확인
 	{
-		if(InFunc)
-		{
-			InFunc(glbPath);
-		}
-		return;
-	}
-
-	// 없네. 요청
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
-	{
-		// HTTP 통신으로 관련 파일을 요청한다.
-		LOG_N(TEXT("Request Item ID (%d) glb Files ..."), InItemId);
+		// 존재하면 최신화된 파일인지 한번 확인한다.
+		const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance());
+		const UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance());
 		
-		if (UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
+		if ((httpHandler != nullptr) && (gameInstance != nullptr))
 		{
-			TWeakPtr<FItemFileHandler> thisPtr = gameInstance->GetItemFileHandler(); // 만약을 대비해 Weak 캡처 추가
-			httpHandler->Request(DA_NETWORK(GlbFileDownAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
-				[thisPtr, InFunc, glbPath](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
-			                     {
-				                     if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
-				                     {
-					                     // 파일을 저장한다.
-					                     thisPtr.Pin()->_OnGlbRequestCompleted(InResponse);
+			LOG_N(TEXT("Request itemID[%d] Last Modified time ..."), InItemId);
 
-					                     if (InFunc)
+			// 파일의 수정 시각을 읽는다
+			FFileManagerGeneric fileManager;
+			FDateTime localFileTime = fileManager.GetTimeStamp(*glbPath);
+			
+			TWeakPtr<FItemFileHandler> thisPtr = gameInstance->GetItemFileHandler(); // 만약을 대비해 Weak 캡처 추가
+			httpHandler->Request(DA_NETWORK(ModifyTimeAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
+			                     [thisPtr, InFunc, localFileTime, glbPath, InItemId](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+			                     {
+				                     if (InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+				                     {
+					                     // 현재 로컬 파일이 더 최신이면
+					                     FDateTime serverModifiedTime;
+					                     if (FDateTime::ParseIso8601(*InResponse->GetContentAsString(),serverModifiedTime) &&
+						                     ((serverModifiedTime + DA_NETWORK(WebServerUTCDiff)) < localFileTime) && InFunc)
 					                     {
+						                     // 가져가라
 						                     InFunc(glbPath);
+						                     return;
+					                     }
+
+					                     // 아니면 다시 요청하셈..
+					                     if (thisPtr.IsValid())
+					                     {
+						                     thisPtr.Pin()->_RequestGlbToWeb(InFunc, InItemId);
+						                     return;
 					                     }
 				                     }
-				                     else
-				                     {
-					                     LOG_ERROR(TEXT("ItemID : %s, 파일 요청 실패"), *glbPath);
-				                     }
+				                     LOG_ERROR(TEXT("URL : %s, Last Modified Time 요청 실패"), *InRequest->GetURL());
 			                     });
 		}
 	}
@@ -168,7 +170,7 @@ void FItemFileHandler::RequestImg(FCallbackOneParam<UTexture2DDynamic*> InFunc, 
 		// HTTP 통신으로 관련 파일을 요청한다.
 		LOG_N(TEXT("Request Item ID (%d) Img File (%d) ..."), InItemId, InImgIdx);
 		
-		if (UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
+		if (const UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
 		{
 			TWeakPtr<FItemFileHandler> thisPtr = gameInstance->GetItemFileHandler(); // 만약을 대비해 Weak 캡처 추가
 			httpHandler->Request(DA_NETWORK(ImgViewAddURL) + FString::Printf(TEXT("/%d/%d"), InItemId, InImgIdx), EHttpRequestType::GET,
@@ -191,11 +193,49 @@ void FItemFileHandler::RequestImg(FCallbackOneParam<UTexture2DDynamic*> InFunc, 
 	}
 }
 
+
+/**
+ * glb 파일을 웹서버에 요청한다.
+ * @param InFunc : 요청이 완료되면 실행할 람다 함수, 형식이 같아야 하며 람다 내부에서 클래스 멤버 접근시 weak 캡처 해주세요!
+ * @param InItemId : 물품의 ItemId 
+ */
+void FItemFileHandler::_RequestGlbToWeb(FCallbackOneParam<const FString&> InFunc, uint32 InItemId) const
+{
+	// 없네. 요청
+	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	{
+		// HTTP 통신으로 관련 파일을 요청한다.
+		LOG_N(TEXT("Request Item ID (%d) glb Files ..."), InItemId);
+		
+		if (const UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
+		{
+			TWeakPtr<FItemFileHandler> thisPtr = gameInstance->GetItemFileHandler(); // 만약을 대비해 Weak 캡처 추가
+			httpHandler->Request(DA_NETWORK(GlbFileDownAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
+			[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+							   {
+								   if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+								   {
+									   // 파일을 저장한다.
+									   FString fileSavedPath = thisPtr.Pin()->_OnGlbRequestCompleted(InResponse);
+
+									   if (fileSavedPath != TEXT("") && InFunc)
+									   {
+										   InFunc(fileSavedPath);
+										   return;
+									   }
+								   }
+								   LOG_ERROR(TEXT("URL : %s, 파일 요청 실패"), *InRequest->GetURL());
+							   });
+		}
+	}
+}
+
 /**
  * glb 파일 요청이 완료되면 호출될 함수, /Saved/Models 아래에 파일을 저장한다.
  * @param InResponse : http 응답
+ * @return : 파일이 저장된 위치
  */
-void FItemFileHandler::_OnGlbRequestCompleted(const FHttpResponsePtr& InResponse) const
+FString FItemFileHandler::_OnGlbRequestCompleted(const FHttpResponsePtr& InResponse) const
 {
 	FString basePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + TEXT("Models/");
 
@@ -214,12 +254,13 @@ void FItemFileHandler::_OnGlbRequestCompleted(const FHttpResponsePtr& InResponse
 		fileHandler->Flush();
 
 		delete fileHandler;
+		
 		LOG_N(TEXT("%s, file download is complete!"), *fileName);
+		return fileSavedPath;
 	}
-	else
-	{
-		LOG_ERROR(TEXT("file Handler is nullptr!"));
-	}
+	
+	LOG_ERROR(TEXT("file Handler is nullptr!"));
+	return TEXT("");
 }
 
 /**

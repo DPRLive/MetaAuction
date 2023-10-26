@@ -115,8 +115,8 @@ struct FBidRecord
 	// 입찰 가격
 	uint64 BidPrice;
 
-	// 입찰 시각, 배열에 순서대로 년 / 월 / 일 / 시간 / 분 / 초 / 밀리세컨드 인데 쓸만큼만 쓰셔도 될것 같아요
-	TArray<uint16> BidTime;
+	// 입찰 시각
+	FDateTime BidTime;
 
 	// 입찰한 사람
 	FString BidUser;
@@ -205,11 +205,15 @@ private:
 
 	// 서버 -> RPC로 모든 클라에게 가격 변동 알림을 줍니다.
 	UFUNCTION( NetMulticast, Reliable )
-	void _ChangePrice(const uint32& InItemId, const uint64& InPrice) const;
+	void _MulticastRPC_ChangePrice(const uint32& InItemId, const uint64& InPrice) const;
 
-	// 서버 -> RPC로 모든 클라에게 glb 변경 알림을 줍니다.
+	// 서버 -> RPC로 모든 클라에게 아이템 정보 변동 알림을 줍니다.
+	UFUNCTION( NetMulticast, Unreliable )
+	void _MulticastRPC_ChangeItemData(const uint32& InItemId) const;
+	
+	// 현재 월드에 있던 glb가 변경된 경우, 서버 -> 모든 클라에게 그 액터 다시 그리라고 명령합니다.
 	UFUNCTION( NetMulticast, Reliable )
-	void _RemoveGlb(const uint32& InItemId);
+	void _MulticastRPC_RedrawItem(const uint8& InActorIdx);
 	
 	// Stomp 메세지로 아이템 정보 변동 알림을 받는다.
 	void _Server_OnChangeItemData(const IStompMessage& InMessage);
@@ -219,6 +223,12 @@ public:
 	// 물품 id , 변동된 이후 가격이 broadcast 됩니다.
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnChangePrice, const uint32&, const uint64&)
 	FOnChangePrice OnChangePrice;
+
+	// 아이템 정보 변동 알림을 받아내는 Delegate
+	// UI서 아이템 확인시 구독, 확인 끝날시 구독 해제를 통해서 실시간으로 정보가 변동되게 해주세요(glb제외).
+	// 변경된 item ID가 broadcast 됩니다.
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnChangeItemData, const uint32&)
+	FOnChangeItemData OnChangeItemData;
 	
 private:
 	// 물품을 배치할 수 있는 ItemActor에 대한 포인터들. 사용자에게 표시는 1부터 할거지만 접근은 인덱스 0부터 해주세요.
