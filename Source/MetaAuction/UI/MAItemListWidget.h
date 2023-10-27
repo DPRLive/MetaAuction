@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Manager/ItemManager.h"
 #include "MAItemListWidget.generated.h"
 
 /** UMAItemListWidget
@@ -22,8 +23,17 @@ protected:
 
 	virtual void NativeConstruct() override;
 
+public:
+
+	void UpdateSearchItems(const FItemSearchOption& InItemOption);
+	void UpdateMyItems(EMyItemReqType InType);
+
 private:
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	void UpdateItems(const TArray<FItemData>& ItemData);
+
+private:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BineWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UListView> ItemListView;
 };

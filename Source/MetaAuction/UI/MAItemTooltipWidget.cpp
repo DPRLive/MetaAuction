@@ -2,7 +2,8 @@
 
 
 #include "UI/MAItemTooltipWidget.h"
-#include "Manager/ItemManager.h"
+#include "UI/MAWidgetUtils.h"
+#include "Handler/ItemFileHandler.h"
 
 #include <Components/TextBlock.h>
 #include <Components/Image.h>
@@ -13,44 +14,19 @@ UMAItemTooltipWidget::UMAItemTooltipWidget(const FObjectInitializer& ObjectIniti
 	: Super(ObjectInitializer)
 {
 	CurrentImageIndex = 0;
+	MaxImageIndex = 0;
 }
 
 void UMAItemTooltipWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	TitleText = Cast<UTextBlock>(GetWidgetFromName(TEXT("TitleText")));
-	ensure(TitleText);
-
-	InformationText = Cast<UTextBlock>(GetWidgetFromName(TEXT("InformationText")));
-	ensure(InformationText);
-
-	BuyerNameText = Cast<UTextBlock>(GetWidgetFromName(TEXT("BuyerNameText")));
-	ensure(BuyerNameText);
-
-	SellerNameText = Cast<UTextBlock>(GetWidgetFromName(TEXT("SellerNameText")));
-	ensure(SellerNameText);
-
-	StartPriceText = Cast<UTextBlock>(GetWidgetFromName(TEXT("StartPriceText")));
-	ensure(StartPriceText);
-
-	CurrentPriceText = Cast<UTextBlock>(GetWidgetFromName(TEXT("CurrentPriceText")));
-	ensure(CurrentPriceText);
-
-	EndTimeText = Cast<UTextBlock>(GetWidgetFromName(TEXT("EndTimeText")));
-	ensure(EndTimeText);
-
-	ItemImage = Cast<UImage>(GetWidgetFromName(TEXT("ItemImage")));
-	ensure(ItemImage);
-
-	ItemImagePrevButton = Cast<UButton>(GetWidgetFromName(TEXT("ItemImagePrevButton")));
 	ensure(ItemImagePrevButton);
 	if (IsValid(ItemImagePrevButton))
 	{
 		ItemImagePrevButton->OnClicked.AddDynamic(this, &ThisClass::ItemImagePrevButtonClicked);
 	}
-
-	ItemImageNextButton = Cast<UButton>(GetWidgetFromName(TEXT("ItemImageNextButton")));
+	
 	ensure(ItemImageNextButton);
 	if (IsValid(ItemImageNextButton))
 	{
@@ -58,11 +34,36 @@ void UMAItemTooltipWidget::NativeConstruct()
 	}
 }
 
+void UMAItemTooltipWidget::UpdateById(uint32 InItemID)
+{
+	UItemManager* ItemManager = UMAWidgetUtils::GetItemManager(GetWorld());
+	if (!IsValid(ItemManager))
+	{
+		return;
+	}
+
+	TWeakObjectPtr<ThisClass> ThisPtr(this);
+	if (ThisPtr.IsValid())
+	{
+		auto Func = [ThisPtr](const FItemData& InData)
+			{
+				if (ThisPtr.IsValid())
+				{
+					ThisPtr->UpdateAll(InData);
+				}
+			};
+		ItemManager->RequestItemDataByID(Func, InItemID);
+	}
+}
+
 void UMAItemTooltipWidget::UpdateAll(const FItemData& InItemData)
 {
 	UpdateText(InItemData);
-	LoadAllImage(InItemData);
-	UpdateImage();
+	UpdateImage(InItemData);
+
+	CachedItemData = InItemData;
+	CurrentImageIndex = 0;
+	MaxImageIndex = InItemData.ImgCount;
 }
 
 void UMAItemTooltipWidget::UpdateText(const FItemData& InItemData)
@@ -72,14 +73,12 @@ void UMAItemTooltipWidget::UpdateText(const FItemData& InItemData)
 	BuyerNameText->SetText(FText::FromString(InItemData.BuyerName));
 	SellerNameText->SetText(FText::FromString(InItemData.SellerName));
 
-	// FNumberFormattingOptions ��ü ����
 	FNumberFormattingOptions NumberFormatOptions;
-	NumberFormatOptions.SetUseGrouping(true); // ���� ������ ��� (ex. 1000000 -> 1,000,000
+	NumberFormatOptions.SetUseGrouping(true);
 
 	StartPriceText->SetText(FText::AsNumber(InItemData.StartPrice, &NumberFormatOptions));
 	CurrentPriceText->SetText(FText::AsNumber(InItemData.CurrentPrice, &NumberFormatOptions));
 
-	// �迭�� ��Ҹ� "."���� ���е� ���ڿ��� ��ġ��
 	const int32 MaxEndTimeIndex = 5;
 	//const TArray<uint16>& EndTime = InItemData.EndTime;
 	// TArray<uint16> TempTime(0, MaxEndTimeIndex);
@@ -94,15 +93,25 @@ void UMAItemTooltipWidget::UpdateText(const FItemData& InItemData)
 	// EndTimeText->SetText(FText::FromString(EndTimeString));
 }
 
-void UMAItemTooltipWidget::UpdateImage()
+void UMAItemTooltipWidget::UpdateImage(const FItemData& InItemData)
 {
-	if (CachedTextures.IsValidIndex(CurrentImageIndex))
+	TWeakPtr<FItemFileHandler> ItemFileHandler = UMAWidgetUtils::GetItemFileHandler(GetWorld());
+	if (ItemFileHandler.IsValid())
 	{
-		ItemImage->SetBrushFromTexture(CachedTextures[CurrentImageIndex], false);
-	}
-	else
-	{
-		// �̹��� ������ �������� �ʽ��ϴ�.
+		LOG_SCREEN(FColor::Green, TEXT("Request %s"), *FString(__FUNCTION__));
+		TWeakObjectPtr<ThisClass> ThisPtr(this);
+		if (ThisPtr.IsValid())
+		{
+			auto Func = [ThisPtr](UTexture2DDynamic* InImage)
+				{
+					if (ThisPtr.IsValid())
+					{
+						ThisPtr->ItemImage->SetBrushFromTextureDynamic(InImage);
+						LOG_SCREEN(FColor::Green, TEXT("Successed %s"), *FString(__FUNCTION__));
+					}
+				};
+			ItemFileHandler.Pin()->RequestImg(Func, InItemData.ItemID, CurrentImageIndex);
+		}
 	}
 }
 
@@ -111,30 +120,15 @@ void UMAItemTooltipWidget::ItemImagePrevButtonClicked()
 	if (CurrentImageIndex > 0)
 	{
 		CurrentImageIndex--;
-		UpdateImage();
+		UpdateImage(CachedItemData);
 	}
 }
 
 void UMAItemTooltipWidget::ItemImageNextButtonClicked()
 {
-	if (CurrentImageIndex < CachedTextures.Num())
+	if (CurrentImageIndex < MaxImageIndex)
 	{
 		CurrentImageIndex++;
-		UpdateImage();
+		UpdateImage(CachedItemData);
 	}
-}
-
-void UMAItemTooltipWidget::LoadAllImage(const FItemData& InItemData)
-{
-	CachedTextures.Empty();
-	// for (const FString& ImgPath : InItemData.ImgPaths)
-	// {
-	// 	AddImage(ImgPath);
-	// }
-}
-
-void UMAItemTooltipWidget::AddImage(const FString& InFilePath)
-{
-	// �ܺ� �̹����� UTexture2D�� ����Ʈ
-	CachedTextures.Emplace(FImageUtils::ImportFileAsTexture2D(InFilePath));
 }

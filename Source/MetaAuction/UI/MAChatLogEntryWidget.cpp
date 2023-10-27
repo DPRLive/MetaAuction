@@ -16,11 +16,6 @@ void UMAChatLogEntryWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	NameText = Cast<UTextBlock>(GetWidgetFromName(TEXT("NameText")));
-	ensure(NameText);
-
-	LogText = Cast<UTextBlock>(GetWidgetFromName(TEXT("LogText")));
-	ensure(LogText);
 }
 
 void UMAChatLogEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)

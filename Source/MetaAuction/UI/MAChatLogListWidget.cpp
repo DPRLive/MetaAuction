@@ -15,8 +15,6 @@ void UMAChatLogListWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ChatLogListView = Cast<UListView>(GetWidgetFromName(TEXT("ChatLogListView")));
-	ensure(ChatLogListView);
 }
 
 void UMAChatLogListWidget::AddChatLog(const FMAChatLogEntryData& InData)

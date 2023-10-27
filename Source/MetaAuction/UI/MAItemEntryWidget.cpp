@@ -3,6 +3,8 @@
 
 #include "UI/MAItemEntryWidget.h"
 #include "UI/MAItemEntry.h"
+#include "UI/MAWidgetUtils.h"
+#include "Handler/ItemFileHandler.h"
 
 #include <Components/Image.h>
 #include <Components/TextBlock.h>
@@ -18,26 +20,6 @@ void UMAItemEntryWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	TitleText = Cast<UTextBlock>(GetWidgetFromName(TEXT("TitleText")));
-	ensure(TitleText);
-
-	BuyerNameText = Cast<UTextBlock>(GetWidgetFromName(TEXT("BuyerNameText")));
-	ensure(BuyerNameText);
-
-	SellerNameText = Cast<UTextBlock>(GetWidgetFromName(TEXT("SellerNameText")));
-	ensure(SellerNameText);
-
-	StartPriceText = Cast<UTextBlock>(GetWidgetFromName(TEXT("StartPriceText")));
-	ensure(StartPriceText);
-
-	CurrentPriceText = Cast<UTextBlock>(GetWidgetFromName(TEXT("CurrentPriceText")));
-	ensure(CurrentPriceText);
-
-	EndTimeText = Cast<UTextBlock>(GetWidgetFromName(TEXT("EndTimeText")));
-	ensure(EndTimeText);
-
-	ItemImage = Cast<UImage>(GetWidgetFromName(TEXT("ItemImage")));
-	ensure(ItemImage);
 }
 
 void UMAItemEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
@@ -63,14 +45,12 @@ void UMAItemEntryWidget::UpdateText(const FItemData& InItemData)
 	BuyerNameText->SetText(FText::FromString(InItemData.BuyerName));
 	SellerNameText->SetText(FText::FromString(InItemData.SellerName));
 
-	// FNumberFormattingOptions ��ü ����
 	FNumberFormattingOptions NumberFormatOptions;
-	NumberFormatOptions.SetUseGrouping(true); // ���� ������ ��� (ex. 1000000 -> 1,000,000
+	NumberFormatOptions.SetUseGrouping(true);
 
 	StartPriceText->SetText(FText::AsNumber(InItemData.StartPrice, &NumberFormatOptions));
 	CurrentPriceText->SetText(FText::AsNumber(InItemData.CurrentPrice, &NumberFormatOptions));
 
-	// �迭�� ��Ҹ� "."���� ���е� ���ڿ��� ��ġ��
 	const int32 MaxEndTimeIndex = 5;
 	//const TArray<uint16>& EndTime = InItemData.EndTime;
 	// TArray<uint16> TempTime;
@@ -88,7 +68,6 @@ void UMAItemEntryWidget::UpdateText(const FItemData& InItemData)
 
 void UMAItemEntryWidget::UpdateImage(const FItemData& InItemData)
 {
-	// ��ȿ�� �̹����� �߰ߵǸ� �� �̹����� ǥ���Ѵ�.
 	// for (const FString& ImgPath : InItemData.ImgPaths)
 	// {
 	// 	UTexture2D* Texture = FImageUtils::ImportFileAsTexture2D(ImgPath);
@@ -98,4 +77,23 @@ void UMAItemEntryWidget::UpdateImage(const FItemData& InItemData)
 	// 		break;
 	// 	}
 	// }
+
+	TWeakPtr<FItemFileHandler> ItemFileHandler = UMAWidgetUtils::GetItemFileHandler(GetWorld());
+	if (ItemFileHandler.IsValid())
+	{
+		LOG_SCREEN(FColor::Green, TEXT("Request %s"), *FString(__FUNCTION__));
+		TWeakObjectPtr<ThisClass> ThisPtr(this);
+		if (ThisPtr.IsValid())
+		{
+			auto Func = [ThisPtr](UTexture2DDynamic* InImage)
+				{
+					if (ThisPtr.IsValid())
+					{
+						ThisPtr->ItemImage->SetBrushFromTextureDynamic(InImage);
+						LOG_SCREEN(FColor::Green, TEXT("Successed %s"), *FString(__FUNCTION__));
+					}
+				};
+			ItemFileHandler.Pin()->RequestImg(Func, InItemData.ItemID, 0);
+		}
+	}
 }
