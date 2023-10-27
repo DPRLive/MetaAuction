@@ -651,37 +651,32 @@ void UItemManager::_Server_OnChangeItemData(const IStompMessage& InMessage)
 	
 	const uint32 itemId = FCString::Atoi(*idAndWorld[0]);
 	const FString world = idAndWorld[1];
-	
-	// 현재 월드에 배치되어있던 glb에 변동이 있었는지 확인한다
-	// TODO: 월드 확인 어쩌지??????
-	if(world == TEXT("1")) // 내 월드에 있는건데 변동이 있었던 거면
+
+	// 월드나 위치에 변동이 있었다면
+	if(InMessage.GetBodyAsString().Contains(TEXT("world")) ||
+		InMessage.GetBodyAsString().Contains(TEXT("location")))
 	{
-		if(InMessage.GetBodyAsString().Contains(TEXT("location"))) // 위치가 바뀌었음
+		Server_UnregisterItem(itemId); // 삭제 후 재등록 시도해봄 (월드 1->1 같은 쿼리가 들어올 수도 있음)
+		Server_RegisterNewItem(itemId);
+	}
+	else if(world == TEXT("1") && InMessage.GetBodyAsString().Contains(TEXT("glb"))) // 내 월드에 있는거고 위치는 안바뀌었는데 glb가 바뀌었다면
+	{
+		// TODO: 월드 확인 어쩌지??????
+		//glb만 변경 된거면 클라이언트의 ItemManager에게 그거 redraw 명령
+		// 배치된 곳을 찾는다
+		for (uint8 idx = 0; idx < ItemActors.Num(); ++idx)
 		{
-			// glb 상관 없이 아예 새로 등록한다
-			Server_UnregisterItem(itemId);
-			Server_RegisterNewItem(itemId);
-		}
-		else if(InMessage.GetBodyAsString().Contains(TEXT("glb"))) // 위치는 안바뀌었는데 glb가 바뀜
-		{
-			//glb만 변경 된거면 클라이언트의 ItemManager에게 그거 redraw 명령
-			// 배치된 곳을 찾는다
-			for(uint8 idx = 0; idx < ItemActors.Num(); ++idx)
+			if (ItemActors[idx].IsValid() && (ItemActors[idx]->GetItemID() == itemId))
 			{
-				if(ItemActors[idx].IsValid() && (ItemActors[idx]->GetItemID() == itemId))
-				{
-					_MulticastRPC_RedrawItem(idx);
-					break;
-				}
+				_MulticastRPC_RedrawItem(idx);
+				break;
 			}
 		}
 	}
 
 	// 다른 속성 말고 딱 glb만 변경된거면 알림을 보내지 않는다
-	if((parseArr.Num() == 2) && parseArr[1].Equals(TEXT("world"), ESearchCase::IgnoreCase))
-	{
+	if((parseArr.Num() == 2) && parseArr[1].Equals(TEXT("glb"), ESearchCase::IgnoreCase))
 		return;
-	}
-
+	
 	_MulticastRPC_ChangeItemData(itemId);
 }

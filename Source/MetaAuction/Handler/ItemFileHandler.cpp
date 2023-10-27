@@ -154,7 +154,10 @@ void FItemFileHandler::RequestGlb(FCallbackOneParam<const FString&> InFunc, uint
 				                     LOG_ERROR(TEXT("URL : %s, Last Modified Time 요청 실패"), *InRequest->GetURL());
 			                     });
 		}
+		return;
 	}
+	// 로컬에 없으면 새로 요청
+	_RequestGlbToWeb(InFunc, InItemId);
 }
 
 /**

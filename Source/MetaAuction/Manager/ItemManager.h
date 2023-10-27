@@ -212,7 +212,7 @@ private:
 	void _MulticastRPC_ChangeItemData(const uint32& InItemId) const;
 	
 	// 현재 월드에 있던 glb가 변경된 경우, 서버 -> 모든 클라에게 그 액터 다시 그리라고 명령합니다.
-	UFUNCTION( NetMulticast, Reliable )
+	UFUNCTION( NetMulticast, Unreliable )
 	void _MulticastRPC_RedrawItem(const uint8& InActorIdx);
 	
 	// Stomp 메세지로 아이템 정보 변동 알림을 받는다.
