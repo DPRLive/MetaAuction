@@ -65,6 +65,10 @@ public:
 	// 내가 구매(입찰) 시도한 물품을 요청하는 추가 Url
 	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
 	FString MyBidItemAddURL = TEXT("/buyer/tryrecord");
+
+	// 물품의 최근 수정 시간을 가져오는 추가 Url, /{itemID}를 붙여서 사용
+	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
+	FString ModifyTimeAddURL = TEXT("/item/lastmodifiedtime");
 	
 	// STOMP WebSocket 기본 연결 URL
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
@@ -85,4 +89,8 @@ public:
 	// STOMP WebSocket 물품 정보 변동 구독용 추가 url
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
 	FString WSChangeDataAddURL = TEXT("/sub/modify");
+
+	// 웹서버 시간을 UTC에 맞추기 위해 변화해야 하는 변화 값 설정
+	UPROPERTY( EditDefaultsOnly, Category = "Server" )
+	FTimespan WebServerUTCDiff = - FTimespan(9, 0, 0);
 };

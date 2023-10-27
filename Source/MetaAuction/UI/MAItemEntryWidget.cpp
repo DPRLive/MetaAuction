@@ -72,18 +72,18 @@ void UMAItemEntryWidget::UpdateText(const FItemData& InItemData)
 
 	// �迭�� ��Ҹ� "."���� ���е� ���ڿ��� ��ġ��
 	const int32 MaxEndTimeIndex = 5;
-	const TArray<uint16>& EndTime = InItemData.EndTime;
-	TArray<uint16> TempTime;
-	TempTime.Init(0, 5);
-	for (int32 i = 0; i < MaxEndTimeIndex; i++)
-	{
-		if (EndTime.IsValidIndex(i))
-		{
-			TempTime[i] = EndTime[i];
-		}
-	}
-	FString EndTimeString = FString::Printf(TEXT("%04d.%02d.%02d.%02d.%02d"), TempTime[0], TempTime[1], TempTime[2], TempTime[3], TempTime[4]);
-	EndTimeText->SetText(FText::FromString(EndTimeString));
+	//const TArray<uint16>& EndTime = InItemData.EndTime;
+	// TArray<uint16> TempTime;
+	// TempTime.Init(0, 5);
+	// for (int32 i = 0; i < MaxEndTimeIndex; i++)
+	// {
+	// 	if (EndTime.IsValidIndex(i))
+	// 	{
+	// 		TempTime[i] = EndTime[i];
+	// 	}
+	// }
+	// FString EndTimeString = FString::Printf(TEXT("%04d.%02d.%02d.%02d.%02d"), TempTime[0], TempTime[1], TempTime[2], TempTime[3], TempTime[4]);
+	// EndTimeText->SetText(FText::FromString(EndTimeString));
 }
 
 void UMAItemEntryWidget::UpdateImage(const FItemData& InItemData)

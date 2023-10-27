@@ -19,14 +19,17 @@ public:
 	// 해당 item ID의 파일들을 지웁니다.
 	void RemoveGlbFile(uint32 InItemId) const;
 
-	// 해당 item ID의 모델링 파일(glb)를 요청합니다.
+	// 해당 item ID의 모델링 파일(glb)를 요청합니다. 로컬에 있을경우 그 파일을 사용하며, 없을 경우 웹으로 새로 요청합니다. 
 	void RequestGlb(FCallbackOneParam<const FString&> InFunc, uint32 InItemId) const;
 
 	// 해당 item Id의 index번째 이미지를 요청합니다.
 	void RequestImg(FCallbackOneParam<UTexture2DDynamic*> InFunc, uint32 InItemId, uint8 InImgIdx);
 private:
+	// glb 파일을 웹서버에 요청한다.
+	void _RequestGlbToWeb(FCallbackOneParam<const FString&> InFunc, uint32 InItemId) const;
+	
 	// glb 파일 요청이 완료되면 호출될 함수, 파일을 저장한다.
-	void _OnGlbRequestCompleted(const FHttpResponsePtr& InResponse) const;
+	FString _OnGlbRequestCompleted(const FHttpResponsePtr& InResponse) const;
 
 	// Img 파일 요청이 완료되면 호출될 함수, UTexture2DDynamic으로 바꾼다.
 	UTexture2DDynamic* _OnImgRequestCompleted(const FHttpResponsePtr& InResponse) const;

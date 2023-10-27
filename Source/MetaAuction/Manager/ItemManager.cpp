@@ -489,11 +489,26 @@ void UItemManager::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FItemDa
 
 	const TArray<TSharedPtr<FJsonValue>>* out; // 년 월 일 시간 분
 	InJsonObj->TryGetArrayField(TEXT("endTime"), out);
-
-	for (const TSharedPtr<FJsonValue>& value : *out) // 파싱한다.
+	if(out->Num() >= 5) // 년 월 일 시간 분 을 모두 파싱할 수 있을지
 	{
-		OutItemData.EndTime.Emplace(value->AsNumber());
+		OutItemData.EndTime = FDateTime((*out)[0]->AsNumber(),
+										(*out)[1]->AsNumber(),
+											(*out)[2]->AsNumber(),
+											(*out)[3]->AsNumber(),
+											(*out)[4]->AsNumber());
 	}
+
+	const TArray<TSharedPtr<FJsonValue>>* out2; // 년 월 일 시간 분 초
+	InJsonObj->TryGetArrayField(TEXT("lastModifiedTime"), out2);
+	if (out2->Num() >= 6) // 년 월 일 시간 분 초를  모두 파싱할 수 있을지
+	{
+		OutItemData.LastModifyTime = FDateTime((*out2)[0]->AsNumber(),
+		                                       (*out2)[1]->AsNumber(),
+												   (*out2)[2]->AsNumber(),
+											       (*out2)[3]->AsNumber(),
+											       (*out2)[4]->AsNumber(),
+											        (*out2)[5]->AsNumber());
+	}	
 }
 
 /**
@@ -506,13 +521,17 @@ void UItemManager::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FBidRec
 	InJsonObj->TryGetNumberField(TEXT("id"), OutBidRecord.Order);
 	InJsonObj->TryGetNumberField(TEXT("bidPrice"), OutBidRecord.BidPrice);
 	InJsonObj->TryGetStringField(TEXT("bidUser"), OutBidRecord.BidUser);
-	
+
 	const TArray<TSharedPtr<FJsonValue>>* out; // 년 월 일 시간 분
 	InJsonObj->TryGetArrayField(TEXT("bidTime"), out);
-
-	for (const TSharedPtr<FJsonValue>& value : *out) // 파싱한다.
+	if(out->Num() >= 6) // 년 월 일 시간 분 초를 모두 파싱할 수 있을지
 	{
-		OutBidRecord.BidTime.Emplace(value->AsNumber());
+		OutBidRecord.BidTime = FDateTime((*out)[0]->AsNumber(),
+		                                 (*out)[1]->AsNumber(),
+											(*out)[2]->AsNumber(),
+											(*out)[3]->AsNumber(),
+											(*out)[4]->AsNumber(),
+											 (*out)[5]->AsNumber());
 	}
 }
 
@@ -558,35 +577,106 @@ void UItemManager::_Server_OnChangePrice(const IStompMessage& InMessage) const
 
 	if(idAndPrice.Num() == 2)
 	{
-		_ChangePrice(FCString::Atoi(*idAndPrice[0]), FCString::Atoi64(*idAndPrice[1]));
+		_MulticastRPC_ChangePrice(FCString::Atoi(*idAndPrice[0]), FCString::Atoi64(*idAndPrice[1]));
 	}
 }
 
 /**
- * 서버에서 RPC로 가격 변동을 알립니다.
+ * 서버 -> RPC로 모든 클라에게 가격 변동 알림을 줍니다.
  * @param InItemId : 가격이 변동된 상품의 ID
  * @param InPrice : 현재 가격
  */
-void UItemManager::_ChangePrice_Implementation(const uint32& InItemId, const uint64& InPrice) const
+void UItemManager::_MulticastRPC_ChangePrice_Implementation(const uint32& InItemId, const uint64& InPrice) const
 {
 	LOG_WARN(TEXT("id[%d] change price : %lld"), InItemId, InPrice);
 
+	if(!IsRunningDedicatedServer()) // 근데 서버는 안궁금해
+		return;
+	
 	if(OnChangePrice.IsBound())
 		OnChangePrice.Broadcast(InItemId, InPrice);
 }
 
 /**
+ * 서버 -> RPC로 모든 클라에게 아이템 정보 변동 알림을 줍니다.
+ * @param InItemId : 정보가 변동된 상품의 ID
+ */
+void UItemManager::_MulticastRPC_ChangeItemData_Implementation(const uint32& InItemId) const
+{
+	LOG_WARN(TEXT("id[%d] item data changed!"), InItemId);
+
+	if(!IsRunningDedicatedServer()) // 근데 서버는 안궁금해
+		return;
+
+	if(OnChangeItemData.IsBound())
+		OnChangeItemData.Broadcast(InItemId);
+}
+
+/**
+ *  현재 월드에 있던 glb가 변경된 경우, 서버 -> 모든 클라에게 그 액터 다시 그리라고 명령합니다.
+ *  @param InActorIdx : 다시 그릴 ItemActor의 Index
+ */
+void UItemManager::_MulticastRPC_RedrawItem_Implementation(const uint8& InActorIdx)
+{
+	if(IsRunningDedicatedServer()) // 서버는 안해도 됩니다
+		return;
+
+	if(ItemActors.IsValidIndex(InActorIdx) && ItemActors[InActorIdx].IsValid())
+	{
+		ItemActors[InActorIdx]->Client_RedrawModel();
+	}
+}
+
+/**
  *  Stomp 메세지로 아이템 정보 변동 알림을 받는다.
+ *  무조건 "(itemid)*(바뀌기전 월드)" 로 시작
  *  TODO : 할게 많네.
  */
-void UItemManager::_Server_OnChangeItemData(const IStompMessage& InMessage) const
+void UItemManager::_Server_OnChangeItemData(const IStompMessage& InMessage)
 {
 	CHECK_DEDI_FUNC;
+
+	TArray<FString> parseArr;
+	InMessage.GetBodyAsString().ParseIntoArray(parseArr, TEXT("-"), true);
+
+	if(parseArr.Num() <= 1) // 내용이 없으면 뭐야 이거
+		return;
+
+	// 쿼리의 첫 시작인 itemId, 바뀌기 전 월드 두개를 뽑아낸다.
+	TArray<FString> idAndWorld;
+	parseArr[0].ParseIntoArray(idAndWorld, TEXT("&"), true);
 	
-	// glb에 변동이 있었는지 확인한다
-	if(InMessage.GetBodyAsString().Contains(TEXT("glb")))
+	if(idAndWorld.Num() < 2) // id와 world가 들어오지 않았다면 거부
+		return;
+	
+	const uint32 itemId = FCString::Atoi(*idAndWorld[0]);
+	const FString world = idAndWorld[1];
+
+	// 월드나 위치에 변동이 있었다면
+	if(InMessage.GetBodyAsString().Contains(TEXT("world")) ||
+		InMessage.GetBodyAsString().Contains(TEXT("location")))
 	{
-		// 변동이 있다면 로컬 파일에서 지운 후 ..
-		
+		Server_UnregisterItem(itemId); // 삭제 후 재등록 시도해봄 (월드 1->1 같은 쿼리가 들어올 수도 있음)
+		Server_RegisterNewItem(itemId);
 	}
+	else if(world == TEXT("1") && InMessage.GetBodyAsString().Contains(TEXT("glb"))) // 내 월드에 있는거고 위치는 안바뀌었는데 glb가 바뀌었다면
+	{
+		// TODO: 월드 확인 어쩌지??????
+		//glb만 변경 된거면 클라이언트의 ItemManager에게 그거 redraw 명령
+		// 배치된 곳을 찾는다
+		for (uint8 idx = 0; idx < ItemActors.Num(); ++idx)
+		{
+			if (ItemActors[idx].IsValid() && (ItemActors[idx]->GetItemID() == itemId))
+			{
+				_MulticastRPC_RedrawItem(idx);
+				break;
+			}
+		}
+	}
+
+	// 다른 속성 말고 딱 glb만 변경된거면 알림을 보내지 않는다
+	if((parseArr.Num() == 2) && parseArr[1].Equals(TEXT("glb"), ESearchCase::IgnoreCase))
+		return;
+	
+	_MulticastRPC_ChangeItemData(itemId);
 }
