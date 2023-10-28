@@ -12,7 +12,7 @@ namespace MADataAssetHelper
 	* @param InAssetName : 해당 Data Asset의 이름
 	*/
 	template<typename T>
-	const T* GetDataAsset(const FString& InAssetName)
+	const TObjectPtr<T> GetDataAsset(const FString& InAssetName)
 	{
 		const FString path = FString::Printf(TEXT("/Script/Engine.DataAsset'/Game/Data/DataAsset/%s.%s'"), *InAssetName, *InAssetName); 
 		return LoadObject<T>(nullptr, *path);

@@ -21,9 +21,9 @@ enum class EHttpRequestType : uint8
 UENUM(BlueprintType)
 enum class EItemDealType : uint8
 {
-	None		UMETA( Tooltip = "판매 타입 지정 안됨" ),
-	Auction		UMETA( Tooltip = "경매 타입" ),
-	Normal		UMETA( Tooltip = "일반 판매 타입" ),
+	None		UMETA( DisplayName = "상관 없음" ),
+	Auction		UMETA( DisplayName = "경매" ),
+	Normal		UMETA( DisplayName = "일반 판매" ),
 	MAX			UMETA( Hidden )
 };
 
@@ -31,9 +31,9 @@ enum class EItemDealType : uint8
 UENUM(BlueprintType)
 enum class EItemCanDeal : uint8
 {
-	None		UMETA( Tooltip = "판매중인지 지정 안됨" ),
-	Possible	UMETA( Tooltip = "판매중" ),
-	Impossible	UMETA( Tooltip = "판매중 아님" ),
+	None		UMETA( DisplayName = "상관 없음" ),
+	Possible	UMETA( DisplayName = "판매중" ),
+	Impossible	UMETA( DisplayName = "판매중 아님" ),
 	MAX			UMETA(Hidden)
 };
 
@@ -43,6 +43,7 @@ enum class EMyItemReqType : uint8
 {
 	Sell		UMETA( Tooltip = "내가 판매했던 or 판매 중인 or 판매했는데 입찰 실패한 물품" ),
 	Buy			UMETA( Tooltip = "내가 구매 성공한 물품" ),
+	TryBid		UMETA( Tooltip = "내가 입찰 시도한 물품" ),
 	MAX			UMETA(Hidden)
 };
 

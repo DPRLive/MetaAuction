@@ -24,7 +24,7 @@ FStompHandler::FStompHandler()
 /**
  *  연결 성공시 호출될 함수
  */
-void FStompHandler::_OnConnectedSuccess(const FString& InProtocolVersion, const FString& InSessionId, const FString& InServerString)
+void FStompHandler::_OnConnectedSuccess(const FString& InProtocolVersion, const FString& InSessionId, const FString& InServerString) const
 {
 	LOG_N(TEXT("Stomp Web Socket Connected!"));
 	LOG_N(TEXT("ProtocolVersion : %s"), *InProtocolVersion);
@@ -35,7 +35,7 @@ void FStompHandler::_OnConnectedSuccess(const FString& InProtocolVersion, const 
 /**
  *  해당 url에 STOMP WebSocket 구독을 요청합니다.
  */
-void FStompHandler::Subscribe(const FString& InUrl, const FStompSubscriptionEvent& InEvent)
+void FStompHandler::Subscribe(const FString& InUrl, const FStompSubscriptionEvent& InEvent) const
 {
 	if(Stomp.IsValid())
 	{

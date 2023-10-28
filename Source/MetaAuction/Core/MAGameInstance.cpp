@@ -2,16 +2,10 @@
 
 
 #include "Core/MAGameInstance.h"
-#include "../Handler/HttpHandler.h"
-#include "../Handler/ItemFileHandler.h"
-#include "../Handler/StompHandler.h"
-
 #include <Serialization/JsonSerializer.h>
 #include <Interfaces/IHttpResponse.h>
 
-
 #include UE_INLINE_GENERATED_CPP_BY_NAME(MAGameInstance)
-
 
 UMAGameInstance::UMAGameInstance()
 {
@@ -25,6 +19,7 @@ void UMAGameInstance::Init()
 	Super::Init();
 
 	HttpHandler = MakeShareable(new FHttpHandler());
+	StompHandler = MakeShareable(new FStompHandler());
 	
 	//if(IsRunningDedicatedServer()) // 테스트, 데디 서버면 자동 로그인
 	//{
@@ -36,9 +31,6 @@ void UMAGameInstance::Init()
 	{
 		ItemFileHandler = MakeShareable(new FItemFileHandler());
 	}
-	
-	StompHandler = MakeShareable(new FStompHandler());
-	
 }
 
 /**

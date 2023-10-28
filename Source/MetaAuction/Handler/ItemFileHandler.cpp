@@ -18,11 +18,6 @@
  */
 FItemFileHandler::FItemFileHandler()
 {
-	// FFileManagerGeneric fileManager;
-	// FDateTime time = fileManager.GetTimeStamp(*(FPaths::ProjectSavedDir() + TEXT("Models/1.glb")));
-	// FDateTime time2 = fileManager.GetAccessTimeStamp(*(FPaths::ProjectSavedDir() + TEXT("Models/1.glb")));
-	// LOG_WARN(TEXT("%s"), *time.ToString());
-	// LOG_WARN(TEXT("%s"), *time2.ToString());
 }
 
 /**
@@ -30,7 +25,7 @@ FItemFileHandler::FItemFileHandler()
  * 아마 프로그램 실행 시 메인 화면에서 로그인 후 레벨 넘어가기 전 unuseable로 한번 호출해주면 좋을듯해요
  * @param InRemoveCacheType : 파일을 지울때의 옵션, Unuseable일 경우 로그인 된 상태에서 해주세요.
  */
-void FItemFileHandler::RemoveCacheFile(ERemoveCacheType InRemoveCacheType)
+void FItemFileHandler::RemoveCacheFile(ERemoveCacheType InRemoveCacheType) const
 {
 	FString basePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + TEXT("Models/");
 	
@@ -161,12 +156,12 @@ void FItemFileHandler::RequestGlb(FCallbackOneParam<const FString&> InFunc, uint
 }
 
 /**
- * 해당 item Id의 index번째 이미지를 요청합니다.
+ * 해당 item Id의 index번째 이미지를 요청합니다. 이미지 인덱스 범위는 1 <= N <= ImgCnt 입니다.
  * @param InFunc : 요청이 완료되면 실행할 람다 함수, 형식이 같아야 하며 람다 내부에서 클래스 멤버 접근시 weak 캡처 해주세요! 
  * @param InItemId : 요청할 Item의 id
  * @param InImgIdx : 요청할 Item의 몇번째 사진인지?
  */
-void FItemFileHandler::RequestImg(FCallbackOneParam<UTexture2DDynamic*> InFunc, uint32 InItemId, uint8 InImgIdx)
+void FItemFileHandler::RequestImg(FCallbackOneParam<UTexture2DDynamic*> InFunc, uint32 InItemId, uint8 InImgIdx) const
 {
 	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
 	{
@@ -175,7 +170,7 @@ void FItemFileHandler::RequestImg(FCallbackOneParam<UTexture2DDynamic*> InFunc, 
 		
 		if (const UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
 		{
-			TWeakPtr<FItemFileHandler> thisPtr = gameInstance->GetItemFileHandler(); // 만약을 대비해 Weak 캡처 추가
+			TWeakPtr<const FItemFileHandler> thisPtr = gameInstance->GetItemFileHandler(); // 만약을 대비해 Weak 캡처 추가
 			httpHandler->Request(DA_NETWORK(ImgViewAddURL) + FString::Printf(TEXT("/%d/%d"), InItemId, InImgIdx), EHttpRequestType::GET,
 				[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 								 {

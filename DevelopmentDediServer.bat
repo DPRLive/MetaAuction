@@ -1,0 +1,1 @@
+UnrealEditor.exe "%cd%\MetaAuction.uproject" -server -log

@@ -42,7 +42,7 @@ public:
 	
 	// LoginData Getter
 	FORCEINLINE const FLoginData& GetLoginData() const { return LoginData; }
-
+	
 	// ModelHandler Getter
 	FORCEINLINE const TSharedPtr<FItemFileHandler>& GetItemFileHandler() const { return ItemFileHandler; }
 
@@ -54,7 +54,7 @@ public:
 private:
 	// 로그인 관련 정보를 들고있기 위한 LoginData
 	FLoginData LoginData;
-
+	
 	// 아이템 관련 파일 처리를 위한 ItemFileHandler, 클라이언트에서만 생성됩니다.
 	TSharedPtr<FItemFileHandler> ItemFileHandler;
 

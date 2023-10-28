@@ -17,11 +17,11 @@ public:
 	
 private:
 	// 연결 성공시 호출될 함수
-	void _OnConnectedSuccess(const FString& InProtocolVersion, const FString& InSessionId, const FString& InServerString);
+	void _OnConnectedSuccess(const FString& InProtocolVersion, const FString& InSessionId, const FString& InServerString) const;
 
 public:
 	// 해당 url에 STOMP WebSocket 구독을 요청합니다.
-	void Subscribe(const FString& InUrl, const FStompSubscriptionEvent& InEvent);
+	void Subscribe(const FString& InUrl, const FStompSubscriptionEvent& InEvent) const;
 
 private:
 	// Stomp 객체

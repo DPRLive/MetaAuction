@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Manager/ItemManager.h"
 #include "MAItemListWidget.generated.h"
 
 /** UMAItemListWidget

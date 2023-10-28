@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Actor/ItemActor.h"
-#include "Manager/ItemManager.h"
 #include "MAItemTooltipWidget.generated.h"
 
 struct FItemData;

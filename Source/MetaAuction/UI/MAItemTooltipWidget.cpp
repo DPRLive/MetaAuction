@@ -3,7 +3,6 @@
 
 #include "UI/MAItemTooltipWidget.h"
 #include "UI/MAWidgetUtils.h"
-#include "Handler/ItemFileHandler.h"
 
 #include <Components/TextBlock.h>
 #include <Components/Image.h>
@@ -36,8 +35,9 @@ void UMAItemTooltipWidget::NativeConstruct()
 
 void UMAItemTooltipWidget::UpdateById(uint32 InItemID)
 {
-	UItemManager* ItemManager = UMAWidgetUtils::GetItemManager(GetWorld());
-	if (!IsValid(ItemManager))
+	UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld()));
+	
+	if (!IsValid(ItemDataHandler))
 	{
 		return;
 	}
@@ -52,7 +52,7 @@ void UMAItemTooltipWidget::UpdateById(uint32 InItemID)
 					ThisPtr->UpdateAll(InData);
 				}
 			};
-		ItemManager->RequestItemDataByID(Func, InItemID);
+		ItemDataHandler->RequestItemDataById(Func, InItemID);
 	}
 }
 

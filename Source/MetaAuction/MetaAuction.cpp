@@ -2,6 +2,7 @@
 
 #include "MetaAuction.h"
 #include "Core/MAGameInstance.h"
+#include "Core/MAGameState.h"
 
 #include <Kismet/GameplayStatics.h>
 #include <Modules/ModuleManager.h>
@@ -36,6 +37,16 @@ UGameInstance* MAGetGameInstance(UWorld* InWorld)
 }
 
 /**
+ * GameState 반환
+ */
+AGameStateBase* MAGetGameState(UWorld* InWorld)
+{
+	UWorld* world = InWorld ? InWorld : MAGetWorld();
+
+	return UGameplayStatics::GetGameState(world);
+}
+
+/**
  * Http Handler 반환
  */
 FHttpHandler* MAGetHttpHandler(UGameInstance* InGameInstance)
@@ -51,13 +62,28 @@ FHttpHandler* MAGetHttpHandler(UGameInstance* InGameInstance)
 }
 
 /**
+ * Item Data Handler 반환
+ */
+TObjectPtr<UItemDataHandler> MAGetItemDataHandler(AGameStateBase* InGameState)
+{
+	if(AMAGameState* gameState = Cast<AMAGameState>(InGameState))
+	{
+		if(IsValid(gameState->GetItemDataHandler()))
+		{
+			return gameState->GetItemDataHandler();
+		}
+	}
+	return nullptr;
+}
+
+/**
  * Item File Handler 반환
  */
 FItemFileHandler* MAGetItemFileHandler(UGameInstance* InGameInstance)
 {
 	if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(InGameInstance))
 	{
-		if(gameInstance->GetHttpHandler().IsValid())
+		if(gameInstance->GetItemFileHandler().IsValid())
 		{
 			return gameInstance->GetItemFileHandler().Get();
 		}
@@ -72,7 +98,7 @@ FStompHandler* MAGetStompHandler(UGameInstance* InGameInstance)
 {
 	if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(InGameInstance))
 	{
-		if(gameInstance->GetHttpHandler().IsValid())
+		if(gameInstance->GetStompHandler().IsValid())
 		{
 			return gameInstance->GetStompHandler().Get();
 		}

@@ -23,8 +23,8 @@ void UMAItemListWidget::NativeConstruct()
 
 void UMAItemListWidget::UpdateSearchItems(const FItemSearchOption& InItemOption)
 {
-	UItemManager* ItemManager = UMAWidgetUtils::GetItemManager(GetWorld());
-	if (!IsValid(ItemManager))
+	UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld()));
+	if (!IsValid(ItemDataHandler))
 	{
 		return;
 	}
@@ -41,14 +41,14 @@ void UMAItemListWidget::UpdateSearchItems(const FItemSearchOption& InItemOption)
 					LOG_SCREEN(FColor::Green, TEXT("Successed %s"), *FString(__FUNCTION__));
 				}
 			};
-		ItemManager->RequestItemDataByOption(Func, InItemOption);
+		ItemDataHandler->RequestItemDataByOption(Func, InItemOption);
 	}
 }
 
 void UMAItemListWidget::UpdateMyItems(EMyItemReqType InType)
 {
-	UItemManager* ItemManager = UMAWidgetUtils::GetItemManager(GetWorld());
-	if (!IsValid(ItemManager))
+	UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld()));
+	if (!IsValid(ItemDataHandler))
 	{
 		return;
 	}
@@ -65,7 +65,7 @@ void UMAItemListWidget::UpdateMyItems(EMyItemReqType InType)
 					LOG_SCREEN(FColor::Green, TEXT("Successed %s"), *FString(__FUNCTION__));
 				}
 			};
-		ItemManager->RequestMyItem(Func, InType);
+		ItemDataHandler->RequestMyItem(Func, InType);
 	}
 }
 

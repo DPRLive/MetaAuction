@@ -8,6 +8,7 @@
 AMAGameState::AMAGameState()
 {
 	ItemManager = CreateDefaultSubobject<UItemManager>(TEXT("ItemManager"));
+	ItemDataHandler = CreateDefaultSubobject<UItemDataHandler>(TEXT("ItemDataHandler"));
 }
 
 void AMAGameState::BeginPlay()
