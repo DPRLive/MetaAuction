@@ -1,0 +1,3 @@
+[submodule "Content/PrivateAsset"]
+	path = Content/PrivateAsset
+	url = https://github.com/DPRLive/MetaAuction-PrivateAsset.git
