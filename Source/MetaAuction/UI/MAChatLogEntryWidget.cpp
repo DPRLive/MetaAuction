@@ -16,6 +16,8 @@ void UMAChatLogEntryWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	ensure(NameText);
+	ensure(LogText);
 }
 
 void UMAChatLogEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)

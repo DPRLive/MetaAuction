@@ -23,7 +23,11 @@ void UMAChatLogWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	if (ensure(InputText))
+	ensure(WBP_ChatLogList);
+	ensure(InputScrollBox);
+	ensure(InputText);
+
+	if (IsValid(InputText))
 	{
 		InputText->OnTextCommitted.AddDynamic(this, &ThisClass::InputTextCommitted);
 		InputText->OnTextChanged.AddDynamic(this, &ThisClass::InputTextChanged);

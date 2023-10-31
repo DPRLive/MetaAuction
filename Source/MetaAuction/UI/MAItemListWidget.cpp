@@ -3,7 +3,6 @@
 
 #include "UI/MAItemListWidget.h"
 #include "UI/MAItemEntry.h"
-#include "UI/MAWidgetUtils.h"
 
 #include <Components/ListView.h>
 #include <Kismet/GameplayStatics.h>
@@ -17,7 +16,6 @@ void UMAItemListWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ItemListView = Cast<UListView>(GetWidgetFromName(TEXT("ItemListView")));
 	ensure(ItemListView);
 }
 

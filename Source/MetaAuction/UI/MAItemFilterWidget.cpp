@@ -4,7 +4,7 @@
 #include "UI/MAItemFilterWidget.h"
 
 #include <GameFramework/GameState.h>
-#include <Components/EditableText.h>
+#include <Components/EditableTextBox.h>
 #include <Components/Button.h>
 #include <Components/ComboBoxString.h>
 
@@ -18,18 +18,21 @@ void UMAItemFilterWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	ensure(SearchButton);
+	ensure(SearchButton);
+	ensure(ItemDealTypeComboBox);
+	ensure(ItemCanDealComboBox);
+
 	if (IsValid(SearchButton))
 	{
 		SearchButton->OnClicked.AddDynamic(this, &ThisClass::SearchButtonClicked);
 	}
 
-	ensure(ItemDealTypeComboBox);
 	if (IsValid(ItemDealTypeComboBox))
 	{
 		ItemDealTypeComboBox->ClearOptions();
 
-		// EItemDealType의 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
-		for (uint8 EnumIndex = static_cast<uint8>(EItemDealType::None); EnumIndex < static_cast<uint8>(EItemDealType::MAX); ++EnumIndex)
+		// EItemDealType의 첫 항목을 제외한 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
+		for (uint8 EnumIndex = static_cast<uint8>(EItemDealType::None) + 1; EnumIndex < static_cast<uint8>(EItemDealType::MAX); ++EnumIndex)
 		{
 			FString DisplayName;
 			UEnum::GetValueAsString<EItemDealType>(static_cast<EItemDealType>(EnumIndex), DisplayName);
@@ -37,13 +40,12 @@ void UMAItemFilterWidget::NativeConstruct()
 		}
 	}
 
-	ensure(ItemCanDealComboBox);
 	if (IsValid(ItemCanDealComboBox))
 	{
 		ItemCanDealComboBox->ClearOptions();
 
-		// EItemDealType의 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
-		for (uint8 EnumIndex = static_cast<uint8>(EItemCanDeal::None); EnumIndex < static_cast<uint8>(EItemCanDeal::MAX); ++EnumIndex)
+		// EItemDealType의 첫 항목을 제외한 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
+		for (uint8 EnumIndex = static_cast<uint8>(EItemCanDeal::None) + 1; EnumIndex < static_cast<uint8>(EItemCanDeal::MAX); ++EnumIndex)
 		{
 			FString DisplayName;
 			UEnum::GetValueAsString<EItemCanDeal>(static_cast<EItemCanDeal>(EnumIndex), DisplayName);
@@ -55,10 +57,7 @@ void UMAItemFilterWidget::NativeConstruct()
 
 void UMAItemFilterWidget::Search()
 {
-	if (!SearchText->GetText().IsEmpty())
-	{
-		OnSearch.Broadcast(GetCurrentOption());
-	}
+	OnSearch.Broadcast(GetCurrentOption());
 }
 
 FItemSearchOption UMAItemFilterWidget::GetCurrentOption()

@@ -18,6 +18,8 @@ class METAAUCTION_API UMAItemEntry : public UObject
 public:
 
 	UMAItemEntry();
+
+public:
 	
 	UPROPERTY()
 	FItemData ItemData;

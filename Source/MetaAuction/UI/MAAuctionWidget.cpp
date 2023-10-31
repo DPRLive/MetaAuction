@@ -23,6 +23,14 @@ void UMAAuctionWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	ensure(MenuBox);
+	ensure(ItemSearchButton);
+	ensure(ItemBidOnButton);
+	ensure(ItemRegisteredButton);
+	ensure(RegisterItemButton);
+	ensure(TransactionHistoryButton);
+	ensure(WBP_ItemFilter);
+	ensure(WBP_ItemList);
+
 	if (IsValid(MenuBox))
 	{
 		TArray<UWidget*> Widgets = MenuBox->GetAllChildren();
@@ -36,38 +44,31 @@ void UMAAuctionWidget::NativeConstruct()
 		}
 	}
 
-	ensure(ItemSearchButton);
 	if (IsValid(ItemSearchButton))
 	{
 		ItemSearchButton->OnClicked.AddDynamic(this, &ThisClass::ItemSearchButtonClicked);
 	}
 
-	ensure(ItemBidOnButton);
 	if (IsValid(ItemBidOnButton))
 	{
 		ItemBidOnButton->OnClicked.AddDynamic(this, &ThisClass::ItemBidOnButtonClicked);
 	}
 
-	ensure(ItemRegisteredButton);
 	if (IsValid(ItemRegisteredButton))
 	{
 		ItemRegisteredButton->OnClicked.AddDynamic(this, &ThisClass::ItemRegisteredButtonClicked);
 	}
 
-	ensure(RegisterItemButton);
 	if (IsValid(RegisterItemButton))
 	{
 		RegisterItemButton->OnClicked.AddDynamic(this, &ThisClass::RegisterItemButtonClicked);
 	}
 
-	ensure(TransactionHistoryButton);
 	if (IsValid(TransactionHistoryButton))
 	{
 		TransactionHistoryButton->OnClicked.AddDynamic(this, &ThisClass::TransactionHistoryButtonClicked);
 	}
 
-	ensure(WBP_ItemList);
-	ensure(WBP_ItemFilter);
 	if (IsValid(WBP_ItemFilter))
 	{
 		WBP_ItemFilter->OnSearch.AddDynamic(this, &ThisClass::Search);
