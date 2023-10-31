@@ -12,7 +12,8 @@
 UMAItemTooltipWidget::UMAItemTooltipWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	CurrentImageIndex = 0;
+	MinImageIndex = 1;
+	CurrentImageIndex = MinImageIndex;
 	MaxImageIndex = 0;
 }
 
@@ -62,7 +63,7 @@ void UMAItemTooltipWidget::UpdateAll(const FItemData& InItemData)
 	UpdateImage(InItemData);
 
 	CachedItemData = InItemData;
-	CurrentImageIndex = 0;
+	CurrentImageIndex = MinImageIndex;
 	MaxImageIndex = InItemData.ImgCount;
 }
 
@@ -117,7 +118,7 @@ void UMAItemTooltipWidget::UpdateImage(const FItemData& InItemData)
 
 void UMAItemTooltipWidget::ItemImagePrevButtonClicked()
 {
-	if (CurrentImageIndex > 0)
+	if (CurrentImageIndex > MinImageIndex)
 	{
 		CurrentImageIndex--;
 		UpdateImage(CachedItemData);
@@ -126,7 +127,7 @@ void UMAItemTooltipWidget::ItemImagePrevButtonClicked()
 
 void UMAItemTooltipWidget::ItemImageNextButtonClicked()
 {
-	if (CurrentImageIndex < MaxImageIndex)
+	if (CurrentImageIndex <= MaxImageIndex)
 	{
 		CurrentImageIndex++;
 		UpdateImage(CachedItemData);

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "UI/MAItemEntryWidget.h"
@@ -93,7 +93,10 @@ void UMAItemEntryWidget::UpdateImage(const FItemData& InItemData)
 						LOG_SCREEN(FColor::Green, TEXT("Successed %s"), *FString(__FUNCTION__));
 					}
 				};
-			ItemFileHandler.Pin()->RequestImg(Func, InItemData.ItemID, 0);
+
+
+			// 0번 인덱스 이미지는 없으므로 1번 인덱스 이미지를 가져옵니다.
+			ItemFileHandler.Pin()->RequestImg(Func, InItemData.ItemID, 1);
 		}
 	}
 }

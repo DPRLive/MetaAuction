@@ -76,6 +76,9 @@ private:
 	int32 CurrentImageIndex;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	int32 MinImageIndex;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	int32 MaxImageIndex;
 
 	UPROPERTY()
