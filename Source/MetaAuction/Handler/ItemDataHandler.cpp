@@ -127,7 +127,7 @@ void UItemDataHandler::RequestItemDataByOption(FCallbackRefArray<FItemData> InFu
 								 	
 									 LOG_N(TEXT("Search Items Success!"));
 								 }
-							 }, httpHelper->JsonToString(requestObj));
+							 }, UtilJson::JsonToString(requestObj));
 	}
 }
 
@@ -287,22 +287,6 @@ void UItemDataHandler::RequestMyItem(FCallbackRefArray<FItemData> InFunc, EMyIte
 									 LOG_N(TEXT("Get My Items Success!"));
 								 }
 							 });
-	}
-}
-
-/**
- *  Stomp로 item id에 맞는 상품에 댓글을 답니다.
- *  @param InItemId : 댓글을 달 item id
- *  @param InContent : 댓글 내용 
- */
-void UItemDataHandler::AddReply(const uint32 InItemId, const FString& InContent) const
-{
-	FString pubUrl = DA_NETWORK(WSSendChatAddURL) + FString::Printf(TEXT("/%d"), InItemId);
-
-	// TODO: 형식에 맞춰 content 제작
-	if(const FStompHelper* stompHandler = MAGetStompHelper(GetOwner()->GetGameInstance()))
-	{
-		//stompHandler->SendMessage(pubUrl, InContent);
 	}
 }
 

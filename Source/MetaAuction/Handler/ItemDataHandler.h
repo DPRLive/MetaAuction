@@ -75,7 +75,6 @@ struct FItemData
 	FDateTime LastModifyTime;
 };
 
-
 /**
  *  물품 검색 시 사용할 Option struct
  *  필요한 옵션만 넣어서 사용하면 됩니다.
@@ -160,10 +159,7 @@ public:
 	// (로그인 된 상태여야함)
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
 	void RequestMyItem(FCallbackRefArray<FItemData> InFunc, EMyItemReqType InMyItemReqType) const;
-
-	// Stomp로 item id에 맞는 상품에 댓글을 답니다.
-	// 로그인 된 경우만 사용 가능
-	void AddReply(const uint32 InItemId, const FString& InContent) const;
+	
 private:
 	// Stomp 메세지로 온 아이템 가격 변동 알림을 받는다.
 	void _Server_OnChangePrice(const IStompMessage& InMessage) const;

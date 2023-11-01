@@ -5,7 +5,6 @@
 #include <Engine/GameInstance.h>
 #include "MAGameInstance.generated.h"
 
-class FItemFileHandler;
 class FLoginData;
 
 /**
@@ -46,7 +45,10 @@ private:
 	
 	// 아이템 관련 파일 처리를 위한 ItemFileHandler, 클라이언트에서만 생성됩니다.
 	TSharedPtr<FItemFileHandler> ItemFileHandler;
-
+	
+	// Chat 관련 처리를 위한 Chat Handler
+	TSharedPtr<FChatHandler> ChatHandler;
+	
 	// HTTP 통신을 위한 HttpHelper
 	TSharedPtr<FHttpHelper> HttpHelper;
 

@@ -12,12 +12,14 @@
 #include "Common/MALog.h"
 #include "Common/Enum.h"
 #include "Util/UtilEnum.h"
+#include "Util/UtilJson.h"
 #include "Common/Typedef.h"
 #include "DataAsset/MADataAssetHelper.h"
 #include "Helper/HttpHelper.h"
 #include "Helper/StompHelper.h"
 #include "Handler/ItemFileHandler.h"
 #include "Handler/ItemDataHandler.h"
+#include "Handler/ChatHandler.h"
 
 #define CHECK_DEDI_FUNC									\
 	if(!IsRunningDedicatedServer())						\

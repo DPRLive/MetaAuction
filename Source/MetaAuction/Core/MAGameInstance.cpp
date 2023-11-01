@@ -22,6 +22,7 @@ void UMAGameInstance::Init()
 
 	HttpHelper = MakeShareable(new FHttpHelper());
 	StompHelper = MakeShareable(new FStompHelper());
+	ChatHandler = MakeShareable(new FChatHandler());
 	
 	//if(IsRunningDedicatedServer()) // 테스트, 데디 서버면 자동 로그인
 	//{
@@ -84,6 +85,6 @@ void UMAGameInstance::RequestLogin(const FString& InID, const FString& InPasswor
 			{
 				LOG_ERROR(TEXT("로그인 실패 !"))
 			}
-		}, HttpHelper->JsonToString(requestObj));
+		}, UtilJson::JsonToString(requestObj));
 	}
 }

@@ -2,7 +2,6 @@
 
 #pragma once
 
-class FJsonObject;
 class FHttpModule;
 
 /**
@@ -20,9 +19,7 @@ public:
 	
 	// Http 요청 함수
 	void Request(const FString& InAddUrl, const EHttpRequestType InType, const FCompleteCallback& InFunc, const FString& InBody = TEXT("")) const;
-
-	// HTTP Body를 혹시 FJsonObject로 만들었다면, string으로 변환해주는 함수
-	FString JsonToString(const TSharedRef<FJsonObject>& InObj) const;
+	
 private:
 	// Http 요청에 사용할 모듈
 	FHttpModule* HttpModule;

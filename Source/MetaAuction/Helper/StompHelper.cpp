@@ -2,7 +2,6 @@
 
 #include <Modules/ModuleManager.h>
 #include <StompModule.h>
-#include <IStompMessage.h>
 
 /**
  *  Stomp WebSocket에 연결하고 기능을 수행하는 handler

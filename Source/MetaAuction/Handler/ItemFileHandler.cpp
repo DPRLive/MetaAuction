@@ -81,7 +81,7 @@ void FItemFileHandler::RemoveCacheFile(ERemoveCacheType InRemoveCacheType) const
 								 		}
 								 	}
 								 }
-							 }, httpHelper->JsonToString(requestObj));
+							 }, UtilJson::JsonToString(requestObj));
 	}
 }
 
