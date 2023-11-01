@@ -54,6 +54,9 @@ private:
 	TObjectPtr<class UButton> SearchButton;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UComboBoxString> ItemWorldTypeComboBox;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UComboBoxString> ItemDealTypeComboBox;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))

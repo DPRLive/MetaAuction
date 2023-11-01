@@ -30,8 +30,14 @@ private:
 
 private:
 
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UTextBlock> TitleText;
+
 	UPROPERTY(BlueprintReadOnly, Category = "CloseButton", meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UButton> CloseButton;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CloseButton", meta = (BindWidget, AllowPrivateAccess = "true"))
+	FText OverrideTitleText;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CloseButton", meta = (BindWidget, AllowPrivateAccess = "true"))
 	ESlateVisibility OverrideCloseButtonVisibility;

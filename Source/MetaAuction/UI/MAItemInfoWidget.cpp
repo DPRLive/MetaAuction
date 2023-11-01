@@ -92,7 +92,7 @@ void UMAItemInfoWidget::Update(const FItemData& InItemData)
 
 void UMAItemInfoWidget::ItemImagePrevButtonClicked()
 {
-	if (IsValid(WBP_ItemImageList))
+	if (IsValid(WBP_ItemImageList) && CachedItemData.ImgCount > 1)
 	{
 		WBP_ItemImageList->SelectPrevItem();
 	}
@@ -100,7 +100,7 @@ void UMAItemInfoWidget::ItemImagePrevButtonClicked()
 
 void UMAItemInfoWidget::ItemImageNextButtonClicked()
 {
-	if (IsValid(WBP_ItemImageList))
+	if (IsValid(WBP_ItemImageList) && CachedItemData.ImgCount > 1)
 	{
 		WBP_ItemImageList->SelectNextItem();
 	}

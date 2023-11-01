@@ -49,6 +49,9 @@ private:
 	UFUNCTION()
 	void Search(const FItemSearchOption& InOption);
 
+	void NotifyVisibleWidget();
+	void NotifyHiddenWidget();
+
 private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))

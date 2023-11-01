@@ -21,6 +21,8 @@ void UMAItemListWidget::NativeConstruct()
 
 void UMAItemListWidget::UpdateSearchItems(const FItemSearchOption& InItemOption)
 {
+	ItemListView->ClearListItems();
+
 	UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld()));
 	if (!IsValid(ItemDataHandler))
 	{
@@ -45,6 +47,8 @@ void UMAItemListWidget::UpdateSearchItems(const FItemSearchOption& InItemOption)
 
 void UMAItemListWidget::UpdateMyItems(EMyItemReqType InType)
 {
+	ItemListView->ClearListItems();
+
 	UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld()));
 	if (!IsValid(ItemDataHandler))
 	{

@@ -73,6 +73,8 @@ void UMAAuctionWidget::NativeConstruct()
 	{
 		WBP_ItemFilter->OnSearch.AddDynamic(this, &ThisClass::Search);
 	}
+
+	ItemSearchButtonClicked();
 }
 
 void UMAAuctionWidget::ToggleWidget()
@@ -103,6 +105,8 @@ void UMAAuctionWidget::ToggleWidget()
 
 		// 마우스 커서 숨기기
 		PlayerController->SetShowMouseCursor(false);
+
+		NotifyHiddenWidget();
 	}
 	else
 	{
@@ -129,6 +133,8 @@ void UMAAuctionWidget::ToggleWidget()
 
 		// 포커스 설정
 		SetFocus();
+
+		NotifyVisibleWidget();
 	}
 }
 
@@ -137,6 +143,7 @@ void UMAAuctionWidget::ItemSearchButtonClicked()
 	if (MenuButtonClicked(ItemSearchButton))
 	{
 		WBP_ItemList->UpdateSearchItems(WBP_ItemFilter->GetCurrentOption());
+		WBP_ItemFilter->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 
@@ -145,6 +152,7 @@ void UMAAuctionWidget::ItemBidOnButtonClicked()
 	if (MenuButtonClicked(ItemBidOnButton))
 	{
 		WBP_ItemList->UpdateMyItems(EMyItemReqType::Buy);
+		WBP_ItemFilter->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
@@ -153,6 +161,7 @@ void UMAAuctionWidget::ItemRegisteredButtonClicked()
 	if (MenuButtonClicked(ItemRegisteredButton))
 	{
 		WBP_ItemList->UpdateMyItems(EMyItemReqType::Sell);
+		WBP_ItemFilter->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
@@ -160,7 +169,7 @@ void UMAAuctionWidget::RegisterItemButtonClicked()
 {
 	if (MenuButtonClicked(RegisterItemButton))
 	{
-
+		WBP_ItemFilter->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
@@ -168,7 +177,7 @@ void UMAAuctionWidget::TransactionHistoryButtonClicked()
 {
 	if (MenuButtonClicked(TransactionHistoryButton))
 	{
-
+		WBP_ItemFilter->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
@@ -197,4 +206,12 @@ bool UMAAuctionWidget::MenuButtonClicked(UButton* ClickedButton)
 void UMAAuctionWidget::Search(const FItemSearchOption& InOption)
 {
 	WBP_ItemList->UpdateSearchItems(InOption);
+}
+
+void UMAAuctionWidget::NotifyVisibleWidget()
+{
+}
+
+void UMAAuctionWidget::NotifyHiddenWidget()
+{
 }

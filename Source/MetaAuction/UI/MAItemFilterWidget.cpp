@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "UI/MAItemFilterWidget.h"
@@ -19,6 +19,7 @@ void UMAItemFilterWidget::NativeConstruct()
 
 	ensure(SearchButton);
 	ensure(SearchButton);
+	ensure(ItemWorldTypeComboBox);
 	ensure(ItemDealTypeComboBox);
 	ensure(ItemCanDealComboBox);
 
@@ -31,26 +32,36 @@ void UMAItemFilterWidget::NativeConstruct()
 	{
 		ItemDealTypeComboBox->ClearOptions();
 
-		// EItemDealTypeÀÇ Ã¹ Ç×¸ñÀ» Á¦¿ÜÇÑ ¸ğµç Ç×¸ñÀÇ DisplayName¸¦ ComboBoxStringÀÇ ¿É¼ÇÀ¸·Î ¼³Á¤ÇÕ´Ï´Ù.
+		// EItemDealTypeì˜ ì²« í•­ëª©ì„ ì œì™¸í•œ ëª¨ë“  í•­ëª©ì˜ DisplayNameë¥¼ ComboBoxStringì˜ ì˜µì…˜ìœ¼ë¡œ ì„¤ì •í•©ë‹ˆë‹¤.
 		for (uint8 EnumIndex = static_cast<uint8>(EItemDealType::None) + 1; EnumIndex < static_cast<uint8>(EItemDealType::MAX); ++EnumIndex)
 		{
-			FString DisplayName;
-			UEnum::GetValueAsString<EItemDealType>(static_cast<EItemDealType>(EnumIndex), DisplayName);
-			ItemDealTypeComboBox->AddOption(DisplayName);
+			FText DisplayName;
+			const UEnum* EnumPtr = FindFirstObjectSafe<UEnum>(TEXT("EItemDealType"));
+			if (IsValid(EnumPtr))
+			{
+				DisplayName = EnumPtr->GetDisplayNameTextByValue(EnumIndex);
+			}
+			ItemDealTypeComboBox->AddOption(DisplayName.ToString());
 		}
+		ItemDealTypeComboBox->SetSelectedIndex(0);
 	}
 
 	if (IsValid(ItemCanDealComboBox))
 	{
 		ItemCanDealComboBox->ClearOptions();
 
-		// EItemDealTypeÀÇ Ã¹ Ç×¸ñÀ» Á¦¿ÜÇÑ ¸ğµç Ç×¸ñÀÇ DisplayName¸¦ ComboBoxStringÀÇ ¿É¼ÇÀ¸·Î ¼³Á¤ÇÕ´Ï´Ù.
+		// EItemDealTypeì˜ ì²« í•­ëª©ì„ ì œì™¸í•œ ëª¨ë“  í•­ëª©ì˜ DisplayNameë¥¼ ComboBoxStringì˜ ì˜µì…˜ìœ¼ë¡œ ì„¤ì •í•©ë‹ˆë‹¤.
 		for (uint8 EnumIndex = static_cast<uint8>(EItemCanDeal::None) + 1; EnumIndex < static_cast<uint8>(EItemCanDeal::MAX); ++EnumIndex)
 		{
-			FString DisplayName;
-			UEnum::GetValueAsString<EItemCanDeal>(static_cast<EItemCanDeal>(EnumIndex), DisplayName);
-			ItemCanDealComboBox->AddOption(DisplayName);
+			FText DisplayName;
+			const UEnum* EnumPtr = FindFirstObjectSafe<UEnum>(TEXT("EItemCanDeal"));
+			if (IsValid(EnumPtr))
+			{
+				DisplayName = EnumPtr->GetDisplayNameTextByValue(EnumIndex);
+			}
+			ItemCanDealComboBox->AddOption(DisplayName.ToString());
 		}
+		ItemCanDealComboBox->SetSelectedIndex(0);
 	}
 }
 
@@ -65,8 +76,10 @@ FItemSearchOption UMAItemFilterWidget::GetCurrentOption()
 	FItemSearchOption NewOption;
 	NewOption.SearchString = SearchText->GetText().ToString();
 	// TODO: NewOption.World = ???
-	NewOption.ItemType = static_cast<EItemDealType>(ItemDealTypeComboBox->GetSelectedIndex());
-	NewOption.CanDeal = static_cast<EItemCanDeal>(ItemCanDealComboBox->GetSelectedIndex());
+
+	// enumì˜ 0ë²ˆì§¸ ì˜µì…˜ì€ ì œê±°ë˜ì—ˆìœ¼ë¯€ë¡œ +1
+	NewOption.ItemType = static_cast<EItemDealType>(ItemDealTypeComboBox->GetSelectedIndex() + 1);
+	NewOption.CanDeal = static_cast<EItemCanDeal>(ItemCanDealComboBox->GetSelectedIndex() + 1);
 	return NewOption;
 }
 
