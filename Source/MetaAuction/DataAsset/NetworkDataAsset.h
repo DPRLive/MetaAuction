@@ -90,6 +90,10 @@ public:
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
 	FString WSChangeDataAddURL = TEXT("/sub/modify");
 
+	// STOMP WebSocket 채팅&댓글 보내기 추가 url, /{itemid}를 붙여서 사용
+	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
+	FString WSSendChatAddURL = TEXT("/pub/chat");
+	
 	// 웹서버 시간을 UTC에 맞추기 위해 변화해야 하는 변화 값 설정
 	UPROPERTY( EditDefaultsOnly, Category = "Server" )
 	FTimespan WebServerUTCDiff = - FTimespan(9, 0, 0);

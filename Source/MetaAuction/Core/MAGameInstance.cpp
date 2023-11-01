@@ -18,8 +18,8 @@ void UMAGameInstance::Init()
 {
 	Super::Init();
 
-	HttpHandler = MakeShareable(new FHttpHandler());
-	StompHandler = MakeShareable(new FStompHandler());
+	HttpHelper = MakeShareable(new FHttpHelper());
+	StompHelper = MakeShareable(new FStompHelper());
 	
 	//if(IsRunningDedicatedServer()) // 테스트, 데디 서버면 자동 로그인
 	//{
@@ -60,11 +60,11 @@ void UMAGameInstance::RequestLogin(const FString& InID, const FString& InPasswor
 	requestObj->SetStringField(TEXT("username"), InID);
 	requestObj->SetStringField(TEXT("password"), InPassword);
 	
-	if(HttpHandler.IsValid())
+	if(HttpHelper.IsValid())
 	{
 		// 로그인을 요청한다.
 		TWeakObjectPtr<UMAGameInstance> thisPtr = this;
-		HttpHandler->Request(DA_NETWORK(LoginAddURL), EHttpRequestType::POST, [thisPtr](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		HttpHelper->Request(DA_NETWORK(LoginAddURL), EHttpRequestType::POST, [thisPtr](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 		{
 			if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 			{
@@ -76,13 +76,13 @@ void UMAGameInstance::RequestLogin(const FString& InID, const FString& InPasswor
 				
 				// jwt 토큰을 저장한다.
 				thisPtr->LoginData.JwtToken = jsonObject->GetStringField(TEXT("accessToken"));
+				//thisPtr->LoginData.Name = jsonObject->GetStringField(TEXT(""))
 				thisPtr->LoginData.bLogin = true;
 			}
 			else
 			{
 				LOG_ERROR(TEXT("로그인 실패 !"))
 			}
-		}, HttpHandler->JsonToString(requestObj));
+		}, HttpHelper->JsonToString(requestObj));
 	}
 }
-

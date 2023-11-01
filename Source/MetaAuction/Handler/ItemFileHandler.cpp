@@ -42,9 +42,9 @@ void FItemFileHandler::RemoveCacheFile(ERemoveCacheType InRemoveCacheType) const
 	TSharedRef<FJsonObject> requestObj = MakeShared<FJsonObject>();
 	requestObj->SetBoolField(TEXT("isPossible"), true);
 	
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(MAGetGameInstance()))
 	{
-		httpHandler->Request(DA_NETWORK(ItemSearchAddURL), EHttpRequestType::POST,[basePath](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		httpHelper->Request(DA_NETWORK(ItemSearchAddURL), EHttpRequestType::POST,[basePath](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 							 {
 								 if (InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 								 {
@@ -81,7 +81,7 @@ void FItemFileHandler::RemoveCacheFile(ERemoveCacheType InRemoveCacheType) const
 								 		}
 								 	}
 								 }
-							 }, httpHandler->JsonToString(requestObj));
+							 }, httpHelper->JsonToString(requestObj));
 	}
 }
 
@@ -112,10 +112,10 @@ void FItemFileHandler::RequestGlb(FCallbackOneParam<const FString&> InFunc, uint
 	if (FPaths::FileExists(glbPath)) // 우선 로컬에 존재하는지 확인
 	{
 		// 존재하면 최신화된 파일인지 한번 확인한다.
-		const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance());
+		const FHttpHelper* httpHelper = MAGetHttpHelper(MAGetGameInstance());
 		const UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance());
 		
-		if ((httpHandler != nullptr) && (gameInstance != nullptr))
+		if ((httpHelper != nullptr) && (gameInstance != nullptr))
 		{
 			LOG_N(TEXT("Request itemID[%d] Last Modified time ..."), InItemId);
 
@@ -124,7 +124,7 @@ void FItemFileHandler::RequestGlb(FCallbackOneParam<const FString&> InFunc, uint
 			FDateTime localFileTime = fileManager.GetTimeStamp(*glbPath);
 			
 			TWeakPtr<FItemFileHandler> thisPtr = gameInstance->GetItemFileHandler(); // 만약을 대비해 Weak 캡처 추가
-			httpHandler->Request(DA_NETWORK(ModifyTimeAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
+			httpHelper->Request(DA_NETWORK(ModifyTimeAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
 			                     [thisPtr, InFunc, localFileTime, glbPath, InItemId](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 			                     {
 				                     if (InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
@@ -163,7 +163,7 @@ void FItemFileHandler::RequestGlb(FCallbackOneParam<const FString&> InFunc, uint
  */
 void FItemFileHandler::RequestImg(FCallbackOneParam<UTexture2DDynamic*> InFunc, uint32 InItemId, uint8 InImgIdx) const
 {
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(MAGetGameInstance()))
 	{
 		// HTTP 통신으로 관련 파일을 요청한다.
 		LOG_N(TEXT("Request Item ID (%d) Img File (%d) ..."), InItemId, InImgIdx);
@@ -171,7 +171,7 @@ void FItemFileHandler::RequestImg(FCallbackOneParam<UTexture2DDynamic*> InFunc, 
 		if (const UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
 		{
 			TWeakPtr<const FItemFileHandler> thisPtr = gameInstance->GetItemFileHandler(); // 만약을 대비해 Weak 캡처 추가
-			httpHandler->Request(DA_NETWORK(ImgViewAddURL) + FString::Printf(TEXT("/%d/%d"), InItemId, InImgIdx), EHttpRequestType::GET,
+			httpHelper->Request(DA_NETWORK(ImgViewAddURL) + FString::Printf(TEXT("/%d/%d"), InItemId, InImgIdx), EHttpRequestType::GET,
 				[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 								 {
 									 if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()) && InFunc)
@@ -200,7 +200,7 @@ void FItemFileHandler::RequestImg(FCallbackOneParam<UTexture2DDynamic*> InFunc, 
 void FItemFileHandler::_RequestGlbToWeb(FCallbackOneParam<const FString&> InFunc, uint32 InItemId) const
 {
 	// 없네. 요청
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(MAGetGameInstance()))
 	{
 		// HTTP 통신으로 관련 파일을 요청한다.
 		LOG_N(TEXT("Request Item ID (%d) glb Files ..."), InItemId);
@@ -208,7 +208,7 @@ void FItemFileHandler::_RequestGlbToWeb(FCallbackOneParam<const FString&> InFunc
 		if (const UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
 		{
 			TWeakPtr<FItemFileHandler> thisPtr = gameInstance->GetItemFileHandler(); // 만약을 대비해 Weak 캡처 추가
-			httpHandler->Request(DA_NETWORK(GlbFileDownAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
+			httpHelper->Request(DA_NETWORK(GlbFileDownAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
 			[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 							   {
 								   if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))

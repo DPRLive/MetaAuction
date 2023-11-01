@@ -47,15 +47,15 @@ AGameStateBase* MAGetGameState(UWorld* InWorld)
 }
 
 /**
- * Http Handler 반환
+ * Http Helper 반환
  */
-FHttpHandler* MAGetHttpHandler(UGameInstance* InGameInstance)
+FHttpHelper* MAGetHttpHelper(UGameInstance* InGameInstance)
 {
 	if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(InGameInstance))
 	{
-		if(gameInstance->GetHttpHandler().IsValid())
+		if(gameInstance->GetHttpHelper().IsValid())
 		{
-			return gameInstance->GetHttpHandler().Get();
+			return gameInstance->GetHttpHelper().Get();
 		}
 	}
 	return nullptr;
@@ -92,15 +92,15 @@ FItemFileHandler* MAGetItemFileHandler(UGameInstance* InGameInstance)
 }
 
 /**
- * Stomp Handler 반환
+ * Stomp Helper 반환
  */
-FStompHandler* MAGetStompHandler(UGameInstance* InGameInstance)
+FStompHelper* MAGetStompHelper(UGameInstance* InGameInstance)
 {
 	if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(InGameInstance))
 	{
-		if(gameInstance->GetStompHandler().IsValid())
+		if(gameInstance->GetStompHelper().IsValid())
 		{
-			return gameInstance->GetStompHandler().Get();
+			return gameInstance->GetStompHelper().Get();
 		}
 	}
 	return nullptr;

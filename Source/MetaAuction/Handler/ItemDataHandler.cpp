@@ -23,7 +23,7 @@ void UItemDataHandler::BeginPlay()
 	if(IsRunningDedicatedServer())
 	{
 		// 서버에서 WebSocket에 구독할 것들을 구독한다.
-		if(const FStompHandler* stompHandler = MAGetStompHandler(GetOwner()->GetGameInstance()))
+		if(const FStompHelper* stompHandler = MAGetStompHelper(GetOwner()->GetGameInstance()))
 		{
 			// 아이템 가격 변동 구독
 			FStompSubscriptionEvent Server_EventChangePrice;
@@ -46,13 +46,13 @@ void UItemDataHandler::BeginPlay()
  */
 void UItemDataHandler::RequestItemDataById(FCallbackOneParam<const FItemData&> InFunc, uint32 InItemId) const
 {
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance()))
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
 	{
 		FString RequestUrl = DA_NETWORK(ItemInfoAddURL) + FString::Printf(TEXT("/%d"), InItemId);
 
 		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
 		TWeakObjectPtr<const UItemDataHandler> thisPtr = this;
-		httpHandler->Request(RequestUrl, EHttpRequestType::GET, [thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		httpHelper->Request(RequestUrl, EHttpRequestType::GET, [thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 		{
 			if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 			{
@@ -99,11 +99,11 @@ void UItemDataHandler::RequestItemDataByOption(FCallbackRefArray<FItemData> InFu
 	else if(InSearchOption.CanDeal == EItemCanDeal::Impossible)
 		requestObj->SetBoolField(TEXT("isPossible"), false);
 	
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance()))
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
 	{
 		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
 		TWeakObjectPtr<const UItemDataHandler> thisPtr = this;
-		httpHandler->Request(DA_NETWORK(ItemSearchAddURL), EHttpRequestType::POST,[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		httpHelper->Request(DA_NETWORK(ItemSearchAddURL), EHttpRequestType::POST,[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 							 {
 								 if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 								 {
@@ -127,7 +127,7 @@ void UItemDataHandler::RequestItemDataByOption(FCallbackRefArray<FItemData> InFu
 								 	
 									 LOG_N(TEXT("Search Items Success!"));
 								 }
-							 }, httpHandler->JsonToString(requestObj));
+							 }, httpHelper->JsonToString(requestObj));
 	}
 }
 
@@ -143,9 +143,9 @@ void UItemDataHandler::Client_RequestBid(uint32 InItemId, uint64 InPrice) const
 	// Body를 만든다.
 	FString requestBody = FString::Printf(TEXT("%llu"), InPrice);
 
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance())) // 로컬에 없으니 다운로드를 함
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance())) // 로컬에 없으니 다운로드를 함
 	{
-		httpHandler->Request(DA_NETWORK(BidAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::POST,
+		httpHelper->Request(DA_NETWORK(BidAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::POST,
 		                     [](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 		                     {
 			                     if (InbWasSuccessful && InResponse.IsValid())
@@ -175,11 +175,11 @@ void UItemDataHandler::Client_RequestBid(uint32 InItemId, uint64 InPrice) const
  */
 void UItemDataHandler::RequestBidRecordByItemId(FCallbackRefArray<FBidRecord> InFunc, uint32 InItemId) const
 {
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance()))
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
 	{
 		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
 		TWeakObjectPtr<const UItemDataHandler> thisPtr = this;
-		httpHandler->Request(DA_NETWORK(BidRecordAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		httpHelper->Request(DA_NETWORK(BidRecordAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 							 {
 								 if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 								 {
@@ -213,9 +213,9 @@ void UItemDataHandler::RequestBidRecordByItemId(FCallbackRefArray<FBidRecord> In
  */
 void UItemDataHandler::RequestRemoveItem(uint32 InItemId) const
 {
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance()))
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
 	{
-		httpHandler->Request(DA_NETWORK(RemoveItemAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::POST,[](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		httpHelper->Request(DA_NETWORK(RemoveItemAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::POST,[](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 							 {
 								 if (InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 								 {
@@ -258,11 +258,11 @@ void UItemDataHandler::RequestMyItem(FCallbackRefArray<FItemData> InFunc, EMyIte
 	else if(InMyItemReqType == EMyItemReqType::TryBid)
 		reqAddURL = DA_NETWORK(MyBidItemAddURL);
 	
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance()))
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
 	{
 		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
 		TWeakObjectPtr<const UItemDataHandler> thisPtr = this;
-		httpHandler->Request(reqAddURL, EHttpRequestType::GET,[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		httpHelper->Request(reqAddURL, EHttpRequestType::GET,[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 							 {
 								 if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 								 {
@@ -287,6 +287,22 @@ void UItemDataHandler::RequestMyItem(FCallbackRefArray<FItemData> InFunc, EMyIte
 									 LOG_N(TEXT("Get My Items Success!"));
 								 }
 							 });
+	}
+}
+
+/**
+ *  Stomp로 item id에 맞는 상품에 댓글을 답니다.
+ *  @param InItemId : 댓글을 달 item id
+ *  @param InContent : 댓글 내용 
+ */
+void UItemDataHandler::AddReply(const uint32 InItemId, const FString& InContent) const
+{
+	FString pubUrl = DA_NETWORK(WSSendChatAddURL) + FString::Printf(TEXT("/%d"), InItemId);
+
+	// TODO: 형식에 맞춰 content 제작
+	if(const FStompHelper* stompHandler = MAGetStompHelper(GetOwner()->GetGameInstance()))
+	{
+		//stompHandler->SendMessage(pubUrl, InContent);
 	}
 }
 

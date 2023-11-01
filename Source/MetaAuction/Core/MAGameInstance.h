@@ -6,15 +6,17 @@
 #include "MAGameInstance.generated.h"
 
 class FItemFileHandler;
-class FStompHandler;
 
 // 로그인 관련 정보를 담는 struct
 struct FLoginData
 {
-	FLoginData() : bLogin(false), JwtToken(TEXT("")) {}
+	FLoginData() : bLogin(false), Name(TEXT("")) ,JwtToken(TEXT("")) {}
 
 	// 로그인이 된 상태인지
 	uint8 bLogin:1;
+
+	// 접속된 이름
+	FString Name;
 	
 	// JWT 토큰
 	FString JwtToken;
@@ -46,11 +48,12 @@ public:
 	// ModelHandler Getter
 	FORCEINLINE const TSharedPtr<FItemFileHandler>& GetItemFileHandler() const { return ItemFileHandler; }
 
-	// HttpHandler Getter
-	FORCEINLINE const TSharedPtr<FHttpHandler>& GetHttpHandler() const { return HttpHandler; }
+	// HttpHelper Getter
+	FORCEINLINE const TSharedPtr<FHttpHelper>& GetHttpHelper() const { return HttpHelper; }
 	
-	// StompHandler Getter
-	FORCEINLINE const TSharedPtr<FStompHandler>& GetStompHandler() const { return StompHandler; }
+	// StompHelper Getter
+	FORCEINLINE const TSharedPtr<FStompHelper>& GetStompHelper() const { return StompHelper; }
+
 private:
 	// 로그인 관련 정보를 들고있기 위한 LoginData
 	FLoginData LoginData;
@@ -58,9 +61,9 @@ private:
 	// 아이템 관련 파일 처리를 위한 ItemFileHandler, 클라이언트에서만 생성됩니다.
 	TSharedPtr<FItemFileHandler> ItemFileHandler;
 
-	// HTTP 통신을 위한 HttpHandler
-	TSharedPtr<FHttpHandler> HttpHandler;
+	// HTTP 통신을 위한 HttpHelper
+	TSharedPtr<FHttpHelper> HttpHelper;
 
-	// WebSocket 통신을 위한 Stomp Handler
-	TSharedPtr<FStompHandler> StompHandler;
+	// WebSocket 통신을 위한 StompHelper
+	TSharedPtr<FStompHelper> StompHelper;
 };

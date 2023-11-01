@@ -14,10 +14,10 @@
 #include "Util/UtilEnum.h"
 #include "Common/Typedef.h"
 #include "DataAsset/MADataAssetHelper.h"
-#include "Handler/HttpHandler.h"
+#include "Helper/HttpHelper.h"
+#include "Helper/StompHelper.h"
 #include "Handler/ItemFileHandler.h"
 #include "Handler/ItemDataHandler.h"
-#include "Handler/StompHandler.h"
 
 #define CHECK_DEDI_FUNC									\
 	if(!IsRunningDedicatedServer())						\
@@ -35,8 +35,8 @@ UGameInstance* MAGetGameInstance( UWorld* InWorld = nullptr );
 // 게임 스테이트를 반환한다.
 AGameStateBase* MAGetGameState( UWorld* InWorld = nullptr );
 
-// Http Handler 반환 
-FHttpHandler* MAGetHttpHandler(UGameInstance* InGameInstance);
+// Http Helper 반환 
+FHttpHelper* MAGetHttpHelper(UGameInstance* InGameInstance);
 
 // ItemDataHanlder 반환
 TObjectPtr<UItemDataHandler> MAGetItemDataHandler(AGameStateBase* InGameState);
@@ -44,5 +44,5 @@ TObjectPtr<UItemDataHandler> MAGetItemDataHandler(AGameStateBase* InGameState);
 // ItemFileHandler 반환
 FItemFileHandler* MAGetItemFileHandler(UGameInstance* InGameInstance);
 
-// StompHandler 반환
-FStompHandler* MAGetStompHandler(UGameInstance* InGameInstance);
+// StompHelper 반환
+FStompHelper* MAGetStompHelper(UGameInstance* InGameInstance);
