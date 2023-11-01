@@ -2,6 +2,7 @@
 
 
 #include "HttpHelper.h"
+#include "Data/LoginData.h"
 #include "../Core/MAGameInstance.h"
 #include "../DataAsset/NetworkDataAsset.h"
 
@@ -36,9 +37,10 @@ void FHttpHelper::Request(const FString& InAddUrl, const EHttpRequestType InType
 	// 로그인이 된 상태라면, 헤더에 JWT 토큰 정보를 담는다.
 	if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
 	{
-		if(gameInstance->GetLoginData().bLogin)
+		const TWeakPtr<FLoginData> loginData = gameInstance->GetLoginData();
+		if(loginData.IsValid())
 		{
-			httpRequest->SetHeader(TEXT("Authorization"), TEXT("Bearer ") + gameInstance->GetLoginData().JwtToken);
+			httpRequest->SetHeader(TEXT("Authorization"), TEXT("Bearer ") + loginData.Pin()->GetJwtToken());
 		}
 	}
 	

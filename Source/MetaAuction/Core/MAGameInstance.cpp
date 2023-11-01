@@ -2,6 +2,8 @@
 
 
 #include "Core/MAGameInstance.h"
+#include "Data/LoginData.h"
+
 #include <Serialization/JsonSerializer.h>
 #include <Interfaces/IHttpResponse.h>
 
@@ -49,7 +51,7 @@ void UMAGameInstance::Shutdown()
  */
 void UMAGameInstance::RequestLogin(const FString& InID, const FString& InPassword)
 {
-	if(LoginData.bLogin)
+	if(LoginData.IsValid())
 	{
 		LOG_N(TEXT("이미 로그인 되어있음"));
 		return;
@@ -74,10 +76,9 @@ void UMAGameInstance::RequestLogin(const FString& InID, const FString& InPasswor
 				TSharedPtr<FJsonObject> jsonObject = MakeShareable(new FJsonObject());
 				FJsonSerializer::Deserialize(reader, jsonObject);
 				
-				// jwt 토큰을 저장한다.
-				thisPtr->LoginData.JwtToken = jsonObject->GetStringField(TEXT("accessToken"));
-				//thisPtr->LoginData.Name = jsonObject->GetStringField(TEXT(""))
-				thisPtr->LoginData.bLogin = true;
+				// 로그인 데이터를 저장한다.
+				FString jwtToken = jsonObject->GetStringField(TEXT("accessToken"));
+				thisPtr->LoginData = MakeShareable(new FLoginData(jwtToken));
 			}
 			else
 			{

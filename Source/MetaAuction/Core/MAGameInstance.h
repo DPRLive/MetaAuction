@@ -6,21 +6,7 @@
 #include "MAGameInstance.generated.h"
 
 class FItemFileHandler;
-
-// 로그인 관련 정보를 담는 struct
-struct FLoginData
-{
-	FLoginData() : bLogin(false), Name(TEXT("")) ,JwtToken(TEXT("")) {}
-
-	// 로그인이 된 상태인지
-	uint8 bLogin:1;
-
-	// 접속된 이름
-	FString Name;
-	
-	// JWT 토큰
-	FString JwtToken;
-};
+class FLoginData;
 
 /**
  * Meta Auction에서 사용할 GameInstance
@@ -43,7 +29,7 @@ public:
 	void RequestLogin(const FString& InID, const FString& InPassword);
 	
 	// LoginData Getter
-	FORCEINLINE const FLoginData& GetLoginData() const { return LoginData; }
+	FORCEINLINE const TSharedPtr<FLoginData>& GetLoginData() const { return LoginData; }
 	
 	// ModelHandler Getter
 	FORCEINLINE const TSharedPtr<FItemFileHandler>& GetItemFileHandler() const { return ItemFileHandler; }
@@ -56,7 +42,7 @@ public:
 
 private:
 	// 로그인 관련 정보를 들고있기 위한 LoginData
-	FLoginData LoginData;
+	TSharedPtr<FLoginData> LoginData;
 	
 	// 아이템 관련 파일 처리를 위한 ItemFileHandler, 클라이언트에서만 생성됩니다.
 	TSharedPtr<FItemFileHandler> ItemFileHandler;
