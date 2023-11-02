@@ -93,6 +93,12 @@ public:
 	// STOMP WebSocket 채팅&댓글 보내기 추가 url, /{itemid}를 붙여서 사용
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
 	FString WSSendChatAddURL = TEXT("/pub/chat");
+
+	// STOMP WebSocket 채팅&댓글 받기 추가 url
+	// 물품 댓글 받기의 경우 : /{itemid}를 붙여서 사용
+	// 1대1 채팅 받기의 경우 : /{itemId}-{sellerUsername}-{buyerUsername}를 붙여서 사용
+	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
+	FString WSReceiveChatAddURL = TEXT("/sub/chat");
 	
 	// 웹서버 시간을 UTC에 맞추기 위해 변화해야 하는 변화 값 설정
 	UPROPERTY( EditDefaultsOnly, Category = "Server" )

@@ -24,12 +24,26 @@ FStompHelper::FStompHelper()
  *  해당 url에 STOMP WebSocket 구독을 요청합니다.
  *  @param InUrl : sub할 Url
  *  @param InEvent : broadcast 받을 event
+ *  @return : 구독한 Event의 Id, 구독 해제할 때 사용
 */
-void FStompHelper::Subscribe(const FString& InUrl, const FStompSubscriptionEvent& InEvent) const
+FStompSubscriptionId FStompHelper::Subscribe(const FString& InUrl, const FStompSubscriptionEvent& InEvent) const
 {
 	if(Stomp.IsValid() && Stomp->IsConnected())
 	{
-		Stomp->Subscribe(InUrl, InEvent);
+		return Stomp->Subscribe(InUrl, InEvent);
+	}
+	return TEXT("");
+}
+
+/**
+ *  해당 Event Id의 STOMP sub Event 구독을 해제한다.
+ *  @param InEventId : 구독 해제할 Event Id
+*/
+void FStompHelper::Unsubscribe(const FStompSubscriptionId& InEventId) const
+{
+	if(Stomp.IsValid() && Stomp->IsConnected())
+	{
+		Stomp->Unsubscribe(InEventId);
 	}
 }
 
