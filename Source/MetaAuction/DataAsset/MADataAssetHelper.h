@@ -8,13 +8,13 @@ namespace MADataAssetHelper
 {
 	/**
 	* 이름으로 Data Asset을 Load하는 함수
-	* Game/Data/DataAsset/ 폴더에 있어야함
+	* Game/MetaAuction/Data/DataAsset/ 폴더에 있어야함
 	* @param InAssetName : 해당 Data Asset의 이름
 	*/
 	template<typename T>
 	const TObjectPtr<T> GetDataAsset(const FString& InAssetName)
 	{
-		const FString path = FString::Printf(TEXT("/Script/Engine.DataAsset'/Game/Data/DataAsset/%s.%s'"), *InAssetName, *InAssetName); 
+		const FString path = FString::Printf(TEXT("/Script/Engine.DataAsset'/Game/MetaAuction/Data/DataAsset/%s.%s'"), *InAssetName, *InAssetName); 
 		return LoadObject<T>(nullptr, *path);
 	}
 }

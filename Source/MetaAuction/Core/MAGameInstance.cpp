@@ -72,10 +72,7 @@ void UMAGameInstance::RequestLogin(const FString& InID, const FString& InPasswor
 			if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 			{
 				// 로그인 요청 성공
-				// Json reader 생성
-				TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
-				TSharedPtr<FJsonObject> jsonObject = MakeShareable(new FJsonObject());
-				FJsonSerializer::Deserialize(reader, jsonObject);
+				const TSharedPtr<FJsonObject> jsonObject = UtilJson::StringToJson(InResponse->GetContentAsString());
 				
 				// 로그인 데이터를 저장한다.
 				FString jwtToken = jsonObject->GetStringField(TEXT("accessToken"));

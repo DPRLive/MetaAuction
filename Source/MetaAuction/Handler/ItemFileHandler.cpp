@@ -48,18 +48,15 @@ void FItemFileHandler::RemoveCacheFile(ERemoveCacheType InRemoveCacheType) const
 							 {
 								 if (InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 								 {
-									 // Json reader 생성
-									 TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
-									 TArray<TSharedPtr<FJsonValue>> jsonValues;
-									 FJsonSerializer::Deserialize(reader, jsonValues);
+									 TArray<TSharedPtr<FJsonObject>> jsonArray;
+									 UtilJson::StringToJsonValueArray(InResponse->GetContentAsString(), jsonArray);
 
 								 	// 지우지 않아야 할 물품 번호들을 뽑는다
 									 TSet<uint32> sellItemIds;
-									 for (TSharedPtr<FJsonValue>& itemInfo : jsonValues)
+									 for (const TSharedPtr<FJsonObject>& itemInfo : jsonArray)
 									 {
-										 TSharedPtr<FJsonObject> itemInfoObj = itemInfo->AsObject();
 										 uint32 id;
-										 if(itemInfoObj->TryGetNumberField(TEXT("id"), id))
+										 if(itemInfo->TryGetNumberField(TEXT("id"), id))
 										 {
 										 	sellItemIds.Emplace(id);
 										 }

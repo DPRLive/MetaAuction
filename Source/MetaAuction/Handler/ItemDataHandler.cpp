@@ -56,11 +56,8 @@ void UItemDataHandler::RequestItemDataById(FCallbackOneParam<const FItemData&> I
 		{
 			if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 			{
-				// Json reader 생성
-				TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
-				TSharedPtr<FJsonObject> jsonObject = MakeShareable(new FJsonObject());
-				FJsonSerializer::Deserialize(reader, jsonObject);
-
+				const TSharedPtr<FJsonObject> jsonObject = UtilJson::StringToJson(InResponse->GetContentAsString());
+				
 				FItemData itemData;
 				thisPtr->_JsonToData(jsonObject, itemData);
 
@@ -107,17 +104,14 @@ void UItemDataHandler::RequestItemDataByOption(FCallbackRefArray<FItemData> InFu
 							 {
 								 if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 								 {
-									 // Json reader 생성
-									 TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
-									 TArray<TSharedPtr<FJsonValue>> jsonValues;
-									 FJsonSerializer::Deserialize(reader, jsonValues);
+									 TArray<TSharedPtr<FJsonObject>> jsonArray;
+									 UtilJson::StringToJsonValueArray(InResponse->GetContentAsString(), jsonArray);
 
 									 TArray<FItemData> itemDatas;
-									 for (TSharedPtr<FJsonValue>& itemInfo : jsonValues)
+									 for (const TSharedPtr<FJsonObject>& itemInfo : jsonArray)
 									 {
-										 TSharedPtr<FJsonObject> itemInfoObj = itemInfo->AsObject();
 										 itemDatas.Emplace(FItemData());
-										 thisPtr->_JsonToData(itemInfoObj, *itemDatas.rbegin());
+										 thisPtr->_JsonToData(itemInfo, *itemDatas.rbegin());
 									 }
 
 									 if (InFunc)
@@ -183,17 +177,14 @@ void UItemDataHandler::RequestBidRecordByItemId(FCallbackRefArray<FBidRecord> In
 							 {
 								 if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 								 {
-									 // Json reader 생성
-									 TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
-									 TArray<TSharedPtr<FJsonValue>> jsonValues;
-									 FJsonSerializer::Deserialize(reader, jsonValues);
-
+									 TArray<TSharedPtr<FJsonObject>> jsonArray;
+									 UtilJson::StringToJsonValueArray(InResponse->GetContentAsString(), jsonArray);
+								 	
 									 TArray<FBidRecord> BidRecords;
-									 for (TSharedPtr<FJsonValue>& bidInfo : jsonValues)
+									 for (const TSharedPtr<FJsonObject>& bidInfo : jsonArray)
 									 {
-										 TSharedPtr<FJsonObject> bidInfoObj = bidInfo->AsObject();
 										 BidRecords.Emplace(FBidRecord());
-										 thisPtr->_JsonToData(bidInfoObj, *BidRecords.rbegin());
+										 thisPtr->_JsonToData(bidInfo, *BidRecords.rbegin());
 									 }
 
 									 if (InFunc)
@@ -266,17 +257,14 @@ void UItemDataHandler::RequestMyItem(FCallbackRefArray<FItemData> InFunc, EMyIte
 							 {
 								 if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 								 {
-									 // Json reader 생성
-									 TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
-									 TArray<TSharedPtr<FJsonValue>> jsonValues;
-									 FJsonSerializer::Deserialize(reader, jsonValues);
+									 TArray<TSharedPtr<FJsonObject>> jsonArray;
+									 UtilJson::StringToJsonValueArray(InResponse->GetContentAsString(), jsonArray);
 
 									 TArray<FItemData> itemDatas;
-									 for (TSharedPtr<FJsonValue>& itemInfo : jsonValues)
+									 for (const TSharedPtr<FJsonObject>& itemInfo : jsonArray)
 									 {
-										 TSharedPtr<FJsonObject> itemInfoObj = itemInfo->AsObject();
 										 itemDatas.Emplace(FItemData());
-										 thisPtr->_JsonToData(itemInfoObj, *itemDatas.rbegin());
+										 thisPtr->_JsonToData(itemInfo, *itemDatas.rbegin());
 									 }
 
 									 if (InFunc)
