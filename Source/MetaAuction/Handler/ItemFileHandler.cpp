@@ -100,7 +100,7 @@ void FItemFileHandler::RemoveGlbFile(uint32 InItemId) const
  * @param InFunc : 요청이 완료되면 실행할 람다 함수, 형식이 같아야 하며 람다 내부에서 클래스 멤버 접근시 weak 캡처 해주세요!
  * @param InItemId : 물품의 ItemId 
  */
-void FItemFileHandler::RequestGlb(FCallbackOneParam<const FString&> InFunc, uint32 InItemId) const
+void FItemFileHandler::RequestGlb(const FCallbackRefOneParam<FString>& InFunc, uint32 InItemId) const
 {
 	// 모델링 파일 경로에 접근한다.
 	FString glbPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + FString::Printf(TEXT("Models/%d.glb"), InItemId);
@@ -158,7 +158,7 @@ void FItemFileHandler::RequestGlb(FCallbackOneParam<const FString&> InFunc, uint
  * @param InItemId : 요청할 Item의 id
  * @param InImgIdx : 요청할 Item의 몇번째 사진인지?
  */
-void FItemFileHandler::RequestImg(FCallbackOneParam<UTexture2DDynamic*> InFunc, uint32 InItemId, uint8 InImgIdx) const
+void FItemFileHandler::RequestImg(const FCallbackOneParam<UTexture2DDynamic*>& InFunc, uint32 InItemId, uint8 InImgIdx) const
 {
 	if (const FHttpHelper* httpHelper = MAGetHttpHelper(MAGetGameInstance()))
 	{
@@ -194,7 +194,7 @@ void FItemFileHandler::RequestImg(FCallbackOneParam<UTexture2DDynamic*> InFunc, 
  * @param InFunc : 요청이 완료되면 실행할 람다 함수, 형식이 같아야 하며 람다 내부에서 클래스 멤버 접근시 weak 캡처 해주세요!
  * @param InItemId : 물품의 ItemId 
  */
-void FItemFileHandler::_RequestGlbToWeb(FCallbackOneParam<const FString&> InFunc, uint32 InItemId) const
+void FItemFileHandler::_RequestGlbToWeb(const FCallbackRefOneParam<FString>& InFunc, uint32 InItemId) const
 {
 	// 없네. 요청
 	if (const FHttpHelper* httpHelper = MAGetHttpHelper(MAGetGameInstance()))

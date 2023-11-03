@@ -92,6 +92,21 @@ FItemFileHandler* MAGetItemFileHandler(UGameInstance* InGameInstance)
 }
 
 /**
+ * Chat Handler 반환
+ */
+TObjectPtr<UChatHandler> MAGetChatHandler(UGameInstance* InGameInstance)
+{
+	if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(InGameInstance))
+	{
+		if(IsValid(gameInstance->GetChatHandler()))
+		{
+			return gameInstance->GetChatHandler();
+		}
+	}
+	return nullptr;
+}
+
+/**
  * Stomp Helper 반환
  */
 FStompHelper* MAGetStompHelper(UGameInstance* InGameInstance)

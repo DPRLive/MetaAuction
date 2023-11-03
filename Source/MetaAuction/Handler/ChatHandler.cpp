@@ -1,16 +1,32 @@
-﻿#include "ChatHandler.h"
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "Handler/ChatHandler.h"
 #include "Data/LoginData.h"
 #include "Core/MAGameInstance.h"
 
 #include <Dom/JsonObject.h>
 #include <IStompMessage.h>
+#include <Interfaces/IHttpResponse.h>
+
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ChatHandler)
+
+UChatHandler::UChatHandler()
+{
+	PrimaryComponentTick.bCanEverTick = false;
+}
+
+void UChatHandler::BeginPlay()
+{
+	Super::BeginPlay();
+}
 
 /**
  *  Stomp로 item id에 맞는 상품에 댓글을 답니다. 로그인 된 경우만 사용 가능
  *  @param InItemId : 댓글을 달 item id
  *  @param InContent : 댓글 내용 
  */
-void FChatHandler::AddReplyToItem(const uint32 InItemId, const FString& InContent) const
+void UChatHandler::AddReplyToItem(const uint32 InItemId, const FString& InContent) const
 {
 	// Json object를 통해 내용을 json 형식으로 만든다.
 	TSharedRef<FJsonObject> requestObj = MakeShared<FJsonObject>();
@@ -38,10 +54,10 @@ void FChatHandler::AddReplyToItem(const uint32 InItemId, const FString& InConten
  *  꼭 리턴받은 FDelegateHandle로 해당 함수를 UnsubscribeItemReply 해주세요! 메모리 누수가 발생할 수 있습니다.
  *  Lambda 작성 시, this를 캡처한다면 weak 캡처 후 is valid 체크 한번 해주세요!
  *  @param InItemId : 댓글을 수신할 대상 item id
- *  @param InFunc : 댓글을 수신하면 실행할 람다함수
+ *  @param InFunc : 댓글을 수신하면 실행할 람다함수, const FItemReply&를 인자로 받아야함
  *  @return : 해당 Lambda를 바인드 후 리턴된 Delegate Handle
  */
-FDelegateHandle FChatHandler::SubscribeItemReply(const uint32 InItemId, FCallbackOneParam<const FItemReply&> InFunc)
+FDelegateHandle UChatHandler::SubscribeItemReply(const uint32 InItemId, const FCallbackRefOneParam<FItemReply>& InFunc)
 {
 	// 이미 이 item id의 댓글을 수신 받고 있음
 	if(FReplyDelegateInfo* replyDelegate = ItemReplyDelegates.Find(InItemId))
@@ -56,24 +72,22 @@ FDelegateHandle FChatHandler::SubscribeItemReply(const uint32 InItemId, FCallbac
 	if(const FStompHelper* stompHandler = MAGetStompHelper(MAGetGameInstance()))
 	{
 		FStompSubscriptionEvent replyEvent;
-		TWeakPtr<FOnItemReply> replyDelegateWeak = replyDelegate;
-		replyEvent.BindLambda([replyDelegateWeak](const IStompMessage& InMessage)
+
+		TWeakObjectPtr<UChatHandler> thisPtr = this;
+		replyEvent.BindLambda([thisPtr, InItemId](const IStompMessage& InMessage)
 		{
-			if (replyDelegateWeak.IsValid() && replyDelegateWeak.Pin()->IsBound())
+			auto it = thisPtr->ItemReplyDelegates.Find(InItemId);
+			
+			if(thisPtr.IsValid() && it != nullptr && it->Value.IsValid() && it->Value->IsBound())
 			{
 				TSharedPtr<FJsonObject> replyObj = UtilJson::StringToJson(InMessage.GetBodyAsString());
 
+				// 파싱 후
 				FItemReply reply;
-				replyObj->TryGetStringField(TEXT("sender"), reply.Sender);
-				replyObj->TryGetStringField(TEXT("text"), reply.Content);
+				thisPtr->_JsonToData(replyObj, reply);
 
-				// 시간을 파씽
-				FString timeString;
-				replyObj->TryGetStringField(TEXT("messageTime"), timeString);
-				FDateTime::ParseIso8601(*timeString, reply.Time);
-
-				// 댓글을 뿌려준다.
-				replyDelegateWeak.Pin()->Broadcast(reply);
+				// 뿌려준다
+				it->Value->Broadcast(reply);
 			}
 		});
 
@@ -89,7 +103,7 @@ FDelegateHandle FChatHandler::SubscribeItemReply(const uint32 InItemId, FCallbac
  *  @param InItemId : 대상 item id
  *  @param InHandle : 댓글 수신을 중지할 함수의 Delegate handle
  */
-void FChatHandler::UnsubscribeItemReply(const uint32 InItemId, const FDelegateHandle& InHandle)
+void UChatHandler::UnsubscribeItemReply(const uint32 InItemId, const FDelegateHandle& InHandle)
 {
 	// delegate 나와라
 	if(FReplyDelegateInfo* replyDelegate = ItemReplyDelegates.Find(InItemId))
@@ -109,4 +123,57 @@ void FChatHandler::UnsubscribeItemReply(const uint32 InItemId, const FDelegateHa
 		// Map에서도 삭제
 		ItemReplyDelegates.Remove(InItemId);
 	}
+}
+
+/**
+ *  해당 물품 id에 달린 댓글을 모두 요청합니다.
+ *  Lambda 작성 시, this를 캡처한다면 weak 캡처 후 is valid 체크 한번 해주세요!
+ *  @param InItemId : 댓글을 가져올 대상 item id
+ *  @param InFunc : 댓글을 수신하면 실행할 람다함수, const TArray<FItemReply>&를 인자로 받아야함
+ */
+void UChatHandler::RequestItemReply(const uint32 InItemId, const FCallbackRefArray<FItemReply>& InFunc)
+{
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(MAGetGameInstance()))
+	{
+		// HTTP 통신으로 댓글들을 요청한다.
+		LOG_N(TEXT("Request Item ID (%d) Replies ..."), InItemId);
+		
+		TWeakObjectPtr<UChatHandler> thisPtr = this;
+		httpHelper->Request(DA_NETWORK(ItemReplyAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
+					[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+						   {
+							   if (thisPtr.IsValid() && InFunc && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+							   {
+								   TArray<TSharedPtr<FJsonObject>> jsonArray;
+								   UtilJson::StringToJsonValueArray(InResponse->GetContentAsString(), jsonArray);
+
+								   TArray<FItemReply> replyArray;
+								   for (const TSharedPtr<FJsonObject>& jsonObj : jsonArray)
+								   {
+									   replyArray.Emplace(FItemReply());
+									   thisPtr->_JsonToData(jsonObj, *replyArray.rbegin());
+								   }
+
+								   InFunc(replyArray);
+								   return;
+							   }
+							   LOG_ERROR(TEXT("URL : %s, 댓글 요청 실패"), *InRequest->GetURL());
+						   });
+		
+	}
+}
+
+/**
+ * Json 형태의 ItemReply String을 FItemReply로 변환한다.
+ * @param InJsonObj : Json 형태의 ItemReply String
+ * @param OutItemReply : 파싱한 정보를 담아갈 FItemReply
+ */
+void UChatHandler::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FItemReply& OutItemReply) const
+{
+	InJsonObj->TryGetStringField(TEXT("sender"), OutItemReply.Sender);
+	InJsonObj->TryGetStringField(TEXT("text"), OutItemReply.Content);
+	// 시간을 파씽
+	FString timeString;
+	InJsonObj->TryGetStringField(TEXT("messageTime"), timeString);
+	FDateTime::ParseIso8601(*timeString, OutItemReply.Time);
 }

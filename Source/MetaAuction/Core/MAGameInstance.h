@@ -33,6 +33,9 @@ public:
 	// ModelHandler Getter
 	FORCEINLINE const TSharedPtr<FItemFileHandler>& GetItemFileHandler() const { return ItemFileHandler; }
 
+	// Chat Handler Getter
+	FORCEINLINE TObjectPtr<UChatHandler> GetChatHandler() const { return ChatHandler; }
+	
 	// HttpHelper Getter
 	FORCEINLINE const TSharedPtr<FHttpHelper>& GetHttpHelper() const { return HttpHelper; }
 	
@@ -47,7 +50,8 @@ private:
 	TSharedPtr<FItemFileHandler> ItemFileHandler;
 	
 	// Chat 관련 처리를 위한 Chat Handler
-	TSharedPtr<FChatHandler> ChatHandler;
+	UPROPERTY()
+	TObjectPtr<UChatHandler> ChatHandler;
 	
 	// HTTP 통신을 위한 HttpHelper
 	TSharedPtr<FHttpHelper> HttpHelper;

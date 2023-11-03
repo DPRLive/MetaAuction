@@ -44,7 +44,7 @@ void UItemDataHandler::BeginPlay()
  * @param InFunc : 정보가 도착하면 실행할 람다 함수 
  * @param InItemId : 쿼리할 물품의 ID
  */
-void UItemDataHandler::RequestItemDataById(FCallbackOneParam<const FItemData&> InFunc, uint32 InItemId) const
+void UItemDataHandler::RequestItemDataById(const FCallbackRefOneParam<FItemData>& InFunc, uint32 InItemId) const
 {
 	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
 	{
@@ -78,7 +78,7 @@ void UItemDataHandler::RequestItemDataById(FCallbackOneParam<const FItemData&> I
  * @param InFunc : 정보가 도착하면 실행할 FCallbackRefArray 형태의 함수 
  * @param InSearchOption : 물품 검색 시 사용할 옵션, 필요한 옵션만 설정 후 넣어서 사용하면 됩니다.
  */
-void UItemDataHandler::RequestItemDataByOption(FCallbackRefArray<FItemData> InFunc, const FItemSearchOption& InSearchOption) const
+void UItemDataHandler::RequestItemDataByOption(const FCallbackRefArray<FItemData>& InFunc, const FItemSearchOption& InSearchOption) const
 {
 	// 옵션 설정
 	TSharedRef<FJsonObject> requestObj = MakeShared<FJsonObject>();
@@ -167,7 +167,7 @@ void UItemDataHandler::Client_RequestBid(uint32 InItemId, uint64 InPrice) const
  * @param InFunc : 정보가 도착하면 실행할 FCallbackRefArray 형태의 함수 
  * @param InItemId : 입찰 기록을 조회할 상품의 ID
  */
-void UItemDataHandler::RequestBidRecordByItemId(FCallbackRefArray<FBidRecord> InFunc, uint32 InItemId) const
+void UItemDataHandler::RequestBidRecordByItemId(const FCallbackRefArray<FBidRecord>& InFunc, uint32 InItemId) const
 {
 	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
 	{
@@ -239,7 +239,7 @@ void UItemDataHandler::RequestRemoveItem(uint32 InItemId) const
  * @param InFunc : 정보가 도착하면 실행할 FCallbackRefArray 형태의 함수
  * @param InMyItemReqType : 어떠한 내 아이템을 요청할 것인지 설정합니다. 
  */
-void UItemDataHandler::RequestMyItem(FCallbackRefArray<FItemData> InFunc, EMyItemReqType InMyItemReqType) const
+void UItemDataHandler::RequestMyItem(const FCallbackRefArray<FItemData>& InFunc, EMyItemReqType InMyItemReqType) const
 {
 	FString reqAddURL;
 	if(InMyItemReqType == EMyItemReqType::Buy)

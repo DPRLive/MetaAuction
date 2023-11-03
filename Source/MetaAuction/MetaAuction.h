@@ -19,7 +19,7 @@
 #include "Helper/StompHelper.h"
 #include "Handler/ItemFileHandler.h"
 #include "Handler/ItemDataHandler.h"
-#include "Handler/ChatHandler.h"
+#include "Handler\ChatHandler.h"
 
 #define CHECK_DEDI_FUNC									\
 	if(!IsRunningDedicatedServer())						\
@@ -45,6 +45,9 @@ TObjectPtr<UItemDataHandler> MAGetItemDataHandler(AGameStateBase* InGameState);
 
 // ItemFileHandler 반환
 FItemFileHandler* MAGetItemFileHandler(UGameInstance* InGameInstance);
+
+// ChatHandler 반환
+TObjectPtr<UChatHandler> MAGetChatHandler(UGameInstance* InGameInstance);
 
 // StompHelper 반환
 FStompHelper* MAGetStompHelper(UGameInstance* InGameInstance);

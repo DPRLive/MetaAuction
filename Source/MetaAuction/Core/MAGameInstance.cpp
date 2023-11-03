@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Core/MAGameInstance.h"
 #include "Data/LoginData.h"
 
@@ -11,6 +10,7 @@
 
 UMAGameInstance::UMAGameInstance()
 {
+	ChatHandler = CreateDefaultSubobject<UChatHandler>(TEXT("ChatHandler"));
 }
 
 /**
@@ -22,7 +22,6 @@ void UMAGameInstance::Init()
 
 	HttpHelper = MakeShareable(new FHttpHelper());
 	StompHelper = MakeShareable(new FStompHelper());
-	ChatHandler = MakeShareable(new FChatHandler());
 	
 	//if(IsRunningDedicatedServer()) // 테스트, 데디 서버면 자동 로그인
 	//{

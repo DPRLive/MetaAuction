@@ -69,6 +69,10 @@ public:
 	// 물품의 최근 수정 시간을 가져오는 추가 Url, /{itemID}를 붙여서 사용
 	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
 	FString ModifyTimeAddURL = TEXT("/item/lastmodifiedtime");
+
+	// 물품의 댓글을 가져오는 추가 Url, /{itemID}를 붙여서 사용
+	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
+	FString ItemReplyAddURL = TEXT("/item/chat");
 	
 	// STOMP WebSocket 기본 연결 URL
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
