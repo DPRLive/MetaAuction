@@ -21,10 +21,18 @@ public:
 protected:
 
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 public:
 
 	void Update(const FItemData& InItemData);
+
+private:
+
+	void AddItemReplyToChatLog(const FItemReply& InItemReply);
+
+	UFUNCTION()
+	void InputButtonClicked();
 
 private:
 
@@ -37,6 +45,21 @@ private:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UTextBlock> SellerNameText;
 
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UTextBlock> CommentText;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UEditableTextBox> InputText;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UButton> InputButton;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UMAChatLogListWidget> WBP_CommentList;
+
 	UPROPERTY()
 	FItemData CachedItemData;
+
+	FDelegateHandle ItemReplyHandle;
+	int32 CommentCount;
 };

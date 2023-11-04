@@ -18,6 +18,7 @@ void UMAChatLogEntryWidget::NativeConstruct()
 
 	ensure(NameText);
 	ensure(LogText);
+	ensure(TimeText);
 }
 
 void UMAChatLogEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
@@ -29,5 +30,6 @@ void UMAChatLogEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 	{
 		NameText->SetText(Entry->Data.ChatName);
 		LogText->SetText(Entry->Data.ChatLog);
+		TimeText->SetText(FText::FromString(Entry->Data.ChatTime.ToString()));
 	}
 }
