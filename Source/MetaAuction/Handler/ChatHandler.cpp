@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Handler/ChatHandler.h"
@@ -57,7 +57,7 @@ void UChatHandler::AddReplyToItem(const uint32 InItemId, const FString& InConten
  *  @param InFunc : 댓글을 수신하면 실행할 람다함수, const FItemReply&를 인자로 받아야함
  *  @return : 해당 Lambda를 바인드 후 리턴된 Delegate Handle
  */
-FDelegateHandle UChatHandler::SubscribeItemReply(const uint32 InItemId, const FCallbackRefOneParam<FItemReply>& InFunc)
+FDelegateHandle UChatHandler::SubscribeItemReply(const uint32 InItemId, const FCallbackRefOneParam<FChatData>& InFunc)
 {
 	// 이미 이 item id의 댓글을 수신 받고 있음
 	if(FReplyDelegateInfo* replyDelegate = ItemReplyDelegates.Find(InItemId))
@@ -83,7 +83,7 @@ FDelegateHandle UChatHandler::SubscribeItemReply(const uint32 InItemId, const FC
 				TSharedPtr<FJsonObject> replyObj = UtilJson::StringToJson(InMessage.GetBodyAsString());
 
 				// 파싱 후
-				FItemReply reply;
+				FChatData reply;
 				thisPtr->_JsonToData(replyObj, reply);
 
 				// 뿌려준다
@@ -126,20 +126,33 @@ void UChatHandler::UnsubscribeItemReply(const uint32 InItemId, const FDelegateHa
 }
 
 /**
- *  해당 물품 id에 달린 댓글을 모두 요청합니다.
+ *  id로 채팅 or 댓글들을 요청합니다.
+ *  InChatType이 Chatroom일 경우 : id는 채팅방 id로 사용합니다.
+ *  InChatType이 ItemReply일 경우 : id는 물품 id로 사용합니다.
  *  Lambda 작성 시, this를 캡처한다면 weak 캡처 후 is valid 체크 한번 해주세요!
- *  @param InItemId : 댓글을 가져올 대상 item id
- *  @param InFunc : 댓글을 수신하면 실행할 람다함수, const TArray<FItemReply>&를 인자로 받아야함
+ *  @param InChatType : 채팅 요청 타입, 채팅방 or 물품 댓글
+ *  @param InId : InChatType이 Chatroom(id는 채팅방 id로 사용), InChatType이 ItemReply일 경우(id는 물품 id로 사용)
+ *  @param InFunc : 채팅 or 댓글을 수신하면 실행할 람다함수, const TArray<FChatData>&를 인자로 받아야함
  */
-void UChatHandler::RequestItemReply(const uint32 InItemId, const FCallbackRefArray<FItemReply>& InFunc)
+void UChatHandler::RequestChatsById(const ERequestChatType InChatType, const uint32 InId, const FCallbackRefArray<FChatData>& InFunc) const
 {
 	if (const FHttpHelper* httpHelper = MAGetHttpHelper(MAGetGameInstance()))
 	{
+		FString ReqUrl;
+		if(InChatType == ERequestChatType::ItemReply)
+		{
+			ReqUrl = DA_NETWORK(ItemReplyAddURL) + FString::Printf(TEXT("/%d"), InId);
+			LOG_N(TEXT("Request Item ID (%d) Replies ..."), InId);
+		}
+		else if(InChatType == ERequestChatType::Chatroom)
+		{
+			ReqUrl = DA_NETWORK(ChatroomChatAddURL) + FString::Printf(TEXT("/%d"), InId);
+			LOG_N(TEXT("Chatroom ID (%d) Chats ..."), InId);
+		}
+
 		// HTTP 통신으로 댓글들을 요청한다.
-		LOG_N(TEXT("Request Item ID (%d) Replies ..."), InItemId);
-		
-		TWeakObjectPtr<UChatHandler> thisPtr = this;
-		httpHelper->Request(DA_NETWORK(ItemReplyAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
+		TWeakObjectPtr<const UChatHandler> thisPtr = this;
+		httpHelper->Request(ReqUrl, EHttpRequestType::GET,
 					[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 						   {
 							   if (thisPtr.IsValid() && InFunc && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
@@ -147,19 +160,55 @@ void UChatHandler::RequestItemReply(const uint32 InItemId, const FCallbackRefArr
 								   TArray<TSharedPtr<FJsonObject>> jsonArray;
 								   UtilJson::StringToJsonValueArray(InResponse->GetContentAsString(), jsonArray);
 
-								   TArray<FItemReply> replyArray;
+								   TArray<FChatData> replyArray;
 								   for (const TSharedPtr<FJsonObject>& jsonObj : jsonArray)
 								   {
-									   replyArray.Emplace(FItemReply());
+									   replyArray.Emplace(FChatData());
 									   thisPtr->_JsonToData(jsonObj, *replyArray.rbegin());
 								   }
 
 								   InFunc(replyArray);
 								   return;
 							   }
-							   LOG_ERROR(TEXT("URL : %s, 댓글 요청 실패"), *InRequest->GetURL());
+							   LOG_ERROR(TEXT("URL : %s, 댓글 or 채팅 요청 실패"), *InRequest->GetURL());
 						   });
 		
+	}
+}
+
+/**
+ * 나의 채팅방 목록을 모두 불러옵니다. (로그인 된 상태에서만 사용 가능)
+ * Lambda 작성 시, this를 캡처한다면 weak 캡처 후 is valid 체크 한번 해주세요!
+ * @param InFunc : 채팅방들을 수신하면 실행할 람다함수, const TArray<FItemReply>&를 인자로 받아야함
+ */
+void UChatHandler::RequestMyChatRoom(const FCallbackRefArray<FChatRoomData>& InFunc) const
+{
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(MAGetGameInstance()))
+	{
+		// HTTP 통신으로 채팅방들을 요청한다.
+		LOG_N(TEXT("Request my chatrooms ..."));
+		
+		TWeakObjectPtr<const UChatHandler> thisPtr = this;
+		httpHelper->Request(DA_NETWORK(MyChatRoomAddURL), EHttpRequestType::GET,
+		[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+					   {
+						   if (thisPtr.IsValid() && InFunc && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+						   {
+							   TArray<TSharedPtr<FJsonObject>> jsonArray;
+							   UtilJson::StringToJsonValueArray(InResponse->GetContentAsString(), jsonArray);
+
+							   TArray<FChatRoomData> chatRoomArray;
+							   for (const TSharedPtr<FJsonObject>& jsonObj : jsonArray)
+							   {
+								   chatRoomArray.Emplace(FChatRoomData());
+								   thisPtr->_JsonToData(jsonObj, *chatRoomArray.rbegin());
+							   }
+						   	
+							   InFunc(chatRoomArray);
+							   return;
+						   }
+						   LOG_ERROR(TEXT("URL : %s, 내 채팅방 요청 실패"), *InRequest->GetURL());
+					   });
 	}
 }
 
@@ -168,7 +217,7 @@ void UChatHandler::RequestItemReply(const uint32 InItemId, const FCallbackRefArr
  * @param InJsonObj : Json 형태의 ItemReply String
  * @param OutItemReply : 파싱한 정보를 담아갈 FItemReply
  */
-void UChatHandler::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FItemReply& OutItemReply) const
+void UChatHandler::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FChatData& OutItemReply) const
 {
 	InJsonObj->TryGetStringField(TEXT("sender"), OutItemReply.Sender);
 	InJsonObj->TryGetStringField(TEXT("text"), OutItemReply.Content);
@@ -176,4 +225,17 @@ void UChatHandler::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FItemRe
 	FString timeString;
 	InJsonObj->TryGetStringField(TEXT("messageTime"), timeString);
 	FDateTime::ParseIso8601(*timeString, OutItemReply.Time);
+}
+
+/**
+ * Json 형태의 ChatRoomData JsonObject를 FChatRoomData 변환한다.
+ * @param InJsonObj : Json 형태의 ChatRoomData String
+ * @param OutChatRoomData : 파싱한 정보를 담아갈 FChatRoomData
+ */
+void UChatHandler::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FChatRoomData& OutChatRoomData) const
+{
+	InJsonObj->TryGetNumberField(TEXT("id"), OutChatRoomData.ChatRoomId);
+	InJsonObj->TryGetNumberField(TEXT("itemId"), OutChatRoomData.ItemId);
+	InJsonObj->TryGetStringField(TEXT("seller"), OutChatRoomData.Seller);
+	InJsonObj->TryGetStringField(TEXT("buyer"), OutChatRoomData.Buyer);
 }

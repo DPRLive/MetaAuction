@@ -73,6 +73,14 @@ public:
 	// 물품의 댓글을 가져오는 추가 Url, /{itemID}를 붙여서 사용
 	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
 	FString ItemReplyAddURL = TEXT("/item/chat");
+
+	// 채팅방의 채팅을 가져오는 추가 Url, /{chatRoomId}를 붙여서 사용
+	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
+	FString ChatroomChatAddURL = TEXT("/chat");
+	
+	// 나의 채팅방들을 가져오는 추가 Url
+	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
+	FString MyChatRoomAddURL = TEXT("/mychatroom");
 	
 	// STOMP WebSocket 기본 연결 URL
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
