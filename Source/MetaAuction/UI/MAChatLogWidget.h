@@ -51,8 +51,13 @@ private:
 	TObjectPtr<class UScrollBox> InputScrollBox;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UEditableText> InputText;
+	TObjectPtr<class UEditableTextBox> InputText;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UImage> InputShade;
 	
+	FLinearColor EnableColor;
+	FLinearColor DisableColor;
 
 	uint8 bIsFocus : 1;
 

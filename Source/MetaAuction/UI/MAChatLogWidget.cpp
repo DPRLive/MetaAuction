@@ -4,10 +4,12 @@
 #include "UI/MAChatLogWidget.h"
 #include "UI/MAChatLogListWidget.h"
 #include "Player/MAPlayerController.h"
+#include "Common/MALog.h"
 
 #include <Components/ScrollBox.h>
 #include <Components/TextBlock.h>
-#include <Components/EditableText.h>
+#include <Components/EditableTextBox.h>
+#include <Components/Image.h>
 
 UMAChatLogWidget::UMAChatLogWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -26,6 +28,7 @@ void UMAChatLogWidget::NativeConstruct()
 	ensure(WBP_ChatLogList);
 	ensure(InputScrollBox);
 	ensure(InputText);
+	ensure(InputShade);
 
 	if (IsValid(InputText))
 	{
@@ -37,6 +40,14 @@ void UMAChatLogWidget::NativeConstruct()
 	if (IsValid(MAPC))
 	{
 		MAPC->OnReceivedChatLog.AddDynamic(this, &ThisClass::ReceivedChatLog);
+	}
+
+	if (IsValid(InputShade))
+	{
+		EnableColor = InputShade->GetColorAndOpacity();
+		DisableColor = EnableColor;
+		DisableColor.A = EnableColor.A * 0.5f;
+		InputShade->SetColorAndOpacity(DisableColor);
 	}
 }
 
@@ -70,6 +81,9 @@ void UMAChatLogWidget::EnableInputText()
 
 	// 포커스 설정
 	InputText->SetFocus();
+
+	// 색 설정
+	InputShade->SetColorAndOpacity(EnableColor);
 }
 
 void UMAChatLogWidget::DisableInputText()
@@ -93,6 +107,9 @@ void UMAChatLogWidget::DisableInputText()
 		// 마우스 커서 숨기기
 		PlayerController->SetShowMouseCursor(false);
 	}
+
+	// 색 설정
+	InputShade->SetColorAndOpacity(DisableColor);
 }
 
 void UMAChatLogWidget::SendInputText()
