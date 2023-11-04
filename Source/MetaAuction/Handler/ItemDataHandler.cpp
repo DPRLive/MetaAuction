@@ -23,14 +23,14 @@ void UItemDataHandler::BeginPlay()
 	if(IsRunningDedicatedServer())
 	{
 		// 서버에서 WebSocket에 구독할 것들을 구독한다.
-		if(const FStompHandler* stompHandler = MAGetStompHandler(GetOwner()->GetGameInstance()))
+		if(const FStompHelper* stompHandler = MAGetStompHelper(GetOwner()->GetGameInstance()))
 		{
-			// 아이템 가격 변동 구독
+			// 아이템 가격 변동 구독, 이건 구독 해제할 일이 없음
 			FStompSubscriptionEvent Server_EventChangePrice;
 			Server_EventChangePrice.BindUObject(this, &UItemDataHandler::_Server_OnChangePrice);
 			stompHandler->Subscribe(DA_NETWORK(WSChangePriceAddURL), Server_EventChangePrice);
 
-			// 아이템 정보 변동 구독
+			// 아이템 정보 변동 구독, 이건 구독 해제할 일이 없음
 			FStompSubscriptionEvent Server_EventChangeItemData;
 			Server_EventChangeItemData.BindUObject(this, &UItemDataHandler::_Server_OnChangeItemData);
 			stompHandler->Subscribe(DA_NETWORK(WSChangeDataAddURL), Server_EventChangeItemData);
@@ -44,23 +44,20 @@ void UItemDataHandler::BeginPlay()
  * @param InFunc : 정보가 도착하면 실행할 람다 함수 
  * @param InItemId : 쿼리할 물품의 ID
  */
-void UItemDataHandler::RequestItemDataById(FCallbackOneParam<const FItemData&> InFunc, uint32 InItemId) const
+void UItemDataHandler::RequestItemDataById(const FCallbackRefOneParam<FItemData>& InFunc, uint32 InItemId) const
 {
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance()))
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
 	{
 		FString RequestUrl = DA_NETWORK(ItemInfoAddURL) + FString::Printf(TEXT("/%d"), InItemId);
 
 		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
 		TWeakObjectPtr<const UItemDataHandler> thisPtr = this;
-		httpHandler->Request(RequestUrl, EHttpRequestType::GET, [thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		httpHelper->Request(RequestUrl, EHttpRequestType::GET, [thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 		{
 			if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 			{
-				// Json reader 생성
-				TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
-				TSharedPtr<FJsonObject> jsonObject = MakeShareable(new FJsonObject());
-				FJsonSerializer::Deserialize(reader, jsonObject);
-
+				const TSharedPtr<FJsonObject> jsonObject = UtilJson::StringToJson(InResponse->GetContentAsString());
+				
 				FItemData itemData;
 				thisPtr->_JsonToData(jsonObject, itemData);
 
@@ -81,7 +78,7 @@ void UItemDataHandler::RequestItemDataById(FCallbackOneParam<const FItemData&> I
  * @param InFunc : 정보가 도착하면 실행할 FCallbackRefArray 형태의 함수 
  * @param InSearchOption : 물품 검색 시 사용할 옵션, 필요한 옵션만 설정 후 넣어서 사용하면 됩니다.
  */
-void UItemDataHandler::RequestItemDataByOption(FCallbackRefArray<FItemData> InFunc, const FItemSearchOption& InSearchOption) const
+void UItemDataHandler::RequestItemDataByOption(const FCallbackRefArray<FItemData>& InFunc, const FItemSearchOption& InSearchOption) const
 {
 	// 옵션 설정
 	TSharedRef<FJsonObject> requestObj = MakeShared<FJsonObject>();
@@ -99,25 +96,22 @@ void UItemDataHandler::RequestItemDataByOption(FCallbackRefArray<FItemData> InFu
 	else if(InSearchOption.CanDeal == EItemCanDeal::Impossible)
 		requestObj->SetBoolField(TEXT("isPossible"), false);
 	
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance()))
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
 	{
 		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
 		TWeakObjectPtr<const UItemDataHandler> thisPtr = this;
-		httpHandler->Request(DA_NETWORK(ItemSearchAddURL), EHttpRequestType::POST,[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		httpHelper->Request(DA_NETWORK(ItemSearchAddURL), EHttpRequestType::POST,[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 							 {
 								 if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 								 {
-									 // Json reader 생성
-									 TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
-									 TArray<TSharedPtr<FJsonValue>> jsonValues;
-									 FJsonSerializer::Deserialize(reader, jsonValues);
+									 TArray<TSharedPtr<FJsonObject>> jsonArray;
+									 UtilJson::StringToJsonValueArray(InResponse->GetContentAsString(), jsonArray);
 
 									 TArray<FItemData> itemDatas;
-									 for (TSharedPtr<FJsonValue>& itemInfo : jsonValues)
+									 for (const TSharedPtr<FJsonObject>& itemInfo : jsonArray)
 									 {
-										 TSharedPtr<FJsonObject> itemInfoObj = itemInfo->AsObject();
 										 itemDatas.Emplace(FItemData());
-										 thisPtr->_JsonToData(itemInfoObj, *itemDatas.rbegin());
+										 thisPtr->_JsonToData(itemInfo, *itemDatas.rbegin());
 									 }
 
 									 if (InFunc)
@@ -127,7 +121,7 @@ void UItemDataHandler::RequestItemDataByOption(FCallbackRefArray<FItemData> InFu
 								 	
 									 LOG_N(TEXT("Search Items Success!"));
 								 }
-							 }, httpHandler->JsonToString(requestObj));
+							 }, UtilJson::JsonToString(requestObj));
 	}
 }
 
@@ -143,9 +137,9 @@ void UItemDataHandler::Client_RequestBid(uint32 InItemId, uint64 InPrice) const
 	// Body를 만든다.
 	FString requestBody = FString::Printf(TEXT("%llu"), InPrice);
 
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance())) // 로컬에 없으니 다운로드를 함
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance())) // 로컬에 없으니 다운로드를 함
 	{
-		httpHandler->Request(DA_NETWORK(BidAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::POST,
+		httpHelper->Request(DA_NETWORK(BidAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::POST,
 		                     [](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 		                     {
 			                     if (InbWasSuccessful && InResponse.IsValid())
@@ -173,27 +167,24 @@ void UItemDataHandler::Client_RequestBid(uint32 InItemId, uint64 InPrice) const
  * @param InFunc : 정보가 도착하면 실행할 FCallbackRefArray 형태의 함수 
  * @param InItemId : 입찰 기록을 조회할 상품의 ID
  */
-void UItemDataHandler::RequestBidRecordByItemId(FCallbackRefArray<FBidRecord> InFunc, uint32 InItemId) const
+void UItemDataHandler::RequestBidRecordByItemId(const FCallbackRefArray<FBidRecord>& InFunc, uint32 InItemId) const
 {
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance()))
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
 	{
 		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
 		TWeakObjectPtr<const UItemDataHandler> thisPtr = this;
-		httpHandler->Request(DA_NETWORK(BidRecordAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		httpHelper->Request(DA_NETWORK(BidRecordAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 							 {
 								 if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 								 {
-									 // Json reader 생성
-									 TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
-									 TArray<TSharedPtr<FJsonValue>> jsonValues;
-									 FJsonSerializer::Deserialize(reader, jsonValues);
-
+									 TArray<TSharedPtr<FJsonObject>> jsonArray;
+									 UtilJson::StringToJsonValueArray(InResponse->GetContentAsString(), jsonArray);
+								 	
 									 TArray<FBidRecord> BidRecords;
-									 for (TSharedPtr<FJsonValue>& bidInfo : jsonValues)
+									 for (const TSharedPtr<FJsonObject>& bidInfo : jsonArray)
 									 {
-										 TSharedPtr<FJsonObject> bidInfoObj = bidInfo->AsObject();
 										 BidRecords.Emplace(FBidRecord());
-										 thisPtr->_JsonToData(bidInfoObj, *BidRecords.rbegin());
+										 thisPtr->_JsonToData(bidInfo, *BidRecords.rbegin());
 									 }
 
 									 if (InFunc)
@@ -213,9 +204,9 @@ void UItemDataHandler::RequestBidRecordByItemId(FCallbackRefArray<FBidRecord> In
  */
 void UItemDataHandler::RequestRemoveItem(uint32 InItemId) const
 {
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance()))
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
 	{
-		httpHandler->Request(DA_NETWORK(RemoveItemAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::POST,[](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		httpHelper->Request(DA_NETWORK(RemoveItemAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::POST,[](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 							 {
 								 if (InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 								 {
@@ -248,7 +239,7 @@ void UItemDataHandler::RequestRemoveItem(uint32 InItemId) const
  * @param InFunc : 정보가 도착하면 실행할 FCallbackRefArray 형태의 함수
  * @param InMyItemReqType : 어떠한 내 아이템을 요청할 것인지 설정합니다. 
  */
-void UItemDataHandler::RequestMyItem(FCallbackRefArray<FItemData> InFunc, EMyItemReqType InMyItemReqType) const
+void UItemDataHandler::RequestMyItem(const FCallbackRefArray<FItemData>& InFunc, EMyItemReqType InMyItemReqType) const
 {
 	FString reqAddURL;
 	if(InMyItemReqType == EMyItemReqType::Buy)
@@ -258,25 +249,22 @@ void UItemDataHandler::RequestMyItem(FCallbackRefArray<FItemData> InFunc, EMyIte
 	else if(InMyItemReqType == EMyItemReqType::TryBid)
 		reqAddURL = DA_NETWORK(MyBidItemAddURL);
 	
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(GetOwner()->GetGameInstance()))
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
 	{
 		// 혹시 모르니 나를 잘 가리키고 있는지 확인하기 위해 weak 캡처 추가.
 		TWeakObjectPtr<const UItemDataHandler> thisPtr = this;
-		httpHandler->Request(reqAddURL, EHttpRequestType::GET,[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		httpHelper->Request(reqAddURL, EHttpRequestType::GET,[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 							 {
 								 if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 								 {
-									 // Json reader 생성
-									 TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
-									 TArray<TSharedPtr<FJsonValue>> jsonValues;
-									 FJsonSerializer::Deserialize(reader, jsonValues);
+									 TArray<TSharedPtr<FJsonObject>> jsonArray;
+									 UtilJson::StringToJsonValueArray(InResponse->GetContentAsString(), jsonArray);
 
 									 TArray<FItemData> itemDatas;
-									 for (TSharedPtr<FJsonValue>& itemInfo : jsonValues)
+									 for (const TSharedPtr<FJsonObject>& itemInfo : jsonArray)
 									 {
-										 TSharedPtr<FJsonObject> itemInfoObj = itemInfo->AsObject();
 										 itemDatas.Emplace(FItemData());
-										 thisPtr->_JsonToData(itemInfoObj, *itemDatas.rbegin());
+										 thisPtr->_JsonToData(itemInfo, *itemDatas.rbegin());
 									 }
 
 									 if (InFunc)

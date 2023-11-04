@@ -5,7 +5,6 @@
 #include <GameFramework/GameMode.h>
 #include "MAGameMode.generated.h"
 
-class FStompHandler;
 /**
  * 
  */

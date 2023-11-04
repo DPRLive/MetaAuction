@@ -45,7 +45,7 @@ void UItemManager::BeginPlay()
 		});
 
 		// 서버에서 WebSocket에 구독할 것들을 구독한다.
-		if(const FStompHandler* stompHandler = MAGetStompHandler(GetOwner()->GetGameInstance()))
+		if(const FStompHelper* stompHandler = MAGetStompHelper(GetOwner()->GetGameInstance()))
 		{
 			// 새 아이템 등록 알림 구독
 			FStompSubscriptionEvent Server_EventNewItem;

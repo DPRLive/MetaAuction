@@ -8,6 +8,9 @@
 template<typename T>
 using FCallbackOneParam = TFunction<void(T)>;
 
+template<typename T>
+using FCallbackRefOneParam = TFunction<void(const T&)>;
+
 // const TArray<T>& 타입의 람다 타입
 template<typename T>
 using FCallbackRefArray = TFunction<void(const TArray<T>&)>;

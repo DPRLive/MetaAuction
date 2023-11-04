@@ -69,6 +69,10 @@ public:
 	// 물품의 최근 수정 시간을 가져오는 추가 Url, /{itemID}를 붙여서 사용
 	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
 	FString ModifyTimeAddURL = TEXT("/item/lastmodifiedtime");
+
+	// 물품의 댓글을 가져오는 추가 Url, /{itemID}를 붙여서 사용
+	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
+	FString ItemReplyAddURL = TEXT("/item/chat");
 	
 	// STOMP WebSocket 기본 연결 URL
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
@@ -90,6 +94,16 @@ public:
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
 	FString WSChangeDataAddURL = TEXT("/sub/modify");
 
+	// STOMP WebSocket 채팅&댓글 보내기 추가 url, /{itemid}를 붙여서 사용
+	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
+	FString WSSendChatAddURL = TEXT("/pub/chat");
+
+	// STOMP WebSocket 채팅&댓글 받기 추가 url
+	// 물품 댓글 받기의 경우 : /{itemid}를 붙여서 사용
+	// 1대1 채팅 받기의 경우 : /{itemId}-{sellerUsername}-{buyerUsername}를 붙여서 사용
+	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
+	FString WSReceiveChatAddURL = TEXT("/sub/chat");
+	
 	// 웹서버 시간을 UTC에 맞추기 위해 변화해야 하는 변화 값 설정
 	UPROPERTY( EditDefaultsOnly, Category = "Server" )
 	FTimespan WebServerUTCDiff = - FTimespan(9, 0, 0);

@@ -5,20 +5,7 @@
 #include <Engine/GameInstance.h>
 #include "MAGameInstance.generated.h"
 
-class FItemFileHandler;
-class FStompHandler;
-
-// 로그인 관련 정보를 담는 struct
-struct FLoginData
-{
-	FLoginData() : bLogin(false), JwtToken(TEXT("")) {}
-
-	// 로그인이 된 상태인지
-	uint8 bLogin:1;
-	
-	// JWT 토큰
-	FString JwtToken;
-};
+class FLoginData;
 
 /**
  * Meta Auction에서 사용할 GameInstance
@@ -41,26 +28,34 @@ public:
 	void RequestLogin(const FString& InID, const FString& InPassword);
 	
 	// LoginData Getter
-	FORCEINLINE const FLoginData& GetLoginData() const { return LoginData; }
+	FORCEINLINE const TSharedPtr<FLoginData>& GetLoginData() const { return LoginData; }
 	
 	// ModelHandler Getter
 	FORCEINLINE const TSharedPtr<FItemFileHandler>& GetItemFileHandler() const { return ItemFileHandler; }
 
-	// HttpHandler Getter
-	FORCEINLINE const TSharedPtr<FHttpHandler>& GetHttpHandler() const { return HttpHandler; }
+	// Chat Handler Getter
+	FORCEINLINE TObjectPtr<UChatHandler> GetChatHandler() const { return ChatHandler; }
 	
-	// StompHandler Getter
-	FORCEINLINE const TSharedPtr<FStompHandler>& GetStompHandler() const { return StompHandler; }
+	// HttpHelper Getter
+	FORCEINLINE const TSharedPtr<FHttpHelper>& GetHttpHelper() const { return HttpHelper; }
+	
+	// StompHelper Getter
+	FORCEINLINE const TSharedPtr<FStompHelper>& GetStompHelper() const { return StompHelper; }
+
 private:
 	// 로그인 관련 정보를 들고있기 위한 LoginData
-	FLoginData LoginData;
+	TSharedPtr<FLoginData> LoginData;
 	
 	// 아이템 관련 파일 처리를 위한 ItemFileHandler, 클라이언트에서만 생성됩니다.
 	TSharedPtr<FItemFileHandler> ItemFileHandler;
+	
+	// Chat 관련 처리를 위한 Chat Handler
+	UPROPERTY()
+	TObjectPtr<UChatHandler> ChatHandler;
+	
+	// HTTP 통신을 위한 HttpHelper
+	TSharedPtr<FHttpHelper> HttpHelper;
 
-	// HTTP 통신을 위한 HttpHandler
-	TSharedPtr<FHttpHandler> HttpHandler;
-
-	// WebSocket 통신을 위한 Stomp Handler
-	TSharedPtr<FStompHandler> StompHandler;
+	// WebSocket 통신을 위한 StompHelper
+	TSharedPtr<FStompHelper> StompHelper;
 };

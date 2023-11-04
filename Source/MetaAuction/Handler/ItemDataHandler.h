@@ -75,7 +75,6 @@ struct FItemData
 	FDateTime LastModifyTime;
 };
 
-
 /**
  *  물품 검색 시 사용할 Option struct
  *  필요한 옵션만 넣어서 사용하면 됩니다.
@@ -138,18 +137,18 @@ protected:
 public:
 	// ItemID로 물품 정보를 요청합니다. 
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
-	void RequestItemDataById(FCallbackOneParam<const FItemData&> InFunc, uint32 InItemId) const;
+	void RequestItemDataById(const FCallbackRefOneParam<FItemData>& InFunc, uint32 InItemId) const;
 
 	// 옵션을 걸어 물품 정보들을 요청합니다.
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
-	void RequestItemDataByOption(FCallbackRefArray<FItemData> InFunc, const FItemSearchOption& InSearchOption) const;
+	void RequestItemDataByOption(const FCallbackRefArray<FItemData>& InFunc, const FItemSearchOption& InSearchOption) const;
 
 	// HTTP 통신으로 웹서버에 입찰을 요청하는 함수입니다.
 	void Client_RequestBid(uint32 InItemId, uint64 InPrice) const;
 
 	// ItemID로 물품에 대한 입찰 기록을 조회합니다. DB에서 입찰 순서대로 내림차순(최근 입찰 기록이 먼저)해서 정렬하여 주니, 그대로 배열을 사용하시면 됩니다.
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
-	void RequestBidRecordByItemId(FCallbackRefArray<FBidRecord> InFunc, uint32 InItemId) const;
+	void RequestBidRecordByItemId(const FCallbackRefArray<FBidRecord>& InFunc, uint32 InItemId) const;
 
 	// ItemId로 물품을 삭제합니다. (로그인 된 상태여야 함), (JWT 토큰 확인으로 내 물품이 맞을 경우만 삭제함, 판매 종료 3시간 전에는 삭제 불가)
 	void RequestRemoveItem(uint32 InItemId) const;
@@ -159,8 +158,8 @@ public:
 	// Type : TryBid ( 현재 판매중인 물품이면서, 내가 입찰을 시도 했던 물품. 최근 입찰한 것이 배열 앞)
 	// (로그인 된 상태여야함)
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
-	void RequestMyItem(FCallbackRefArray<FItemData> InFunc, EMyItemReqType InMyItemReqType) const;
-
+	void RequestMyItem(const FCallbackRefArray<FItemData>& InFunc, EMyItemReqType InMyItemReqType) const;
+	
 private:
 	// Stomp 메세지로 온 아이템 가격 변동 알림을 받는다.
 	void _Server_OnChangePrice(const IStompMessage& InMessage) const;

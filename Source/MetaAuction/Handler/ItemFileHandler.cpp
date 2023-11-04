@@ -42,24 +42,21 @@ void FItemFileHandler::RemoveCacheFile(ERemoveCacheType InRemoveCacheType) const
 	TSharedRef<FJsonObject> requestObj = MakeShared<FJsonObject>();
 	requestObj->SetBoolField(TEXT("isPossible"), true);
 	
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(MAGetGameInstance()))
 	{
-		httpHandler->Request(DA_NETWORK(ItemSearchAddURL), EHttpRequestType::POST,[basePath](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		httpHelper->Request(DA_NETWORK(ItemSearchAddURL), EHttpRequestType::POST,[basePath](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 							 {
 								 if (InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 								 {
-									 // Json reader 생성
-									 TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
-									 TArray<TSharedPtr<FJsonValue>> jsonValues;
-									 FJsonSerializer::Deserialize(reader, jsonValues);
+									 TArray<TSharedPtr<FJsonObject>> jsonArray;
+									 UtilJson::StringToJsonValueArray(InResponse->GetContentAsString(), jsonArray);
 
 								 	// 지우지 않아야 할 물품 번호들을 뽑는다
 									 TSet<uint32> sellItemIds;
-									 for (TSharedPtr<FJsonValue>& itemInfo : jsonValues)
+									 for (const TSharedPtr<FJsonObject>& itemInfo : jsonArray)
 									 {
-										 TSharedPtr<FJsonObject> itemInfoObj = itemInfo->AsObject();
 										 uint32 id;
-										 if(itemInfoObj->TryGetNumberField(TEXT("id"), id))
+										 if(itemInfo->TryGetNumberField(TEXT("id"), id))
 										 {
 										 	sellItemIds.Emplace(id);
 										 }
@@ -81,7 +78,7 @@ void FItemFileHandler::RemoveCacheFile(ERemoveCacheType InRemoveCacheType) const
 								 		}
 								 	}
 								 }
-							 }, httpHandler->JsonToString(requestObj));
+							 }, UtilJson::JsonToString(requestObj));
 	}
 }
 
@@ -103,7 +100,7 @@ void FItemFileHandler::RemoveGlbFile(uint32 InItemId) const
  * @param InFunc : 요청이 완료되면 실행할 람다 함수, 형식이 같아야 하며 람다 내부에서 클래스 멤버 접근시 weak 캡처 해주세요!
  * @param InItemId : 물품의 ItemId 
  */
-void FItemFileHandler::RequestGlb(FCallbackOneParam<const FString&> InFunc, uint32 InItemId) const
+void FItemFileHandler::RequestGlb(const FCallbackRefOneParam<FString>& InFunc, uint32 InItemId) const
 {
 	// 모델링 파일 경로에 접근한다.
 	FString glbPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + FString::Printf(TEXT("Models/%d.glb"), InItemId);
@@ -112,10 +109,10 @@ void FItemFileHandler::RequestGlb(FCallbackOneParam<const FString&> InFunc, uint
 	if (FPaths::FileExists(glbPath)) // 우선 로컬에 존재하는지 확인
 	{
 		// 존재하면 최신화된 파일인지 한번 확인한다.
-		const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance());
+		const FHttpHelper* httpHelper = MAGetHttpHelper(MAGetGameInstance());
 		const UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance());
 		
-		if ((httpHandler != nullptr) && (gameInstance != nullptr))
+		if ((httpHelper != nullptr) && (gameInstance != nullptr))
 		{
 			LOG_N(TEXT("Request itemID[%d] Last Modified time ..."), InItemId);
 
@@ -124,7 +121,7 @@ void FItemFileHandler::RequestGlb(FCallbackOneParam<const FString&> InFunc, uint
 			FDateTime localFileTime = fileManager.GetTimeStamp(*glbPath);
 			
 			TWeakPtr<FItemFileHandler> thisPtr = gameInstance->GetItemFileHandler(); // 만약을 대비해 Weak 캡처 추가
-			httpHandler->Request(DA_NETWORK(ModifyTimeAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
+			httpHelper->Request(DA_NETWORK(ModifyTimeAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
 			                     [thisPtr, InFunc, localFileTime, glbPath, InItemId](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 			                     {
 				                     if (InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
@@ -161,9 +158,9 @@ void FItemFileHandler::RequestGlb(FCallbackOneParam<const FString&> InFunc, uint
  * @param InItemId : 요청할 Item의 id
  * @param InImgIdx : 요청할 Item의 몇번째 사진인지?
  */
-void FItemFileHandler::RequestImg(FCallbackOneParam<UTexture2DDynamic*> InFunc, uint32 InItemId, uint8 InImgIdx) const
+void FItemFileHandler::RequestImg(const FCallbackOneParam<UTexture2DDynamic*>& InFunc, uint32 InItemId, uint8 InImgIdx) const
 {
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(MAGetGameInstance()))
 	{
 		// HTTP 통신으로 관련 파일을 요청한다.
 		LOG_N(TEXT("Request Item ID (%d) Img File (%d) ..."), InItemId, InImgIdx);
@@ -171,7 +168,7 @@ void FItemFileHandler::RequestImg(FCallbackOneParam<UTexture2DDynamic*> InFunc, 
 		if (const UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
 		{
 			TWeakPtr<const FItemFileHandler> thisPtr = gameInstance->GetItemFileHandler(); // 만약을 대비해 Weak 캡처 추가
-			httpHandler->Request(DA_NETWORK(ImgViewAddURL) + FString::Printf(TEXT("/%d/%d"), InItemId, InImgIdx), EHttpRequestType::GET,
+			httpHelper->Request(DA_NETWORK(ImgViewAddURL) + FString::Printf(TEXT("/%d/%d"), InItemId, InImgIdx), EHttpRequestType::GET,
 				[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 								 {
 									 if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()) && InFunc)
@@ -197,10 +194,10 @@ void FItemFileHandler::RequestImg(FCallbackOneParam<UTexture2DDynamic*> InFunc, 
  * @param InFunc : 요청이 완료되면 실행할 람다 함수, 형식이 같아야 하며 람다 내부에서 클래스 멤버 접근시 weak 캡처 해주세요!
  * @param InItemId : 물품의 ItemId 
  */
-void FItemFileHandler::_RequestGlbToWeb(FCallbackOneParam<const FString&> InFunc, uint32 InItemId) const
+void FItemFileHandler::_RequestGlbToWeb(const FCallbackRefOneParam<FString>& InFunc, uint32 InItemId) const
 {
 	// 없네. 요청
-	if (const FHttpHandler* httpHandler = MAGetHttpHandler(MAGetGameInstance()))
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(MAGetGameInstance()))
 	{
 		// HTTP 통신으로 관련 파일을 요청한다.
 		LOG_N(TEXT("Request Item ID (%d) glb Files ..."), InItemId);
@@ -208,7 +205,7 @@ void FItemFileHandler::_RequestGlbToWeb(FCallbackOneParam<const FString&> InFunc
 		if (const UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
 		{
 			TWeakPtr<FItemFileHandler> thisPtr = gameInstance->GetItemFileHandler(); // 만약을 대비해 Weak 캡처 추가
-			httpHandler->Request(DA_NETWORK(GlbFileDownAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
+			httpHelper->Request(DA_NETWORK(GlbFileDownAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
 			[thisPtr, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 							   {
 								   if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))

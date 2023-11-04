@@ -2,7 +2,6 @@
 
 
 #include "MAGameMode.h"
-#include "../Handler/StompHandler.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(MAGameMode)
 

@@ -1,7 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Core/MAGameInstance.h"
+#include "Data/LoginData.h"
+
 #include <Serialization/JsonSerializer.h>
 #include <Interfaces/IHttpResponse.h>
 
@@ -9,6 +10,7 @@
 
 UMAGameInstance::UMAGameInstance()
 {
+	ChatHandler = CreateDefaultSubobject<UChatHandler>(TEXT("ChatHandler"));
 }
 
 /**
@@ -18,8 +20,8 @@ void UMAGameInstance::Init()
 {
 	Super::Init();
 
-	HttpHandler = MakeShareable(new FHttpHandler());
-	StompHandler = MakeShareable(new FStompHandler());
+	HttpHelper = MakeShareable(new FHttpHelper());
+	StompHelper = MakeShareable(new FStompHelper());
 	
 	//if(IsRunningDedicatedServer()) // 테스트, 데디 서버면 자동 로그인
 	//{
@@ -49,7 +51,7 @@ void UMAGameInstance::Shutdown()
  */
 void UMAGameInstance::RequestLogin(const FString& InID, const FString& InPassword)
 {
-	if(LoginData.bLogin)
+	if(LoginData.IsValid())
 	{
 		LOG_N(TEXT("이미 로그인 되어있음"));
 		return;
@@ -60,29 +62,25 @@ void UMAGameInstance::RequestLogin(const FString& InID, const FString& InPasswor
 	requestObj->SetStringField(TEXT("username"), InID);
 	requestObj->SetStringField(TEXT("password"), InPassword);
 	
-	if(HttpHandler.IsValid())
+	if(HttpHelper.IsValid())
 	{
 		// 로그인을 요청한다.
 		TWeakObjectPtr<UMAGameInstance> thisPtr = this;
-		HttpHandler->Request(DA_NETWORK(LoginAddURL), EHttpRequestType::POST, [thisPtr](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		HttpHelper->Request(DA_NETWORK(LoginAddURL), EHttpRequestType::POST, [thisPtr](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 		{
 			if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 			{
 				// 로그인 요청 성공
-				// Json reader 생성
-				TSharedRef<TJsonReader<TCHAR>> reader = TJsonReaderFactory<TCHAR>::Create(InResponse->GetContentAsString());
-				TSharedPtr<FJsonObject> jsonObject = MakeShareable(new FJsonObject());
-				FJsonSerializer::Deserialize(reader, jsonObject);
+				const TSharedPtr<FJsonObject> jsonObject = UtilJson::StringToJson(InResponse->GetContentAsString());
 				
-				// jwt 토큰을 저장한다.
-				thisPtr->LoginData.JwtToken = jsonObject->GetStringField(TEXT("accessToken"));
-				thisPtr->LoginData.bLogin = true;
+				// 로그인 데이터를 저장한다.
+				FString jwtToken = jsonObject->GetStringField(TEXT("accessToken"));
+				thisPtr->LoginData = MakeShareable(new FLoginData(jwtToken));
 			}
 			else
 			{
 				LOG_ERROR(TEXT("로그인 실패 !"))
 			}
-		}, HttpHandler->JsonToString(requestObj));
+		}, UtilJson::JsonToString(requestObj));
 	}
 }
-
