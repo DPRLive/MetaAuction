@@ -63,6 +63,9 @@ void UItemManager::BeginPlay()
 		{
 			itemDataHandler->OnChangeItemData.AddUObject(this, &UItemManager::Server_ChangeItemData);
 		}
+
+		// 데디 서버를 키기 전 웹서버에 등록되어 있던 아이템들의 정보를 모두 가져온다.
+		_Server_RegisterAllWorldItemID();
 	}
 }
 
@@ -110,37 +113,6 @@ void UItemManager::Server_RegisterNewItem(uint32 InItemId) const
 	}
 }
 
-
-/**
- * 웹서버에 등록된 현재 월드에 배치되어 판매되고 있는 아이템들의 ID를 가져와 배치한다.
- * 데디 서버에서만 실행 가능합니다.
- */
-void UItemManager::Server_RegisterAllWorldItemID() const
-{
-	CHECK_DEDI_FUNC;
-	
-	if(const UItemDataHandler* itemDataHandler = MAGetItemDataHandler(GetWorld()->GetGameState()))
-	{
-		// 현재 월드에서, 구매 가능하게 배치되어 있는 상품을 검색하기 위한 Body를 만든다.
-		// TODO : 월드 어케 관리함 근데? 일단 1로 하드코딩
-		FItemSearchOption option;
-		option.World = TEXT("1");
-		option.CanDeal = EItemCanDeal::Possible;
-		
-		TWeakObjectPtr<const UItemManager> thisPtr = this;
-		itemDataHandler->RequestItemDataByOption([thisPtr](const TArray<FItemData>& InItemData)
-		{
-			if (thisPtr.IsValid())
-			{
-				for (const FItemData& data : InItemData)
-				{
-					thisPtr->_Server_RegisterItemByLoc(data.ItemID, data.Location);
-				}
-			}
-		}, option);
-	}
-}
-
 /**
  *  아이템 정보 변동을 처리한다.
  *  @param InItemId : 변경된 item ID
@@ -171,6 +143,36 @@ void UItemManager::Server_ChangeItemData(const uint32& InItemId, const FString& 
 				break;
 			}
 		}
+	}
+}
+
+/**
+ * 웹서버에 등록된 현재 월드에 배치되어 판매되고 있는 아이템들의 ID를 가져와 배치한다.
+ * 데디 서버에서만 실행 가능합니다.
+ */
+void UItemManager::_Server_RegisterAllWorldItemID() const
+{
+	CHECK_DEDI_FUNC;
+	
+	if(const UItemDataHandler* itemDataHandler = MAGetItemDataHandler(GetWorld()->GetGameState()))
+	{
+		// 현재 월드에서, 구매 가능하게 배치되어 있는 상품을 검색하기 위한 Body를 만든다.
+		// TODO : 월드 어케 관리함 근데? 일단 1로 하드코딩
+		FItemSearchOption option;
+		option.World = TEXT("1");
+		option.CanDeal = EItemCanDeal::Possible;
+		
+		TWeakObjectPtr<const UItemManager> thisPtr = this;
+		itemDataHandler->RequestItemDataByOption([thisPtr](const TArray<FItemData>& InItemData)
+		{
+			if (thisPtr.IsValid())
+			{
+				for (const FItemData& data : InItemData)
+				{
+					thisPtr->_Server_RegisterItemByLoc(data.ItemID, data.Location);
+				}
+			}
+		}, option);
 	}
 }
 

@@ -2,7 +2,6 @@
 
 
 #include "Handler/ChatHandler.h"
-#include "Data/LoginData.h"
 #include "Core/MAGameInstance.h"
 
 #include <Dom/JsonObject.h>
@@ -22,27 +21,61 @@ void UChatHandler::BeginPlay()
 }
 
 /**
+ *  로그인 후 stomp에서 처리해야할 로직을 처리합니다.
+ */
+void UChatHandler::AfterLogin()
+{
+	// TODO : 나의 채팅방을 모두 등록
+	
+	
+	// TODO : 나에게 생길 채팅방도 생길때마다 등록
+}
+
+/**
  *  Stomp로 item id에 맞는 상품에 댓글을 답니다. 로그인 된 경우만 사용 가능
  *  @param InItemId : 댓글을 달 item id
  *  @param InContent : 댓글 내용 
  */
 void UChatHandler::AddReplyToItem(const uint32 InItemId, const FString& InContent) const
 {
+	const FString userName = MAGetMyUserName(GetWorld()->GetGameInstance());
+	if(userName == TEXT(""))
+		return;
+	
 	// Json object를 통해 내용을 json 형식으로 만든다.
 	TSharedRef<FJsonObject> requestObj = MakeShared<FJsonObject>();
-	if(const UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance(MAGetWorld())))
-	{
-		const TWeakPtr<FLoginData> loginData = gameInstance->GetLoginData(); 
-		if(loginData.IsValid())
-		{
-			requestObj->SetStringField(TEXT("sender"), loginData.Pin()->GetUserName());
-			requestObj->SetStringField(TEXT("text"), InContent);
-		}
-	}
+	requestObj->SetStringField(TEXT("sender"), userName);
+	requestObj->SetStringField(TEXT("text"), InContent);
 
 	// 전송
 	FString pubUrl = DA_NETWORK(WSSendChatAddURL) + FString::Printf(TEXT("/%d"), InItemId);
-	if(const FStompHelper* stompHandler = MAGetStompHelper(MAGetGameInstance()))
+	if (const FStompHelper* stompHandler = MAGetStompHelper(MAGetGameInstance()))
+	{
+		stompHandler->SendMessage(pubUrl, UtilJson::JsonToString(requestObj));
+	}
+}
+
+/**
+ *  Stomp로 InChatRoomDta에 맞는 채팅방에 1대1 거래 채팅을 보낸다. 로그인 된 경우만 사용 가능
+ *  @param InChatRoomData : 채팅을 보낼 대상 채팅방의 정보
+ *  @param InContent : 보낼 내용
+ */
+void UChatHandler::Send1On1Chat(const FChatRoomData& InChatRoomData, const FString& InContent) const
+{
+	const FString userName = MAGetMyUserName(GetWorld()->GetGameInstance());
+	if(userName == TEXT(""))
+		return;
+	
+	// Json object를 통해 내용을 json 형식으로 만든다.
+	TSharedRef<FJsonObject> requestObj = MakeShared<FJsonObject>();
+	requestObj->SetStringField(TEXT("buyer"), InChatRoomData.Buyer);
+	requestObj->SetStringField(TEXT("seller"), InChatRoomData.Seller);
+	requestObj->SetStringField(TEXT("whoAmI"), userName);
+	requestObj->SetStringField(TEXT("text"), InContent);
+
+	// 전송
+	FString pubUrl = DA_NETWORK(WSSendChatAddURL) + FString::Printf(TEXT("/%d"), InChatRoomData.ItemId);
+	if (const FStompHelper* stompHandler = MAGetStompHelper(MAGetGameInstance()))
 	{
 		stompHandler->SendMessage(pubUrl, UtilJson::JsonToString(requestObj));
 	}
@@ -66,7 +99,7 @@ FDelegateHandle UChatHandler::SubscribeItemReply(const uint32 InItemId, const FC
 	}
  
 	// 아니면 새로 만든다
-	TSharedPtr<FOnItemReply> replyDelegate = MakeShareable(new FOnItemReply());
+	TSharedPtr<FOnItemReplyDelegate> replyDelegate = MakeShareable(new FOnItemReplyDelegate());
 	FDelegateHandle delegateHandle = replyDelegate->AddLambda(InFunc);
 
 	if(const FStompHelper* stompHandler = MAGetStompHelper(MAGetGameInstance()))
@@ -91,7 +124,7 @@ FDelegateHandle UChatHandler::SubscribeItemReply(const uint32 InItemId, const FC
 			}
 		});
 
-		const FStompSubscriptionId& stompId = stompHandler->Subscribe(DA_NETWORK(WSReceiveChatAddURL) + FString::Printf(TEXT("/%d"), InItemId), replyEvent);
+		const FStompSubscriptionId& stompId = stompHandler->Subscribe(DA_NETWORK(WSReceiveReplyAddURL) + FString::Printf(TEXT("/%d"), InItemId), replyEvent);
 		ItemReplyDelegates.Emplace(InItemId, FReplyDelegateInfo(stompId, replyDelegate));
 	}
 
@@ -210,6 +243,84 @@ void UChatHandler::RequestMyChatRoom(const FCallbackRefArray<FChatRoomData>& InF
 						   LOG_ERROR(TEXT("URL : %s, 내 채팅방 요청 실패"), *InRequest->GetURL());
 					   });
 	}
+}
+
+/**
+ * 새로운 채팅방을 생성합니다. 경매의 경우는 끝나면 자동으로 채팅방이 생성되니 일반 판매일 때만 사용하면 됩니다.
+ * (특정 유저가 어떤 일반 판매 물품을 사고싶으면 이 api를 호출해서 채팅을 시작하면 됨)
+ * Lambda 작성 시, this를 캡처한다면 weak 캡처 후 is valid 체크 한번 해주세요!
+ * @param InItemId : 구매 채팅을 시작할 아이템의 id
+ * @param InSellerName : 구매 채팅을 시작할 아이템을 파는 사람
+ * @param InFunc : 채팅방이 성공적으로 만들어지면 호출할 함수
+ */
+void UChatHandler::RequestNewChatRoom(const uint32 InItemId, const FString& InSellerName, const FCallbackRefOneParam<FChatRoomData>& InFunc)
+{
+	FString userName = MAGetMyUserName(GetWorld()->GetGameInstance());
+	if(userName == TEXT(""))
+		return;
+	
+	TSharedRef<FJsonObject> requestObj = MakeShared<FJsonObject>();
+	requestObj->SetStringField(TEXT("buyer"), userName);
+	requestObj->SetStringField(TEXT("seller"), InSellerName);
+	
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(MAGetGameInstance()))
+	{
+		// HTTP 통신으로 새로운 채팅방을 생성한다.
+		LOG_N(TEXT("Create New Chatrooms ..."));
+		
+		TWeakObjectPtr<const UChatHandler> thisPtr = this;
+		httpHelper->Request(DA_NETWORK(CreateChatRoomAddURL) + FString::Printf(TEXT("%d"), InItemId), EHttpRequestType::POST,
+		[thisPtr, InItemId, InSellerName, userName, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+					   {
+						   if (thisPtr.IsValid() && InFunc && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+						   {
+							   FChatRoomData chatRoomData;
+							   const uint32 chatRoomId = FCString::Atoi(*InResponse->GetContentAsString());
+							   chatRoomData.ChatRoomId = chatRoomId;
+							   chatRoomData.ItemId = InItemId;
+							   chatRoomData.Seller = InSellerName;
+							   chatRoomData.Buyer = userName;
+
+							   // 채팅방을 구독한다
+							   thisPtr->_Subscribe1On1Chat(InItemId);
+
+							   // 뿌려준다
+							   InFunc(chatRoomData);
+							   return;
+						   }
+						   LOG_ERROR(TEXT("URL : %s, 새로운 채팅 요청 실패"), *InRequest->GetURL());
+					   });
+	}
+}
+
+/**
+ * 웹소켓에 1대1 채팅을 Subscribe하여 특정 채팅방에 오는 채팅을 모두 받는다.
+ * @param InChatRoomId : 구독할 채팅방의 id
+ */
+FStompSubscriptionId UChatHandler::_Subscribe1On1Chat(const uint32 InChatRoomId) const
+{
+	if(const FStompHelper* stompHandler = MAGetStompHelper(MAGetGameInstance()))
+	{
+		FStompSubscriptionEvent chatEvent;
+
+		TWeakObjectPtr<const UChatHandler> thisPtr = this;
+		chatEvent.BindLambda([InChatRoomId, thisPtr](const IStompMessage& StompMessage)
+		{
+			if(thisPtr.IsValid() && thisPtr->OnChatDelegate.IsBound())
+			{
+				FChatData chatData;
+				TSharedPtr<FJsonObject> chatDataStr = UtilJson::StringToJson(StompMessage.GetBodyAsString());
+				thisPtr->_JsonToData(chatDataStr, chatData);
+				
+				// 파싱해서 chatroomid와 data를 broadcast
+				thisPtr->OnChatDelegate.Broadcast(InChatRoomId, chatData);
+			}
+		});
+		
+		return stompHandler->Subscribe(DA_NETWORK(WSReceiveChatAddURL) + FString::Printf(TEXT("/%d"), InChatRoomId), chatEvent);
+	}
+
+	return TEXT("");
 }
 
 /**
