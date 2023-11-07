@@ -110,13 +110,17 @@ public:
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
 	FString WSSendChatAddURL = TEXT("/pub/chat");
 
-	// STOMP WebSocket 채팅 받기 추가 url /{itemid}를 붙여서 사용
+	// STOMP WebSocket 채팅 받기 추가 url /{chatroomid}를 붙여서 사용
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
 	FString WSReceiveChatAddURL = TEXT("/sub/privateChat");
 
 	// STOMP WebSocket 1대1 채팅 받기 추가 url /{chatroomid}를 붙여서 사용
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
 	FString WSReceiveReplyAddURL = TEXT("/sub/chat");
+
+	// STOMP WebSocket 새로운 채팅방이 생길 시 오는 알림을 구독, %s에 username을 넣어서 사용
+	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
+	FString WSReceiveNewChatAddURL = TEXT("/sub/%s/newChat");
 	
 	// 웹서버 시간을 UTC에 맞추기 위해 변화해야 하는 변화 값 설정
 	UPROPERTY( EditDefaultsOnly, Category = "Server" )

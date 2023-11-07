@@ -26,49 +26,24 @@ void UMAGameInstance::Init()
 	//if(IsRunningDedicatedServer()) // 테스트, 데디 서버면 자동 로그인
 	//{
 		LOG_WARN(TEXT("Is Running Dedicated Server! Auto Login!"));
-		RequestLogin(TEXT("test"), TEXT("test"));
+		RequestLogin(TEXT("Sungyun"), TEXT("Sungyun"));
 	//}
 	
 	if(!IsRunningDedicatedServer())
 	{
 		ItemFileHandler = MakeShareable(new FItemFileHandler());
 	}
-
+	
+	if(IsRunningDedicatedServer())
+		return;
+	
 	// // Chat Handler 테스트 //
-	// FTimerHandle handle;
-	// GetWorld()->GetTimerManager().SetTimer(handle, [this]()
-	// {
-	// 	ChatHandler->RequestMyChatRoom([](const TArray<FChatRoomData>& ChatRoomDatas)
-	// 	{
-	// 		for(auto& elem : ChatRoomDatas)
-	// 		{
-	// 			LOG_WARN(TEXT("%d"), elem.ItemId);
-	// 			LOG_WARN(TEXT("%d"), elem.ChatRoomId);
-	// 			LOG_WARN(TEXT("%s"), *elem.Buyer);
-	// 			LOG_WARN(TEXT("%s"), *elem.Seller);
-	// 		}
-	// 	});
-	//
-	// 	ChatHandler->RequestChatsById(ERequestChatType::Chatroom, 1, [](const TArray<FChatData>& data)
-	// 	{
-	// 		for(auto& elem : data)
-	// 		{
-	// 			LOG_WARN(TEXT("%s"), *elem.Sender);
-	// 			LOG_WARN(TEXT("%s"), *elem.Content);
-	// 			LOG_WARN(TEXT("%s"), *elem.Time.ToString());
-	// 		}
-	// 	});
-	//
-	// 	ChatHandler->RequestChatsById(ERequestChatType::ItemReply, 2, [](const TArray<FChatData>& data)
-	// 	{
-	// 		for(auto& elem : data)
-	// 		{
-	// 			LOG_WARN(TEXT("%s"), *elem.Sender);
-	// 			LOG_WARN(TEXT("%s"), *elem.Content);
-	// 			LOG_WARN(TEXT("%s"), *elem.Time.ToString());
-	// 		}
-	// 	});
-	// }, 2.f, false);
+	// TODO : AfterLogin 로직을 어디서 처리할까..
+	FTimerHandle handle;
+	GetWorld()->GetTimerManager().SetTimer(handle, [this]()
+	{
+		ChatHandler->AfterLogin();
+	}, 5.f, false);
 	////////////////////////
 }
 

@@ -99,14 +99,14 @@ public:
 	void RequestChatsById(const ERequestChatType InChatType, const uint32 InId, const FCallbackRefArray<FChatData>& InFunc) const;
 
 	// 나의 채팅방 목록을 모두 불러옵니다. (로그인 된 상태에서만 사용 가능)
-	void RequestMyChatRoom(const FCallbackRefArray<FChatRoomData>& InFunc) const;
+	void RequestMyChatRoom(const FCallbackRefArray<FChatRoomData>& InFunc);
 
 	// 새로운 채팅방을 생성합니다. 경매의 경우는 끝나면 자동으로 채팅방이 생성되니 일반 판매일 때만 사용하면 됩니다.
 	// (특정 유저가 어떤 일반 판매 물품을 사고싶으면 이 api를 호출해서 채팅을 시작하면 됨)
 	void RequestNewChatRoom(const uint32 InItemId, const FString& InSellerName, const FCallbackRefOneParam<FChatRoomData>& InFunc);
 private:
 	// 웹소켓에 1대1 채팅을 Subscribe하여 특정 채팅방에 오는 채팅을 모두 받는다.
-	FStompSubscriptionId _Subscribe1On1Chat(const uint32 InChatRoomId) const;
+	void _TrySubscribe1On1Chat(const uint32 InChatRoomId);
 	
 	// Json 형태의 ItemReply JsonObject를 FItemReply로 변환한다.
 	void _JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FChatData& OutItemReply) const;
@@ -121,6 +121,8 @@ private:
 	using FReplyDelegateInfo = TPair<FStompSubscriptionId, TSharedPtr<FOnItemReplyDelegate>>;
 	TMap<uint32, FReplyDelegateInfo> ItemReplyDelegates;
 
+	// 현재 구독해서 메세지를 받고있는 채팅방들을 관리합니다.
+	TMap<uint32, FStompSubscriptionId> Sub1On1ChatRooms;
 public:
 	// 1대1 채팅이 오면, (어느 채팅방에서 왔든) 이곳으로 전달 받으면 됩니다.
 	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnChatDelegate, const uint32 /* InChatroomId */, const FChatData& /* InChatData */);

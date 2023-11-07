@@ -24,7 +24,6 @@ void UItemManager::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 void UItemManager::BeginPlay()
 {
 	Super::BeginPlay();
-
 	// 서버에서 레벨에 있는 Item Actor들을 관리합니다.
 	if(IsRunningDedicatedServer())
 	{
@@ -43,6 +42,8 @@ void UItemManager::BeginPlay()
 		{
 			return a1->GetLevelPosition() < a2->GetLevelPosition();
 		});
+
+		// TODO: 추후 login 기능 나오면 이후 로직으로 따로 빼면 좋을듯
 
 		// 서버에서 WebSocket에 구독할 것들을 구독한다.
 		if(const FStompHelper* stompHandler = MAGetStompHelper(GetOwner()->GetGameInstance()))
