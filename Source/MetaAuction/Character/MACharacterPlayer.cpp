@@ -117,6 +117,7 @@ void AMACharacterPlayer::SetupNameplateWidget()
 		if (UMANameplateWidget* NameplateWidget = CreateWidget<UMANameplateWidget>(PC, NameplateWidgetClass))
 		{
 			NameplateWidgetComponent->SetWidget(NameplateWidget);
+			NameplateWidget->Update();
 		}
 	}
 }

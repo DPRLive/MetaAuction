@@ -95,8 +95,3 @@ void UMAItemImageEntryWidget::Unselect()
 		ItemImage->SetColorAndOpacity(NormalColor);
 	}
 }
-
-void UMAItemImageEntryWidget::ItemButtonClicked()
-{
-
-}

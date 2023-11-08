@@ -2,6 +2,8 @@
 
 
 #include "UI/MANameplateWidget.h"
+#include "Core/MAGameInstance.h"
+#include "Data/LoginData.h"
 #include "Components/TextBlock.h"
 
 UMANameplateWidget::UMANameplateWidget(const FObjectInitializer& ObjectInitializer)
@@ -11,13 +13,19 @@ UMANameplateWidget::UMANameplateWidget(const FObjectInitializer& ObjectInitializ
 
 void UMANameplateWidget::NativeConstruct()
 {
+	Super::NativeConstruct();
+
 	ensure(NameText);
 }
 
-void UMANameplateWidget::SetName(const FText& InName)
+void UMANameplateWidget::Update()
 {
 	if (IsValid(NameText))
 	{
-		NameText->SetText(InName);
+		UMAGameInstance* MAGameInstance = Cast<UMAGameInstance>(MAGetGameInstance());
+		if (IsValid(MAGameInstance) && MAGameInstance->GetLoginData().IsValid())
+		{
+			NameText->SetText(FText::FromString(MAGameInstance->GetLoginData()->GetUserName()));
+		}
 	}
 }

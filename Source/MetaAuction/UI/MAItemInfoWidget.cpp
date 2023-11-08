@@ -4,6 +4,7 @@
 #include "UI/MAItemInfoWidget.h"
 #include "UI/MAItemImageEntry.h"
 #include "UI/MAItemImageListWidget.h"
+#include "UI/MACommentWidget.h"
 #include "UI/MAItemAdditionalInfoWidget.h"
 
 #include <Components/TextBlock.h>
@@ -32,6 +33,7 @@ void UMAItemInfoWidget::NativeConstruct()
 	ensure(ItemImageNextButton);
 	ensure(WBP_ItemImageList);
 	ensure(DetailsButton);
+	ensure(WBP_Comment);
 
 	if (IsValid(ItemImagePrevButton))
 	{
@@ -85,6 +87,11 @@ void UMAItemInfoWidget::Update(const FItemData& InItemData)
 	if (IsValid(Entry))
 	{
 		ItemImage->SetBrushFromTextureDynamic(Entry->Data.Image);
+	}
+
+	if (IsValid(WBP_Comment))
+	{
+		WBP_Comment->Update(InItemData);
 	}
 
 	CachedItemData = InItemData;

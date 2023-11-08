@@ -24,7 +24,7 @@ protected:
 
 public:
 
-	void SetName(const FText& InName);
+	void Update();
 
 private:
 

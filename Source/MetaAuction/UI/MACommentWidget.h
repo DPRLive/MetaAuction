@@ -4,23 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "MAItemAdditionalInfoWidget.generated.h"
+#include "MACommentWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class METAAUCTION_API UMAItemAdditionalInfoWidget : public UUserWidget
+class METAAUCTION_API UMACommentWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
 public:
 
-	UMAItemAdditionalInfoWidget(const FObjectInitializer& ObjectInitializer);
+	UMACommentWidget(const FObjectInitializer& ObjectInitializer);
 
 protected:
 
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 public:
 
@@ -28,14 +29,24 @@ public:
 
 private:
 
-	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UTextBlock> TitleText;
+	void AddChatDataToChatLog(const FChatData& InChatData);
+
+	UFUNCTION()
+	void InputButtonClicked();
+
+private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UTextBlock> InformationText;
+	TObjectPtr<class UTextBlock> CommentText;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UTextBlock> SellerNameText;
+	TObjectPtr<class UEditableTextBox> InputText;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UButton> InputButton;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UMAChatLogListWidget> WBP_CommentList;
 
 	UPROPERTY()
 	FItemData CachedItemData;

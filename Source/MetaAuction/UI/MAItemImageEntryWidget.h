@@ -34,9 +34,6 @@ protected:
 
 private:
 
-	UFUNCTION()
-	void ItemButtonClicked();
-
 	void Hover();
 	void Unhover();
 	void Select();
