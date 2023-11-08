@@ -26,13 +26,25 @@ void UMAGameInstance::Init()
 	//if(IsRunningDedicatedServer()) // 테스트, 데디 서버면 자동 로그인
 	//{
 		LOG_WARN(TEXT("Is Running Dedicated Server! Auto Login!"));
-		RequestLogin(TEXT("test"), TEXT("test"));
+		RequestLogin(TEXT("Sungyun"), TEXT("Sungyun"));
 	//}
 	
 	if(!IsRunningDedicatedServer())
 	{
 		ItemFileHandler = MakeShareable(new FItemFileHandler());
 	}
+	
+	if(IsRunningDedicatedServer())
+		return;
+	
+	// // Chat Handler 테스트 //
+	// TODO : AfterLogin 로직을 어디서 처리할까..
+	FTimerHandle handle;
+	GetWorld()->GetTimerManager().SetTimer(handle, [this]()
+	{
+		ChatHandler->AfterLogin();
+	}, 5.f, false);
+	////////////////////////
 }
 
 /**

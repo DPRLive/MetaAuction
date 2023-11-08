@@ -73,6 +73,18 @@ public:
 	// 물품의 댓글을 가져오는 추가 Url, /{itemID}를 붙여서 사용
 	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
 	FString ItemReplyAddURL = TEXT("/item/chat");
+
+	// 채팅방의 채팅을 가져오는 추가 Url, /{chatRoomId}를 붙여서 사용
+	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
+	FString ChatroomChatAddURL = TEXT("/chat");
+	
+	// 나의 채팅방들을 가져오는 추가 Url
+	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
+	FString MyChatRoomAddURL = TEXT("/mychatroom");
+
+	// 새로운 채팅방을 만드는 추가 Url, /{itemID}를 붙여서 사용
+	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
+	FString CreateChatRoomAddURL = TEXT("/create/chatRoom");
 	
 	// STOMP WebSocket 기본 연결 URL
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
@@ -98,11 +110,17 @@ public:
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
 	FString WSSendChatAddURL = TEXT("/pub/chat");
 
-	// STOMP WebSocket 채팅&댓글 받기 추가 url
-	// 물품 댓글 받기의 경우 : /{itemid}를 붙여서 사용
-	// 1대1 채팅 받기의 경우 : /{itemId}-{sellerUsername}-{buyerUsername}를 붙여서 사용
+	// STOMP WebSocket 채팅 받기 추가 url /{chatroomid}를 붙여서 사용
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
-	FString WSReceiveChatAddURL = TEXT("/sub/chat");
+	FString WSReceiveChatAddURL = TEXT("/sub/privateChat");
+
+	// STOMP WebSocket 1대1 채팅 받기 추가 url /{chatroomid}를 붙여서 사용
+	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
+	FString WSReceiveReplyAddURL = TEXT("/sub/chat");
+
+	// STOMP WebSocket 새로운 채팅방이 생길 시 오는 알림을 구독, %s에 username을 넣어서 사용
+	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
+	FString WSReceiveNewChatAddURL = TEXT("/sub/%s/newChat");
 	
 	// 웹서버 시간을 UTC에 맞추기 위해 변화해야 하는 변화 값 설정
 	UPROPERTY( EditDefaultsOnly, Category = "Server" )

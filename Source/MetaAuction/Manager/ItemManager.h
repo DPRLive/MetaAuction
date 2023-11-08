@@ -34,14 +34,14 @@ public:
 	// 데디 서버에서만 실행 가능합니다.
 	void Server_RegisterNewItem(uint32 InItemId) const;
 	
-	// 웹서버에 등록된 현재 월드에 배치되어 판매되고 있는 아이템들의 ID를 가져와 배치한다.
-	// 데디 서버에서만 실행 가능합니다.
-	void Server_RegisterAllWorldItemID() const;
-
 	// 아이템 정보 변동을 처리한다.
 	void Server_ChangeItemData(const uint32& InItemId, const FString& InWorld, const FString& InChangeList) const;
 	
 private:
+	// 웹서버에 등록된 현재 월드에 배치되어 판매되고 있는 아이템들의 ID를 가져와 배치한다.
+	// 데디 서버에서만 실행 가능합니다.
+	void _Server_RegisterAllWorldItemID() const;
+	
 	// Item Data의 Location을 기준으로, Item Actor에 상품ID를 등록한다.
 	// 데디 서버에서만 실행 가능합니다.
 	void _Server_RegisterItemByLoc(uint32 InItemId, uint8 InItemLoc) const;

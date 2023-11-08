@@ -51,3 +51,6 @@ TObjectPtr<UChatHandler> MAGetChatHandler(UGameInstance* InGameInstance);
 
 // StompHelper 반환
 FStompHelper* MAGetStompHelper(UGameInstance* InGameInstance);
+
+// 현재 로그인된 UserName반환
+FString MAGetMyUserName(UGameInstance* InGameInstance);

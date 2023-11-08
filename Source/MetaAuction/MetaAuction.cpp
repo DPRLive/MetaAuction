@@ -3,9 +3,11 @@
 #include "MetaAuction.h"
 #include "Core/MAGameInstance.h"
 #include "Core/MAGameState.h"
+#include "Data/LoginData.h"
 
 #include <Kismet/GameplayStatics.h>
 #include <Modules/ModuleManager.h>
+
 
 IMPLEMENT_PRIMARY_GAME_MODULE(FDefaultGameModuleImpl, MetaAuction, "MetaAuction");
 
@@ -119,4 +121,19 @@ FStompHelper* MAGetStompHelper(UGameInstance* InGameInstance)
 		}
 	}
 	return nullptr;
+}
+
+/**
+ * 현재 로그인된 UserName반환
+ */
+FString MAGetMyUserName(UGameInstance* InGameInstance)
+{
+	if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(InGameInstance))
+	{
+		if(gameInstance->GetLoginData().IsValid())
+		{
+			return gameInstance->GetLoginData()->GetUserName();
+		}
+	}
+	return TEXT("");
 }
