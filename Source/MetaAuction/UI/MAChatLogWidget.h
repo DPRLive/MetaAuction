@@ -44,15 +44,20 @@ private:
 	UFUNCTION()
 	void ReceivedChatLog(const FMAChatLogEntryData& InData);
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BineWidget, AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UMAChatLogListWidget> WBP_ChatLogList;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BineWidget, AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UScrollBox> InputScrollBox;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BineWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UEditableText> InputText;
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UEditableTextBox> InputText;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UImage> InputShade;
 	
+	FLinearColor EnableColor;
+	FLinearColor DisableColor;
 
 	uint8 bIsFocus : 1;
 

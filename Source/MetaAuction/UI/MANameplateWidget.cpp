@@ -11,7 +11,6 @@ UMANameplateWidget::UMANameplateWidget(const FObjectInitializer& ObjectInitializ
 
 void UMANameplateWidget::NativeConstruct()
 {
-	NameText = Cast<UTextBlock>(GetWidgetFromName(TEXT("NameText")));
 	ensure(NameText);
 }
 

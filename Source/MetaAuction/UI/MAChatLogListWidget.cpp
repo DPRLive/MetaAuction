@@ -15,6 +15,7 @@ void UMAChatLogListWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	ensure(ChatLogListView);
 }
 
 void UMAChatLogListWidget::AddChatLog(const FMAChatLogEntryData& InData)

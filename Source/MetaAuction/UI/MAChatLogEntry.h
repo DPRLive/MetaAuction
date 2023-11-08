@@ -23,6 +23,9 @@ public:
 
 	UPROPERTY()
 	FText ChatLog;
+
+	UPROPERTY()
+	FDateTime ChatTime;
 };
 
 /** UMAChatLogEntry

@@ -15,6 +15,5 @@ void UMAHUDWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	CanvasPanel = Cast<UCanvasPanel>(GetWidgetFromName(TEXT("BaseCanvasPanel")));
 	ensure(CanvasPanel);
 }

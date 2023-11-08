@@ -1,22 +1,22 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "MAItemListWidget.generated.h"
+#include "MAItemTileWidget.generated.h"
 
-/** UMAItemListWidget
- * 아이템 정보의 리스트를 표시하는 위젯입니다.
+/**
+ * 
  */
 UCLASS()
-class METAAUCTION_API UMAItemListWidget : public UUserWidget
+class METAAUCTION_API UMAItemTileWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
 public:
 
-	UMAItemListWidget(const FObjectInitializer& ObjectInitializer);
+	UMAItemTileWidget(const FObjectInitializer& ObjectInitializer);
 
 protected:
 
@@ -34,5 +34,5 @@ private:
 private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UListView> ItemListView;
+	TObjectPtr<class UTileView> ItemTileView;
 };

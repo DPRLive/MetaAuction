@@ -1,9 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "UI/MAItemEntryWidget.h"
 #include "UI/MAItemEntry.h"
-#include "UI/MAWidgetUtils.h"
+#include "UI/MAItemInfoWidget.h"
 #include "Handler/ItemFileHandler.h"
 
 #include <Components/Image.h>
@@ -20,6 +20,20 @@ void UMAItemEntryWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	ensure(TitleText);
+	ensure(BuyerNameText);
+	ensure(SellerNameText);
+	ensure(StartPriceText);
+	ensure(CurrentPriceText);
+	ensure(EndTimeText);
+	ensure(ItemImage);
+	ensure(DetailsButton);
+	ensure(ItemInfoWidgetClass);
+
+	if (IsValid(DetailsButton))
+	{
+		DetailsButton->OnClicked.AddDynamic(this, &ThisClass::DetailsButtonClicked);
+	}
 }
 
 void UMAItemEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
@@ -78,8 +92,8 @@ void UMAItemEntryWidget::UpdateImage(const FItemData& InItemData)
 	// 	}
 	// }
 
-	TWeakPtr<FItemFileHandler> ItemFileHandler = UMAWidgetUtils::GetItemFileHandler(GetWorld());
-	if (ItemFileHandler.IsValid())
+	FItemFileHandler* ItemFileHandler = MAGetItemFileHandler(MAGetGameInstance(GetWorld()));
+	if (nullptr != ItemFileHandler)
 	{
 		LOG_SCREEN(FColor::Green, TEXT("Request %s"), *FString(__FUNCTION__));
 		TWeakObjectPtr<ThisClass> ThisPtr(this);
@@ -93,7 +107,32 @@ void UMAItemEntryWidget::UpdateImage(const FItemData& InItemData)
 						LOG_SCREEN(FColor::Green, TEXT("Successed %s"), *FString(__FUNCTION__));
 					}
 				};
-			ItemFileHandler.Pin()->RequestImg(Func, InItemData.ItemID, 0);
+
+
+			// 0번 인덱스 이미지는 없으므로 1번 인덱스 이미지를 가져옵니다.
+			ItemFileHandler->RequestImg(Func, InItemData.ItemID, 1);
 		}
+	}
+}
+
+void UMAItemEntryWidget::DetailsButtonClicked()
+{
+	APlayerController* PC = GetOwningPlayer();
+	if (!IsValid(PC))
+	{
+		return;
+	}
+
+	UMAItemEntry* ItemEntry = Cast<UMAItemEntry>(GetListItem());
+	if (IsValid(ItemEntry))
+	{
+		UpdateAll(ItemEntry->ItemData);
+	}
+
+	UMAItemInfoWidget* ItemInfoWidget = CreateWidget<UMAItemInfoWidget>(PC, ItemInfoWidgetClass);
+	if (IsValid(ItemInfoWidget))
+	{
+		ItemInfoWidget->AddToViewport();
+		ItemInfoWidget->Update(ItemEntry->ItemData);
 	}
 }

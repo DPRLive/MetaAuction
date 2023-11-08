@@ -1,27 +1,27 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/MAItemListWidget.h"
+#include "UI/MAItemTileWidget.h"
 #include "UI/MAItemEntry.h"
 
-#include <Components/ListView.h>
+#include <Components/TileView.h>
 #include <Kismet/GameplayStatics.h>
 
-UMAItemListWidget::UMAItemListWidget(const FObjectInitializer& ObjectInitializer)
+UMAItemTileWidget::UMAItemTileWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 }
 
-void UMAItemListWidget::NativeConstruct()
+void UMAItemTileWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(ItemListView);
+	ensure(ItemTileView);
 }
 
-void UMAItemListWidget::UpdateSearchItems(const FItemSearchOption& InItemOption)
+void UMAItemTileWidget::UpdateSearchItems(const FItemSearchOption& InItemOption)
 {
-	ItemListView->ClearListItems();
+	ItemTileView->ClearListItems();
 
 	UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld()));
 	if (!IsValid(ItemDataHandler))
@@ -45,9 +45,9 @@ void UMAItemListWidget::UpdateSearchItems(const FItemSearchOption& InItemOption)
 	}
 }
 
-void UMAItemListWidget::UpdateMyItems(EMyItemReqType InType)
+void UMAItemTileWidget::UpdateMyItems(EMyItemReqType InType)
 {
-	ItemListView->ClearListItems();
+	ItemTileView->ClearListItems();
 
 	UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld()));
 	if (!IsValid(ItemDataHandler))
@@ -71,14 +71,14 @@ void UMAItemListWidget::UpdateMyItems(EMyItemReqType InType)
 	}
 }
 
-void UMAItemListWidget::UpdateItems(const TArray<FItemData>& ItemData)
+void UMAItemTileWidget::UpdateItems(const TArray<FItemData>& ItemData)
 {
-	ItemListView->ClearListItems();
+	ItemTileView->ClearListItems();
 
 	for (const FItemData& Item : ItemData)
 	{
 		UMAItemEntry* ItemEntry = NewObject<UMAItemEntry>();
 		ItemEntry->ItemData = Item;
-		ItemListView->AddItem(ItemEntry);
+		ItemTileView->AddItem(ItemEntry);
 	}
 }
