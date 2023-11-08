@@ -76,7 +76,7 @@ private:
 	TObjectPtr<class UMAItemFilterWidget> WBP_ItemFilter;
 	
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UMAItemListWidget> WBP_ItemList;
+	TObjectPtr<class UMAItemTileWidget> WBP_ItemView;
 
 	TArray<TObjectPtr<class UButton>> AllMenuButtons;
 

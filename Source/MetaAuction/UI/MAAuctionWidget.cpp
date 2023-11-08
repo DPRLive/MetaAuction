@@ -2,7 +2,7 @@
 
 
 #include "UI/MAAuctionWidget.h"
-#include "UI/MAItemListWidget.h"
+#include "UI/MAItemTileWidget.h"
 #include "UI/MAItemFilterWidget.h"
 #include "Common/MALog.h"
 
@@ -29,7 +29,7 @@ void UMAAuctionWidget::NativeConstruct()
 	ensure(RegisterItemButton);
 	ensure(TransactionHistoryButton);
 	ensure(WBP_ItemFilter);
-	ensure(WBP_ItemList);
+	ensure(WBP_ItemView);
 
 	if (IsValid(MenuBox))
 	{
@@ -91,10 +91,10 @@ void UMAAuctionWidget::ToggleWidget()
 
 	if (GetVisibility() == ESlateVisibility::Visible)
 	{
-		// À§Á¬ ¼û±â±â
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 		SetVisibility(ESlateVisibility::Hidden);
 
-		// ÀÔ·Â ¸ðµå º¯°æ Game
+		// ï¿½Ô·ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Game
 		FInputModeGameOnly InputMode;
 		PlayerController->SetInputMode(InputMode);
 
@@ -103,17 +103,17 @@ void UMAAuctionWidget::ToggleWidget()
 			PlayerController->FlushPressedKeys();
 		}
 
-		// ¸¶¿ì½º Ä¿¼­ ¼û±â±â
+		// ï¿½ï¿½ï¿½ì½º Ä¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 		PlayerController->SetShowMouseCursor(false);
 
 		NotifyHiddenWidget();
 	}
 	else
 	{
-		// À§Á¬ º¸ÀÌ±â
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 		SetVisibility(ESlateVisibility::Visible);
 
-		// ÀÔ·Â ¸ðµå º¯°æ UI
+		// ï¿½Ô·ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ UI
 		FInputModeUIOnly InputMode;
 		InputMode.SetLockMouseToViewportBehavior(InMouseLockMode);
 
@@ -128,10 +128,8 @@ void UMAAuctionWidget::ToggleWidget()
 			PlayerController->FlushPressedKeys();
 		}
 
-		// ¸¶¿ì½º Ä¿¼­ º¸ÀÌ±â
 		PlayerController->SetShowMouseCursor(true);
 
-		// Æ÷Ä¿½º ¼³Á¤
 		SetFocus();
 
 		NotifyVisibleWidget();
@@ -142,7 +140,7 @@ void UMAAuctionWidget::ItemSearchButtonClicked()
 {
 	if (MenuButtonClicked(ItemSearchButton))
 	{
-		WBP_ItemList->UpdateSearchItems(WBP_ItemFilter->GetCurrentOption());
+		WBP_ItemView->UpdateSearchItems(WBP_ItemFilter->GetCurrentOption());
 		WBP_ItemFilter->SetVisibility(ESlateVisibility::Visible);
 	}
 }
@@ -151,7 +149,7 @@ void UMAAuctionWidget::ItemBidOnButtonClicked()
 {
 	if (MenuButtonClicked(ItemBidOnButton))
 	{
-		WBP_ItemList->UpdateMyItems(EMyItemReqType::Buy);
+		WBP_ItemView->UpdateMyItems(EMyItemReqType::Buy);
 		WBP_ItemFilter->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
@@ -160,7 +158,7 @@ void UMAAuctionWidget::ItemRegisteredButtonClicked()
 {
 	if (MenuButtonClicked(ItemRegisteredButton))
 	{
-		WBP_ItemList->UpdateMyItems(EMyItemReqType::Sell);
+		WBP_ItemView->UpdateMyItems(EMyItemReqType::Sell);
 		WBP_ItemFilter->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
@@ -205,7 +203,7 @@ bool UMAAuctionWidget::MenuButtonClicked(UButton* ClickedButton)
 
 void UMAAuctionWidget::Search(const FItemSearchOption& InOption)
 {
-	WBP_ItemList->UpdateSearchItems(InOption);
+	WBP_ItemView->UpdateSearchItems(InOption);
 }
 
 void UMAAuctionWidget::NotifyVisibleWidget()
