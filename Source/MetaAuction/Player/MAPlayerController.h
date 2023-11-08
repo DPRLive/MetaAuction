@@ -31,17 +31,14 @@ public:
 	FORCEINLINE class UMAAuctionWidget* GetAuctionWidget() const { return AuctionWidget; }
 	void CreateAuctionWidget();
 
-	// RPC ó���� �� ChatLog�� ������ �� ����մϴ�.
 	UFUNCTION(BlueprintCallable, Category = "UI|ChatLog")
 	void SendChatLog(const FMAChatLogEntryData& Data);
 
 private:
 
-	// Client Widget���κ��� Server�� ChatLog�� ���� �� ���˴ϴ�.
 	UFUNCTION(Server, Reliable, Category = "UI|ChatLog")
 	void ServerSendChatLog(const FMAChatLogEntryData& InData);
 
-	// �������� ���� ChatLog�� Client���� ������ �� ����մϴ�.
 	UFUNCTION(Client, Reliable, Category = "UI|ChatLog")
 	void ClientReceiveChatLog(class APawn* SourcePawn, const FMAChatLogEntryData& InData);
 

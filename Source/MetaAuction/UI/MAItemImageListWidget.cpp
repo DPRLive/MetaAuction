@@ -67,18 +67,18 @@ UListView* UMAItemImageListWidget::GetListView() const
 
 void UMAItemImageListWidget::SelectPrevItem()
 {
-	if (SelectedItemIndex < ItemImageListView->GetNumItems())
+	if (SelectedItemIndex > 0)
 	{
-		SelectedItemIndex++;
+		SelectedItemIndex--;
 		ItemImageListView->SetSelectedIndex(SelectedItemIndex);
 	}
 }
 
 void UMAItemImageListWidget::SelectNextItem()
 {
-	if (SelectedItemIndex > 0)
+	if (SelectedItemIndex < ItemImageListView->GetNumItems() - 1)
 	{
-		SelectedItemIndex--;
+		SelectedItemIndex++;
 		ItemImageListView->SetSelectedIndex(SelectedItemIndex);
 	}
 }

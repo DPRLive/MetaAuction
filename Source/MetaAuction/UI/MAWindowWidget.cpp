@@ -2,6 +2,8 @@
 
 
 #include "UI/MAWindowWidget.h"
+#include "UI/MAAuctionWidget.h"
+#include "Player/MAPlayerController.h"
 
 #include <Components/TextBlock.h>
 #include <Components/Button.h>
@@ -42,6 +44,16 @@ void UMAWindowWidget::NativeConstruct()
 
 void UMAWindowWidget::CloseButtonClicked()
 {
+	AMAPlayerController* MAPC = Cast<AMAPlayerController>(GetOwningPlayer());
+	if (IsValid(MAPC))
+	{
+		UMAAuctionWidget* MAAuctionWidget = MAPC->GetAuctionWidget();
+		if (IsValid(MAAuctionWidget))
+		{
+			MAAuctionWidget->SetFocus();
+		}
+	}
+
 	UWidget* ParentWidget = Cast<UWidget>(GetParent()->GetOuter()->GetOuter());
 	if (IsValid(ParentWidget))
 	{

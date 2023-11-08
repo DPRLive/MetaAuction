@@ -65,13 +65,13 @@ void UMAItemAdditionalInfoWidget::Update(const FItemData& InItemData)
 	}
 
 	// 상품 댓글 모두 요청하기
-	auto RequestFunc = [ThisPtr](const TArray<FItemReply>& Data)
+	auto RequestFunc = [ThisPtr](const TArray<FChatData>& Data)
 		{
 			if (ThisPtr.IsValid())
 			{
-				for (const FItemReply& ItemReply : Data)
+				for (const FChatData& ItemReply : Data)
 				{
-					ThisPtr->AddItemReplyToChatLog(ItemReply);
+					ThisPtr->AddChatDataToChatLog(ItemReply);
 				}
 
 				if (IsValid(ThisPtr->CommentText))
@@ -81,7 +81,7 @@ void UMAItemAdditionalInfoWidget::Update(const FItemData& InItemData)
 				}
 			}
 		};
-	ChatHandler->RequestItemReply(InItemData.ItemID, RequestFunc);
+	ChatHandler->RequestChatsById(ERequestChatType::ItemReply, InItemData.ItemID, RequestFunc);
 	
 	// 상품 댓글이 달릴 때 댓글 이벤트 언바인딩
 	if (ItemReplyHandle.IsValid())
@@ -92,11 +92,11 @@ void UMAItemAdditionalInfoWidget::Update(const FItemData& InItemData)
 	// 상품 댓글이 달릴 때 댓글 이벤트 바인딩
 	if (ItemReplyHandle.IsValid())
 	{
-		auto SubscribeFunc = [ThisPtr](const FItemReply& ItemReply)
+		auto SubscribeFunc = [ThisPtr](const FChatData& ItemReply)
 			{
 				if (ThisPtr.IsValid() && IsValid(ThisPtr->WBP_CommentList))
 				{
-					ThisPtr->AddItemReplyToChatLog(ItemReply);
+					ThisPtr->AddChatDataToChatLog(ItemReply);
 
 					if (IsValid(ThisPtr->CommentText))
 					{
@@ -108,14 +108,14 @@ void UMAItemAdditionalInfoWidget::Update(const FItemData& InItemData)
 	}
 }
 
-void UMAItemAdditionalInfoWidget::AddItemReplyToChatLog(const FItemReply& InItemReply)
+void UMAItemAdditionalInfoWidget::AddChatDataToChatLog(const FChatData& InChatData)
 {
 	if (IsValid(WBP_CommentList))
 	{
 		FMAChatLogEntryData EntryData;
-		EntryData.ChatName = FText::FromString(InItemReply.Sender);
-		EntryData.ChatLog = FText::FromString(InItemReply.Content);
-		EntryData.ChatTime = InItemReply.Time;
+		EntryData.ChatName = FText::FromString(InChatData.Sender);
+		EntryData.ChatLog = FText::FromString(InChatData.Content);
+		EntryData.ChatTime = InChatData.Time;
 		WBP_CommentList->AddChatLog(EntryData);
 	}
 }

@@ -25,11 +25,11 @@ protected:
 
 public:
 
-	void Update(const FItemData& InItemData);
+	void Update(const FItemData& InChatData);
 
 private:
 
-	void AddItemReplyToChatLog(const FItemReply& InItemReply);
+	void AddChatDataToChatLog(const FChatData& InChatData);
 
 	UFUNCTION()
 	void InputButtonClicked();

@@ -4,7 +4,9 @@
 #include "UI/MAChatLogWidget.h"
 #include "UI/MAChatLogListWidget.h"
 #include "Player/MAPlayerController.h"
+#include "Core/MAGameInstance.h"
 #include "Common/MALog.h"
+#include "Data/LoginData.h"
 
 #include <Components/ScrollBox.h>
 #include <Components/TextBlock.h>
@@ -57,7 +59,7 @@ void UMAChatLogWidget::EnableInputText()
 	UWidget* InWidgetToFocus = this;
 	bool bFlushInput = false;
 
-	// ÀÔ·Â ¸ðµå º¯°æ UI
+	// ï¿½Ô·ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ UI
 	APlayerController* PlayerController = GetOwningPlayer();
 	if (IsValid(PlayerController))
 	{
@@ -75,14 +77,14 @@ void UMAChatLogWidget::EnableInputText()
 			PlayerController->FlushPressedKeys();
 		}
 
-		// ¸¶¿ì½º Ä¿¼­ º¸ÀÌ±â
+		// ï¿½ï¿½ï¿½ì½º Ä¿ï¿½ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½
 		PlayerController->SetShowMouseCursor(true);
 	}
 
-	// Æ÷Ä¿½º ¼³Á¤
+	// ï¿½ï¿½Ä¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	InputText->SetFocus();
 
-	// »ö ¼³Á¤
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	InputShade->SetColorAndOpacity(EnableColor);
 }
 
@@ -95,7 +97,6 @@ void UMAChatLogWidget::DisableInputText()
 	APlayerController* PlayerController = GetOwningPlayer();
 	if (IsValid(PlayerController))
 	{
-		// ÀÔ·Â ¸ðµå º¯°æ Game
 		FInputModeGameOnly InputMode;
 		PlayerController->SetInputMode(InputMode);
 
@@ -104,11 +105,9 @@ void UMAChatLogWidget::DisableInputText()
 			PlayerController->FlushPressedKeys();
 		}
 
-		// ¸¶¿ì½º Ä¿¼­ ¼û±â±â
 		PlayerController->SetShowMouseCursor(false);
 	}
 
-	// »ö ¼³Á¤
 	InputShade->SetColorAndOpacity(DisableColor);
 }
 
@@ -116,16 +115,18 @@ void UMAChatLogWidget::SendInputText()
 {
 	if (!InputText->GetText().IsEmpty())
 	{
-		// TODO : ÇÃ·¹ÀÌ¾î ÀÌ¸§ ºÙ¿©¼­ º¸³»±â
 		FMAChatLogEntryData ChatLog;
-		ChatLog.ChatName = FText::FromString(GetOwningPlayerPawn()->GetName());
+
+		UMAGameInstance* MAGameInstance = Cast<UMAGameInstance>(MAGetGameInstance());
+		if (IsValid(MAGameInstance))
+		{
+			ChatLog.ChatName = FText::FromString(MAGameInstance->GetLoginData()->GetUserName());
+		}
 		ChatLog.ChatLog = InputText->GetText();
 		InputText->SetText(FText());
 
-		// ÀÚ±â ÀÚ½Å Å¬¶óÀÌ¾ðÆ®¿¡´Â ¹Ù·Î È£Ãâ
 		ReceivedChatLog(ChatLog);
 
-		// ÇÃ·¹ÀÌ¾î ÄÁÆ®·Ñ·¯¿¡¼­ ServerRPC ¿äÃ»
 		AMAPlayerController* MAPC = Cast<AMAPlayerController>(GetOwningPlayer());
 		if (IsValid(MAPC))
 		{

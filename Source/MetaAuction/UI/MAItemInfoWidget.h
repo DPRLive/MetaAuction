@@ -10,7 +10,6 @@
 struct FItemData;
 
 /**UMAItemInfoWidget
- * 목록에서 보여주는 간단한 물품 정보를 표시하는 위젯입니다.
  */
 UCLASS()
 class METAAUCTION_API UMAItemInfoWidget : public UUserWidget
