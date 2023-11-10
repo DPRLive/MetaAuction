@@ -1,6 +1,7 @@
 
 #include "ItemManager.h"
 #include "../Actor/ItemActor.h"
+#include "Data/ModelTransData.h"
 
 #include <Kismet/GameplayStatics.h>
 #include <Net/UnrealNetwork.h>
@@ -43,6 +44,15 @@ void UItemManager::BeginPlay()
 			return a1->GetLevelPosition() < a2->GetLevelPosition();
 		});
 
+		// 서버의 ItemManager에서는 Model들의 Trans를 관리한다.
+		Server_ModelTransData = NewObject<UModelTransData>(this);
+		// 잉 테스트얌
+		// FTransform trans;
+		// trans.SetRotation(FRotator(0.f, 180.f, 0.f).Quaternion());
+		// Server_ModelTransData->TryEmplaceTrans(6, 2, trans);
+		//////////////
+		Server_ModelTransData->LoadData();
+		
 		// TODO: 추후 login 기능 나오면 이후 로직으로 따로 빼면 좋을듯
 
 		// 서버에서 WebSocket에 구독할 것들을 구독한다.
@@ -86,6 +96,12 @@ void UItemManager::Server_UnregisterItem(uint32 InItemId) const
 		if(itemActor.IsValid() && itemActor->GetItemID() == InItemId)
 		{
 			itemActor->Server_RemoveItem();
+
+			// 트랜스폼 데이터도 지운다
+			if(IsValid((Server_ModelTransData)))
+			{
+				Server_ModelTransData->RemoveTrans(InItemId);
+			}
 			break;
 		}
 	}
@@ -148,6 +164,15 @@ void UItemManager::Server_ChangeItemData(const uint32& InItemId, const FString& 
 }
 
 /**
+ * 서버 RPC로 Item Actor에 배치된 물품 모델링의 상대적 Transform을 변경합니다.
+ * @param InReleativeTrans : 변경할 모델의 상대적 Transform
+ */
+void UItemManager::ServerRPC_SetModelTransform_Implementation(const FTransform& InReleativeTrans)
+{
+	
+}
+
+/**
  * 웹서버에 등록된 현재 월드에 배치되어 판매되고 있는 아이템들의 ID를 가져와 배치한다.
  * 데디 서버에서만 실행 가능합니다.
  */
@@ -197,6 +222,21 @@ void UItemManager::_Server_RegisterItemByLoc(uint32 InItemId, uint8 InItemLoc) c
 	if(ItemActors[registerIdx].IsValid())
 	{
 		ItemActors[registerIdx]->SetItemID(InItemId);
+	}
+
+	// 그릴 모델의 상대적 trans도 있다면 같이 설정해준다.
+	if(IsValid(Server_ModelTransData))
+	{
+		if(auto* modelTrans = Server_ModelTransData->GetItemModelTrans().Find(InItemLoc))
+		{
+			if(modelTrans->Key == InItemId) // item id와 같으면 설정해줌
+			{
+				ItemActors[registerIdx]->SetModelRelativeTrans(modelTrans->Value);
+				return;
+			}
+			// 아니면 들고 있을 필요가 없으니 지워버린다
+			Server_ModelTransData->RemoveTrans(InItemLoc);
+		}
 	}
 }
 

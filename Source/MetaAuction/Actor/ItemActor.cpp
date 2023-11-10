@@ -16,7 +16,8 @@ AItemActor::AItemActor()
 	bReplicates = true;
 	LevelPosition = 0;
 	ItemID = 0;
-
+	ModelRelativeTrans = FTransform();
+	
 	Client_Model = nullptr;
 }
 
@@ -24,6 +25,7 @@ void AItemActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AItemActor, ItemID);
+	DOREPLIFETIME(AItemActor, ModelRelativeTrans);
 }
 
 /**
@@ -93,7 +95,7 @@ void AItemActor::Client_RedrawModel()
  * 물품 배치 해주는 함수, ItemID가 Replicate 되면 호출
  * 서버에서는 OnRep_ 함수가 호출되지 않음
  */
-void AItemActor::OnRep_PlaceItem()
+void AItemActor::OnRep_ItemID()
 {
 	if (ItemID == 0)
 	{
@@ -104,7 +106,8 @@ void AItemActor::OnRep_PlaceItem()
 			Client_Model->Destroy();
 			Client_Model = nullptr;
 		}
-
+		
+		ModelRelativeTrans = FTransform();
 		return;
 	}
 
@@ -120,6 +123,20 @@ void AItemActor::OnRep_PlaceItem()
 			}
 		}, ItemID);
 	}
+}
+
+/**
+ * 배치된 모델의 상대 Transform이 Replicate 되면 호출
+ */
+void AItemActor::OnRep_ModelRelativeTrans()
+{
+	if(!Client_Model.IsValid())
+		return;
+
+	// 트랜스폼을 변경한다.
+	Client_Model->SetActorLocation(GetActorLocation() + ModelRelativeTrans.GetLocation());
+	Client_Model->SetActorRotation(GetActorRotation() + ModelRelativeTrans.GetRotation().Rotator());
+	Client_Model->SetActorScale3D(ModelRelativeTrans.GetScale3D());
 }
 
 /**
@@ -152,4 +169,9 @@ void AItemActor::_Client_DrawModel(UglTFRuntimeAsset* InAsset)
 	}
 	Client_Model->Asset = InAsset;
 	Client_Model->FinishSpawning(GetActorTransform());
+
+	// 트랜스폼 변경
+	Client_Model->SetActorLocation(GetActorLocation() + ModelRelativeTrans.GetLocation());
+	Client_Model->SetActorRotation(GetActorRotation() + ModelRelativeTrans.GetRotation().Rotator());
+	Client_Model->SetActorScale3D(ModelRelativeTrans.GetScale3D());
 }
