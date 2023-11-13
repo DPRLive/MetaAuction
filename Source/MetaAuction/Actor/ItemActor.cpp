@@ -111,7 +111,7 @@ void AItemActor::OnRep_ItemID()
 		return;
 	}
 
-	if (FItemFileHandler* fileHandler = MAGetItemFileHandler(GetGameInstance()))
+	if (const FItemFileHandler* fileHandler = MAGetItemFileHandler(GetGameInstance()))
 	{
 		// 파일 요청.
 		TWeakObjectPtr<AItemActor> thisPtr = this;

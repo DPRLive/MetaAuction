@@ -279,6 +279,31 @@ void UItemDataHandler::RequestMyItem(const FCallbackRefArray<FItemData>& InFunc,
 }
 
 /**
+ *  물품의 판매자가 맞는지 JwtToken을 통해 검증하는 함수입니다.
+ *  @param InItemId : 검증할 아이템 id
+ *  @param InJwtToken : 검증할 유저의 토큰
+ *  @param InFunc : 검증 된 후 실행할 함수
+ */
+void UItemDataHandler::Server_ValidateItem(const uint32 InItemId, const FString& InJwtToken, const FCallbackOneParam<bool>& InFunc) const
+{
+	CHECK_DEDI_FUNC;
+
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
+	{
+		httpHelper->Request(DA_NETWORK(ValidateItemAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
+			[InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+							 {
+								 if (InFunc && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+								 {
+									 // true인지 확인
+									 bool isMine = InResponse->GetContentAsString().Contains(TEXT("true"));
+									 InFunc(isMine);
+								 }
+							 }, TEXT(""), InJwtToken);
+	}
+}
+
+/**
  *  Stomp 메세지로 온 아이템 가격 변동 알림을 받는다.
  */
 void UItemDataHandler::_Server_OnChangePrice(const IStompMessage& InMessage) const

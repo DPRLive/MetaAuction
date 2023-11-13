@@ -159,7 +159,9 @@ public:
 	// (로그인 된 상태여야함)
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
 	void RequestMyItem(const FCallbackRefArray<FItemData>& InFunc, EMyItemReqType InMyItemReqType) const;
-	
+
+	// 물품의 판매자가 맞는지 JwtToken을 통해 검증하는 함수입니다.
+	void Server_ValidateItem(const uint32 InItemId, const FString& InJwtToken, const FCallbackOneParam<const bool>& InFunc) const;
 private:
 	// Stomp 메세지로 온 아이템 가격 변동 알림을 받는다.
 	void _Server_OnChangePrice(const IStompMessage& InMessage) const;

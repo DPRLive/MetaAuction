@@ -7,6 +7,9 @@
 #include <Net/UnrealNetwork.h>
 #include <IStompMessage.h>
 
+#include "Core/MAGameInstance.h"
+#include "Data/LoginData.h"
+
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ItemManager)
 
 UItemManager::UItemManager()
@@ -46,11 +49,6 @@ void UItemManager::BeginPlay()
 
 		// 서버의 ItemManager에서는 Model들의 Trans를 관리한다.
 		Server_ModelTransData = NewObject<UModelTransData>(this);
-		// 잉 테스트얌
-		// FTransform trans;
-		// trans.SetRotation(FRotator(0.f, 180.f, 0.f).Quaternion());
-		// Server_ModelTransData->TryEmplaceTrans(6, 2, trans);
-		//////////////
 		Server_ModelTransData->LoadData();
 		
 		// TODO: 추후 login 기능 나오면 이후 로직으로 따로 빼면 좋을듯
@@ -164,12 +162,44 @@ void UItemManager::Server_ChangeItemData(const uint32& InItemId, const FString& 
 }
 
 /**
- * 서버 RPC로 Item Actor에 배치된 물품 모델링의 상대적 Transform을 변경합니다.
+ * 배치된 물품 모델링의 상대적 Transform을 변경합니다. (서버에서만 사용 가능)
+ * @param InJwtToken : 검증을 위한 JwtToken
+ * @param InItemLoc : 변경할 모델이 배치된 위치
  * @param InReleativeTrans : 변경할 모델의 상대적 Transform
  */
-void UItemManager::ServerRPC_SetModelTransform_Implementation(const FTransform& InReleativeTrans)
+void UItemManager::Server_SetModelTransform(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InReleativeTrans)
 {
+	CHECK_DEDI_FUNC;
 	
+	const uint8 itemActorIdx = InItemLoc - 1;
+	
+	if(!ItemActors[itemActorIdx].IsValid())
+		return;
+	
+	// 그 위치에 판매중인 물품을 확인
+	const uint32 itemId = ItemActors[itemActorIdx]->GetItemID();
+
+	// 검증 후 변경하던가 한다
+	if(const UItemDataHandler* itemDataHandler = MAGetItemDataHandler(GetWorld()->GetGameState()))
+	{
+		TWeakObjectPtr<UItemManager> thisPtr = this;
+		itemDataHandler->Server_ValidateItem(itemId, InJwtToken, [thisPtr, itemActorIdx, InReleativeTrans](const bool InIsMine)
+		{
+			if(thisPtr.IsValid() && InIsMine && thisPtr->ItemActors[itemActorIdx].IsValid())
+			{
+				// 검증 성공! 변경!
+				thisPtr->ItemActors[itemActorIdx]->SetModelRelativeTrans(InReleativeTrans);
+
+				const uint32 itemId = thisPtr->ItemActors[itemActorIdx]->GetItemID();
+				// 정보도 저장
+				thisPtr->Server_ModelTransData->TryEmplaceTrans(itemActorIdx + 1, itemId, InReleativeTrans);
+
+				return;
+			}
+
+			LOG_WARN(TEXT("Transform edit failed!!"));
+		});
+	}
 }
 
 /**

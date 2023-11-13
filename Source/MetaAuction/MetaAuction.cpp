@@ -137,3 +137,18 @@ FString MAGetMyUserName(UGameInstance* InGameInstance)
 	}
 	return TEXT("");
 }
+
+/**
+ * 현재 로그인된 JwtToken 반환
+ */
+FString MAGetMyJwtToken(UGameInstance* InGameInstance)
+{
+	if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(InGameInstance))
+	{
+		if(gameInstance->GetLoginData().IsValid())
+		{
+			return gameInstance->GetLoginData()->GetJwtToken();
+		}
+	}
+	return TEXT("");
+}
