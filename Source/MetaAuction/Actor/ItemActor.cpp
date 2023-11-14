@@ -2,11 +2,14 @@
 
 
 #include "ItemActor.h"
-
 #include "glTFRuntimeAssetActor.h"
+#include "GameFramework/Pawn.h"
+#include "../UI/MANameplateWidget.h"
 
-#include <Core/MAGameInstance.h>
+#include <Components/BoxComponent.h>
 #include <Net/UnrealNetwork.h>
+#include <Blueprint/UserWidget.h>
+
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ItemActor)
 
@@ -14,8 +17,20 @@ AItemActor::AItemActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
+
+	// Visibility trace에만 반응 하도록 변경
+	RootComp = CreateDefaultSubobject<UBoxComponent>(TEXT("RootComp"));
+	RootComp->SetBoxExtent(FVector(50.f, 50.f, 300.f));
+	RootComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+	RootComp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	RootComp->SetGenerateOverlapEvents(false);
+	RootComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	RootComp->CanCharacterStepUpOn = ECB_No;
+	SetRootComponent(RootComp);
+	
 	LevelPosition = 0;
 	ItemID = 0;
+	SellerName = TEXT("");
 	ModelRelativeTrans = FTransform();
 	
 	Client_Model = nullptr;
@@ -25,6 +40,7 @@ void AItemActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AItemActor, ItemID);
+	DOREPLIFETIME(AItemActor, SellerName);
 	DOREPLIFETIME(AItemActor, ModelRelativeTrans);
 }
 
@@ -89,6 +105,57 @@ void AItemActor::Client_RedrawModel()
 			}
 		}, ItemID);
 	}
+}
+
+/**
+ * 상호 작용을 위한 함수들
+ */
+bool AItemActor::CanInteracting_Implementation() const
+{
+	return true;
+}
+
+/**
+ * 상호 작용시작 함수
+ */
+void AItemActor::BeginInteracting_Implementation(AActor* InteractorActor, FHitResult& HitResult)
+{
+	// 클라이언트가 조종하고 있는 특정 actor일때만 반응합니다.
+	// 판매자랑 현재 로그인된 유저랑 일치할 때 반응합니다.
+	if((InteractorActor->GetLocalRole() != ROLE_AutonomousProxy) ||
+		(SellerName != MAGetMyUserName(GetGameInstance())))
+		return;
+
+	// PlayerController를 가져올 수 있는지 확인합니다.
+	APlayerController* controller = nullptr;
+	if(APawn* interActorPawn = Cast<APawn>(InteractorActor))
+	{
+		controller = Cast<APlayerController>(interActorPawn->GetController());
+	}
+
+	if(!IsValid(controller))
+		return;
+
+	// 위젯을 생성^^
+	// if (UMANameplateWidget* NameplateWidget = CreateWidget<UMANameplateWidget>(controller, UMANameplateWidget::StaticClass()))
+	// {
+	// 	NameplateWidget->SetName(FText::FromString(TEXT("F 키를 눌러 Transform 수정")));
+	//
+	// 	FVector2D screenPos;
+	// 	controller->ProjectWorldLocationToScreen(HitResult.Location, screenPos);
+	// 	
+	// 	NameplateWidget->SetPositionInViewport(screenPos);
+	// 	NameplateWidget->AddToViewport(-1);
+	// }
+	
+	LOG_WARN(TEXT("Begin Interaction!"));
+
+	
+}
+
+void AItemActor::EndInteracting_Implementation(AActor* InteractorActor)
+{
+	LOG_WARN(TEXT("End Interaction!"));
 }
 
 /**

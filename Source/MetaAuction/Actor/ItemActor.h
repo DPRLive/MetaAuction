@@ -3,9 +3,12 @@
 #pragma once
 
 #include "glTFRuntimeFunctionLibrary.h"
+#include "Interaction/MAInteractableInterface.h"
+
 #include <GameFramework/Actor.h>
 #include "ItemActor.generated.h"
 
+class UBoxComponent;
 class AglTFRuntimeAssetActor;
 
 /**
@@ -14,7 +17,7 @@ class AglTFRuntimeAssetActor;
  *  이 Actor는 월드 배치용으로 월드에 배치 시 물품 ID를 가지고 있고 해당 물품 ID에 대한 모델링 렌더링을 담당합니다.
  */
 UCLASS()
-class METAAUCTION_API AItemActor : public AActor
+class METAAUCTION_API AItemActor : public AActor, public IMAInteractableInterface
 {
 	GENERATED_BODY()
    
@@ -33,18 +36,21 @@ public:
 	// 소멸자 용도로 쓸 BeginDestroy();
 	virtual void BeginDestroy() override;
 
-	// 물품 id를 설정한다.
-	FORCEINLINE void SetItemID(const uint32 InItemID) { ItemID = InItemID; }
-
+	// 물품을 설정한다.
+	FORCEINLINE void SetItem(const uint32 InItemID, const FString& InSellerName) { ItemID = InItemID; SellerName = InSellerName;}
+	
 	// 모델의 상대적 Transform을 설정한다.
 	FORCEINLINE void SetModelRelativeTrans(const FTransform& InTransform) { ModelRelativeTrans = InTransform; }
 	
 	// 현재 설정된 물품 id를 가져온다.
 	FORCEINLINE uint32 GetItemID() const { return ItemID; }
+
+	// 현재 설정된 물품의 판매자의 이름을 return 한다.
+	FORCEINLINE const FString& GetSellerName() const { return SellerName; } 
 	
 	// 현재 레벨의 어떤 위치에 배치되어 있는지 알려줌
 	FORCEINLINE const uint8 GetLevelPosition() const { return LevelPosition; }
-
+	
 	// 현재 이 액터에 배치된 물품을 지웁니다.
 	// 서버에서만 호출 가능합니다.
 	void Server_RemoveItem();
@@ -53,6 +59,14 @@ public:
 	// 클라이언트에서만 호출 가능합니다.
 	void Client_RedrawModel();
 
+	// 상호 작용을 위한 함수들
+	virtual bool CanInteracting_Implementation() const override;
+
+	// 상호 작용 시작 함수
+	virtual void BeginInteracting_Implementation(AActor* InteractorActor, FHitResult& HitResult) override;
+	
+	// 상호 작용 종료 함수
+	virtual void EndInteracting_Implementation(AActor* InteractorActor) override;
 private:
 	// 물품 배치 해주는 함수, ItemID가 Replicate 되면 호출
 	UFUNCTION()
@@ -66,11 +80,20 @@ private:
 	// 클라이언트에서만 호출 가능합니다.
 	UFUNCTION()
 	void _Client_DrawModel(UglTFRuntimeAsset* InAsset);
+
+private:
+	// 액터의 RootComp입니다
+	UPROPERTY( EditDefaultsOnly )
+	TObjectPtr<UBoxComponent> RootComp;
 	
 	// 이 액터에 배치된 물품 ID, 0은 할당되지 않음을 의미
 	UPROPERTY( VisibleInstanceOnly, ReplicatedUsing = OnRep_ItemID )
 	uint32 ItemID;
 
+	// 이 액터에 배치된 물품의 판매자 이름
+	UPROPERTY( VisibleInstanceOnly, Replicated )
+	FString SellerName;
+	
 	// 모델링의 상대적 Transform
 	UPROPERTY( VisibleInstanceOnly, ReplicatedUsing = OnRep_ModelRelativeTrans )
 	FTransform ModelRelativeTrans;

@@ -39,6 +39,6 @@ public:
 
 private:
 
-	void NotifyInteractingActorChanged(AActor* OldActor, AActor* NewActor);
+	void NotifyInteractingActorChanged(AActor* OldActor, AActor* NewActor, FHitResult& HitResult);
 	void UpdateInteracting();
 };

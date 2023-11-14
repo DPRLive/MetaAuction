@@ -6,6 +6,7 @@
 #include "Input/MAInputInitializeComponent.h"
 #include "UI/MANameplateWidget.h"
 #include "UI/MAChatBubbleWidgetComponent.h"
+#include "Interaction/MAInteractorComponent.h"
 
 #include <Camera/CameraComponent.h>
 #include <Components/CapsuleComponent.h>
@@ -18,6 +19,7 @@
 #include <GameFramework/SpringArmComponent.h>
 #include <UObject/ConstructorHelpers.h>
 #include <Kismet/GameplayStatics.h>
+
 
 AMACharacterPlayer::AMACharacterPlayer(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -81,6 +83,11 @@ AMACharacterPlayer::AMACharacterPlayer(const FObjectInitializer& ObjectInitializ
 	ChatBubbleWidgetComponent = CreateDefaultSubobject<UMAChatBubbleWidgetComponent>(TEXT("ChatBubbleWidgetComponent"));
 	ChatBubbleWidgetComponent->SetupAttachment(RootComponent);
 	ChatBubbleWidgetComponent->SetRelativeLocation(FVector(0.0f, 0.0f, GetCapsuleComponent()->GetScaledCapsuleHalfHeight() + 40.0f));
+
+	// InteractionComponent
+	InteractorComponent = CreateDefaultSubobject<UMAInteractorComponent>(TEXT("InteractorComponent"));
+	// 1인칭 & 3인칭 적절한 거리 찾으면 좋을듯
+	InteractorComponent->InteractingRange = 1000.f;
 }
 
 /**

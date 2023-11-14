@@ -7,6 +7,7 @@
 #include <GameFramework/Actor.h>
 #include <GameFramework/Controller.h>
 #include <Kismet/KismetSystemLibrary.h>
+#include <DrawDebugHelpers.h>
 
 UMAInteractorComponent::UMAInteractorComponent()
 {
@@ -28,7 +29,7 @@ void UMAInteractorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	UpdateInteracting();
 }
 
-void UMAInteractorComponent::NotifyInteractingActorChanged(AActor* OldActor, AActor* NewActor)
+void UMAInteractorComponent::NotifyInteractingActorChanged(AActor* OldActor, AActor* NewActor, FHitResult& HitResult)
 {
 	if (IsValid(OldActor))
 	{
@@ -42,7 +43,7 @@ void UMAInteractorComponent::NotifyInteractingActorChanged(AActor* OldActor, AAc
 	{
 		if (NewActor->GetClass()->ImplementsInterface(UMAInteractableInterface::StaticClass()))
 		{
-			IMAInteractableInterface::Execute_BeginInteracting(NewActor, GetOwner());
+			IMAInteractableInterface::Execute_BeginInteracting(NewActor, GetOwner(), HitResult);
 		}
 	}
 }
@@ -100,6 +101,6 @@ void UMAInteractorComponent::UpdateInteracting()
 	if (OldActor != NewActor)
 	{
 		InteractingActor = NewActor;
-		NotifyInteractingActorChanged(OldActor, NewActor);
+		NotifyInteractingActorChanged(OldActor, NewActor, AimHit);
 	}
 }

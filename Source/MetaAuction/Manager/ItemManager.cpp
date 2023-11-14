@@ -122,7 +122,7 @@ void UItemManager::Server_RegisterNewItem(uint32 InItemId) const
 			// TODO: 월드 관리 어떻게 해야하지.. 일단 하드코딩
 			if (thisPtr.IsValid() && InItemData.World == TEXT("1"))
 			{
-				thisPtr->_Server_RegisterItemByLoc(InItemId, InItemData.Location);
+				thisPtr->_Server_RegisterItemByLoc(InItemId, InItemData.SellerName, InItemData.Location);
 			}
 		}, InItemId);
 	}
@@ -225,7 +225,7 @@ void UItemManager::_Server_RegisterAllWorldItemID() const
 			{
 				for (const FItemData& data : InItemData)
 				{
-					thisPtr->_Server_RegisterItemByLoc(data.ItemID, data.Location);
+					thisPtr->_Server_RegisterItemByLoc(data.ItemID, data.SellerName, data.Location);
 				}
 			}
 		}, option);
@@ -235,9 +235,10 @@ void UItemManager::_Server_RegisterAllWorldItemID() const
 /**
  * Item Data의 Location을 기준으로, Item Actor에 상품ID를 등록한다. 데디 서버에서만 실행 가능합니다.
  * @param InItemId : 등록할 상품의 ID
+ * @param InSellerName : 판매자의 이름
  * @param InItemLoc : 상품을 등록할 ItemActor의 위치
  */
-void UItemManager::_Server_RegisterItemByLoc(uint32 InItemId, uint8 InItemLoc) const
+void UItemManager::_Server_RegisterItemByLoc(const uint32 InItemId, const FString& InSellerName, const uint8 InItemLoc) const
 {
 	CHECK_DEDI_FUNC;
 
@@ -251,7 +252,7 @@ void UItemManager::_Server_RegisterItemByLoc(uint32 InItemId, uint8 InItemLoc) c
 	
 	if(ItemActors[registerIdx].IsValid())
 	{
-		ItemActors[registerIdx]->SetItemID(InItemId);
+		ItemActors[registerIdx]->SetItem(InItemId, InSellerName);
 	}
 
 	// 그릴 모델의 상대적 trans도 있다면 같이 설정해준다.
