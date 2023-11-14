@@ -171,7 +171,7 @@ private:
 	
 	// 서버 -> RPC로 모든 클라에게 가격 변동 알림을 줍니다.
 	UFUNCTION( NetMulticast, Reliable )
-	void _MulticastRPC_ChangePrice(const uint32& InItemId, const uint64& InPrice) const;
+	void _MulticastRPC_ChangePrice(const uint32& InItemId, const uint64& InPrice, const FString& InBidder) const;
 
 	// 서버 -> RPC로 모든 클라에게 아이템 정보 변동 알림을 줍니다.
 	UFUNCTION( NetMulticast, Unreliable )
@@ -186,13 +186,13 @@ private:
 public:
 	// 가격 변동 알림을 받아내는 Delegate
 	// UI서 아이템 확인시 구독, 확인 끝날시 구독 해제를 통해서 실시간으로 가격이 변동되게 해주세요.
-	// 물품 id , 변동된 이후 가격이 broadcast 됩니다.
-	DECLARE_MULTICAST_DELEGATE_TwoParams(FOnChangePrice, const uint32&, const uint64&)
+	// 물품 id , 변동된 이후 가격, 최고 입찰자가 broadcast 됩니다.
+	DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnChangePrice, const uint32& /* item id */, const uint64& /* 입찰 가격 */, const FString& /* 최고 입찰자 */)
 	FOnChangePrice OnChangePrice;
 
 	// 아이템 정보 변동 알림을 받아내는 Delegate
 	// UI서 아이템 확인시 구독, 확인 끝날시 구독 해제를 통해서 실시간으로 정보가 변동되게 해주세요(glb제외).
 	// 변경된 item ID, 그 물품이 있던 world, 바뀐 항목에 대한 string ( -로 구분, (ex)location-world )이 broadcast 됩니다.
-	DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnChangeItemData, const uint32&, const FString&, const FString&)
+	DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnChangeItemData, const uint32& /* item id */, const FString& /* world */, const FString& /* 바뀐 내용 */)
 	FOnChangeItemData OnChangeItemData;
 };
