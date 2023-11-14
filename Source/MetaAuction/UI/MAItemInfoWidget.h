@@ -23,6 +23,7 @@ public:
 protected:
 
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 public:
 
@@ -40,9 +41,25 @@ private:
 	void ItemImageNextButtonClicked();
 
 	UFUNCTION()
+	void BidButtonClicked();
+
+	UFUNCTION()
+	void ChatButtonClicked();
+
+	UFUNCTION()
+	void DeleteButtonClicked();
+
+	UFUNCTION()
 	void DetailsButtonClicked();
 
+	UFUNCTION()
+	void BidPriceTextChanged(const FText& InText);
+
+	UFUNCTION()
+	void BidPriceTextCommited(const FText& InText, ETextCommit::Type InCommitMethod);
+
 	FDelegateHandle ItemImageListViewSelectionChangedHandle;
+	FDelegateHandle OnChangePriceHandle;
 
 private:
 
@@ -53,7 +70,13 @@ private:
 	TObjectPtr<class UTextBlock> TitleText;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UTextBlock> InformationText;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UTextBlock> BuyerNameText;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UTextBlock> SellerNameText;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UTextBlock> StartPriceText;
@@ -74,6 +97,18 @@ private:
 	TObjectPtr<class UMAItemImageListWidget> WBP_ItemImageList;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UEditableTextBox> BidPriceText;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UButton> BidButton;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UButton> ChatButton;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UButton> DeleteButton;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UButton> DetailsButton;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
@@ -81,6 +116,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class UMAItemAdditionalInfoWidget> ItemAdditionalInfoWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	int32 BidMinimum;
 
 	UPROPERTY()
 	FItemData CachedItemData;

@@ -7,7 +7,6 @@
 #include "MAItemImageEntry.generated.h"
 
 /** FMAItemImageEntryData
- * UMAItemImageEntry를 이루고 있는 기본 데이터 입니다.
  */
 USTRUCT(BlueprintType)
 struct FMAItemImageEntryData
@@ -23,7 +22,6 @@ public:
 };
 
 /** UMAItemImageEntry
- * UMAItemImageListWidget의 리스트뷰에서 엔트리 오브젝트로 사용됩니다.
  */
 UCLASS(BlueprintType, Blueprintable)
 class METAAUCTION_API UMAItemImageEntry : public UObject

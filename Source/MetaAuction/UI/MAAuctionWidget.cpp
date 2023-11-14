@@ -91,10 +91,8 @@ void UMAAuctionWidget::ToggleWidget()
 
 	if (GetVisibility() == ESlateVisibility::Visible)
 	{
-		// ���� �����
 		SetVisibility(ESlateVisibility::Hidden);
 
-		// �Է� ��� ���� Game
 		FInputModeGameOnly InputMode;
 		PlayerController->SetInputMode(InputMode);
 
@@ -103,17 +101,14 @@ void UMAAuctionWidget::ToggleWidget()
 			PlayerController->FlushPressedKeys();
 		}
 
-		// ���콺 Ŀ�� �����
 		PlayerController->SetShowMouseCursor(false);
 
 		NotifyHiddenWidget();
 	}
 	else
 	{
-		// ���� ���̱�
 		SetVisibility(ESlateVisibility::Visible);
 
-		// �Է� ��� ���� UI
 		FInputModeUIOnly InputMode;
 		InputMode.SetLockMouseToViewportBehavior(InMouseLockMode);
 
@@ -140,7 +135,9 @@ void UMAAuctionWidget::ItemSearchButtonClicked()
 {
 	if (MenuButtonClicked(ItemSearchButton))
 	{
-		WBP_ItemView->UpdateSearchItems(WBP_ItemFilter->GetCurrentOption());
+		const FItemSearchOption& ItemSearchOption = WBP_ItemFilter->GetCurrentOption();
+		CachedItemCanDeal = ItemSearchOption.CanDeal;
+		WBP_ItemView->UpdateSearchItems(ItemSearchOption);
 		WBP_ItemFilter->SetVisibility(ESlateVisibility::Visible);
 	}
 }
@@ -149,7 +146,8 @@ void UMAAuctionWidget::ItemBidOnButtonClicked()
 {
 	if (MenuButtonClicked(ItemBidOnButton))
 	{
-		WBP_ItemView->UpdateMyItems(EMyItemReqType::Buy);
+		CachedItemCanDeal = EItemCanDeal::Possible;
+		WBP_ItemView->UpdateMyItems(EMyItemReqType::TryBid);
 		WBP_ItemFilter->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
@@ -158,6 +156,7 @@ void UMAAuctionWidget::ItemRegisteredButtonClicked()
 {
 	if (MenuButtonClicked(ItemRegisteredButton))
 	{
+		CachedItemCanDeal = EItemCanDeal::Possible;
 		WBP_ItemView->UpdateMyItems(EMyItemReqType::Sell);
 		WBP_ItemFilter->SetVisibility(ESlateVisibility::Hidden);
 	}

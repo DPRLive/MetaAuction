@@ -27,6 +27,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ToggleWidget();
 
+	FORCEINLINE EItemCanDeal GetCachedItemCanDeal() { return CachedItemCanDeal; };
+
 private:
 
 	UFUNCTION()
@@ -82,4 +84,6 @@ private:
 
 	TObjectPtr<class UButton> CurrentButton;
 	TObjectPtr<class UButton> PreviousButton;
+
+	EItemCanDeal CachedItemCanDeal;
 };
