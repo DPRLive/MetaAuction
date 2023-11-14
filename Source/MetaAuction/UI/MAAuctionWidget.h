@@ -35,16 +35,14 @@ private:
 	void ItemSearchButtonClicked();
 
 	UFUNCTION()
-	void ItemBidOnButtonClicked();
+	void ItemSellButtonClicked();
 
 	UFUNCTION()
-	void ItemRegisteredButtonClicked();
+	void ItemBuyButtonClicked();
 
 	UFUNCTION()
-	void RegisterItemButtonClicked();
+	void ItemTryBidButtonClicked();
 
-	UFUNCTION()
-	void TransactionHistoryButtonClicked();
 
 	bool MenuButtonClicked(class UButton* ClickedButton);
 
@@ -63,16 +61,13 @@ private:
 	TObjectPtr<class UButton> ItemSearchButton;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UButton> ItemBidOnButton;
+	TObjectPtr<class UButton> ItemSellButton;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UButton> ItemRegisteredButton;
+	TObjectPtr<class UButton> ItemBuyButton;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UButton> RegisterItemButton;
-
-	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UButton> TransactionHistoryButton;
+	TObjectPtr<class UButton> ItemTryBidButton;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UMAItemFilterWidget> WBP_ItemFilter;

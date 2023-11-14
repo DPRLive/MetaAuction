@@ -24,10 +24,9 @@ void UMAAuctionWidget::NativeConstruct()
 
 	ensure(MenuBox);
 	ensure(ItemSearchButton);
-	ensure(ItemBidOnButton);
-	ensure(ItemRegisteredButton);
-	ensure(RegisterItemButton);
-	ensure(TransactionHistoryButton);
+	ensure(ItemSellButton);
+	ensure(ItemBuyButton);
+	ensure(ItemTryBidButton);
 	ensure(WBP_ItemFilter);
 	ensure(WBP_ItemView);
 
@@ -49,24 +48,19 @@ void UMAAuctionWidget::NativeConstruct()
 		ItemSearchButton->OnClicked.AddDynamic(this, &ThisClass::ItemSearchButtonClicked);
 	}
 
-	if (IsValid(ItemBidOnButton))
+	if (IsValid(ItemSellButton))
 	{
-		ItemBidOnButton->OnClicked.AddDynamic(this, &ThisClass::ItemBidOnButtonClicked);
+		ItemSellButton->OnClicked.AddDynamic(this, &ThisClass::ItemSellButtonClicked);
 	}
 
-	if (IsValid(ItemRegisteredButton))
+	if (IsValid(ItemBuyButton))
 	{
-		ItemRegisteredButton->OnClicked.AddDynamic(this, &ThisClass::ItemRegisteredButtonClicked);
+		ItemBuyButton->OnClicked.AddDynamic(this, &ThisClass::ItemBuyButtonClicked);
 	}
 
-	if (IsValid(RegisterItemButton))
+	if (IsValid(ItemTryBidButton))
 	{
-		RegisterItemButton->OnClicked.AddDynamic(this, &ThisClass::RegisterItemButtonClicked);
-	}
-
-	if (IsValid(TransactionHistoryButton))
-	{
-		TransactionHistoryButton->OnClicked.AddDynamic(this, &ThisClass::TransactionHistoryButtonClicked);
+		ItemTryBidButton->OnClicked.AddDynamic(this, &ThisClass::ItemTryBidButtonClicked);
 	}
 
 	if (IsValid(WBP_ItemFilter))
@@ -142,19 +136,9 @@ void UMAAuctionWidget::ItemSearchButtonClicked()
 	}
 }
 
-void UMAAuctionWidget::ItemBidOnButtonClicked()
+void UMAAuctionWidget::ItemSellButtonClicked()
 {
-	if (MenuButtonClicked(ItemBidOnButton))
-	{
-		CachedItemCanDeal = EItemCanDeal::Possible;
-		WBP_ItemView->UpdateMyItems(EMyItemReqType::TryBid);
-		WBP_ItemFilter->SetVisibility(ESlateVisibility::Hidden);
-	}
-}
-
-void UMAAuctionWidget::ItemRegisteredButtonClicked()
-{
-	if (MenuButtonClicked(ItemRegisteredButton))
+	if (MenuButtonClicked(ItemSellButton))
 	{
 		CachedItemCanDeal = EItemCanDeal::Possible;
 		WBP_ItemView->UpdateMyItems(EMyItemReqType::Sell);
@@ -162,18 +146,22 @@ void UMAAuctionWidget::ItemRegisteredButtonClicked()
 	}
 }
 
-void UMAAuctionWidget::RegisterItemButtonClicked()
+void UMAAuctionWidget::ItemBuyButtonClicked()
 {
-	if (MenuButtonClicked(RegisterItemButton))
+	if (MenuButtonClicked(ItemBuyButton))
 	{
+		CachedItemCanDeal = EItemCanDeal::Possible;
+		WBP_ItemView->UpdateMyItems(EMyItemReqType::Buy);
 		WBP_ItemFilter->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 
-void UMAAuctionWidget::TransactionHistoryButtonClicked()
+void UMAAuctionWidget::ItemTryBidButtonClicked()
 {
-	if (MenuButtonClicked(TransactionHistoryButton))
+	if (MenuButtonClicked(ItemTryBidButton))
 	{
+		CachedItemCanDeal = EItemCanDeal::Possible;
+		WBP_ItemView->UpdateMyItems(EMyItemReqType::TryBid);
 		WBP_ItemFilter->SetVisibility(ESlateVisibility::Hidden);
 	}
 }

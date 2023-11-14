@@ -130,6 +130,7 @@ void UMAItemInfoWidget::Update(const FItemData& InItemData)
 	InformationText->SetText(FText::FromString(InItemData.Information));
 	BuyerNameText->SetText(FText::FromString(InItemData.BuyerName));
 	SellerNameText->SetText(FText::FromString(InItemData.SellerName));
+	EndTimeText->SetText(FText::FromString(InItemData.EndTime.ToString()));
 
 	FNumberFormattingOptions NumberFormatOptions;
 	NumberFormatOptions.SetUseGrouping(true);

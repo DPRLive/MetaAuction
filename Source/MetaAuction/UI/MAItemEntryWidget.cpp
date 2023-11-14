@@ -58,6 +58,7 @@ void UMAItemEntryWidget::UpdateText(const FItemData& InItemData)
 	TitleText->SetText(FText::FromString(InItemData.Title));
 	BuyerNameText->SetText(FText::FromString(InItemData.BuyerName));
 	SellerNameText->SetText(FText::FromString(InItemData.SellerName));
+	EndTimeText->SetText(FText::FromString(InItemData.EndTime.ToString()));
 
 	FNumberFormattingOptions NumberFormatOptions;
 	NumberFormatOptions.SetUseGrouping(true);
@@ -95,7 +96,6 @@ void UMAItemEntryWidget::UpdateImage(const FItemData& InItemData)
 	FItemFileHandler* ItemFileHandler = MAGetItemFileHandler(MAGetGameInstance(GetWorld()));
 	if (nullptr != ItemFileHandler)
 	{
-		LOG_SCREEN(FColor::Green, TEXT("Request %s"), *FString(__FUNCTION__));
 		TWeakObjectPtr<ThisClass> ThisPtr(this);
 		if (ThisPtr.IsValid())
 		{
@@ -104,10 +104,8 @@ void UMAItemEntryWidget::UpdateImage(const FItemData& InItemData)
 					if (ThisPtr.IsValid())
 					{
 						ThisPtr->ItemImage->SetBrushFromTextureDynamic(InImage);
-						LOG_SCREEN(FColor::Green, TEXT("Successed %s"), *FString(__FUNCTION__));
 					}
 				};
-
 
 			// 0번 인덱스 이미지는 없으므로 1번 인덱스 이미지를 가져옵니다.
 			ItemFileHandler->RequestImg(Func, InItemData.ItemID, 1);
