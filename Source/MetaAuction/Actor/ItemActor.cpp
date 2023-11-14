@@ -137,16 +137,16 @@ void AItemActor::BeginInteracting_Implementation(AActor* InteractorActor, FHitRe
 		return;
 
 	// 위젯을 생성^^
-	// if (UMANameplateWidget* NameplateWidget = CreateWidget<UMANameplateWidget>(controller, UMANameplateWidget::StaticClass()))
-	// {
-	// 	NameplateWidget->SetName(FText::FromString(TEXT("F 키를 눌러 Transform 수정")));
-	//
-	// 	FVector2D screenPos;
-	// 	controller->ProjectWorldLocationToScreen(HitResult.Location, screenPos);
-	// 	
-	// 	NameplateWidget->SetPositionInViewport(screenPos);
-	// 	NameplateWidget->AddToViewport(-1);
-	// }
+	if (UMANameplateWidget* NameplateWidget = CreateWidget<UMANameplateWidget>(controller, GuideWidgetClass))
+	{
+		NameplateWidget->SetName(FText::FromString(TEXT("F 키를 눌러 Transform 수정")));
+	
+		FVector2D screenPos;
+		controller->ProjectWorldLocationToScreen(HitResult.Location, screenPos);
+		
+		NameplateWidget->SetPositionInViewport(screenPos);
+		NameplateWidget->AddToViewport(-1);
+	}
 	
 	LOG_WARN(TEXT("Begin Interaction!"));
 

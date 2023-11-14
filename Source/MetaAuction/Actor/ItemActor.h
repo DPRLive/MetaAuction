@@ -10,6 +10,7 @@
 
 class UBoxComponent;
 class AglTFRuntimeAssetActor;
+class UUserWidget;
 
 /**
  *  경매 물품을 랜더링해 줄 Actor,
@@ -109,4 +110,8 @@ private:
 	// 모델링된 Actor
 	UPROPERTY( VisibleInstanceOnly )
 	TWeakObjectPtr<AglTFRuntimeAssetActor> Client_Model;
+
+	// 수정 관련 UI
+	UPROPERTY(EditDefaultsOnly, Category = UI)
+	TSubclassOf<UUserWidget> GuideWidgetClass;
 };
