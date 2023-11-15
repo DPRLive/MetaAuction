@@ -37,6 +37,9 @@ private:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UTextBlock> SellerNameText;
 
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UMABidRecordListWidget> WBP_BidRecordList;
+
 	UPROPERTY()
 	FItemData CachedItemData;
 

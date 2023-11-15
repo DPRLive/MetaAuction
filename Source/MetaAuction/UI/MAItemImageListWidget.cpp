@@ -32,25 +32,22 @@ void UMAItemImageListWidget::Update(const FItemData& InItemData)
 		for (int32 i = 1; i <= InItemData.ImgCount; i++)
 		{
 			TWeakObjectPtr<ThisClass> ThisPtr(this);
-			if (ThisPtr.IsValid())
-			{
-				auto Func = [ThisPtr](UTexture2DDynamic* InImage)
+			auto Func = [ThisPtr](UTexture2DDynamic* InImage)
+				{
+					if (ThisPtr.IsValid())
 					{
-						if (ThisPtr.IsValid())
-						{
-							UMAItemImageEntry* ItemImageEntry = NewObject<UMAItemImageEntry>();
-							ItemImageEntry->Data.Image = InImage;
-							ThisPtr->ItemImageListView->AddItem(ItemImageEntry);
+						UMAItemImageEntry* ItemImageEntry = NewObject<UMAItemImageEntry>();
+						ItemImageEntry->Data.Image = InImage;
+						ThisPtr->ItemImageListView->AddItem(ItemImageEntry);
 
-							if (ThisPtr->ItemImageListView->GetNumItems() == 1)
-							{
-								ThisPtr->SelectedItemIndex = 0;
-								ThisPtr->ItemImageListView->SetSelectedIndex(ThisPtr->SelectedItemIndex);
-							}
+						if (ThisPtr->ItemImageListView->GetNumItems() == 1)
+						{
+							ThisPtr->SelectedItemIndex = 0;
+							ThisPtr->ItemImageListView->SetSelectedIndex(ThisPtr->SelectedItemIndex);
 						}
-					};
-				ItemFileHandler->RequestImg(Func, InItemData.ItemID, i);
-			}
+					}
+				};
+			ItemFileHandler->RequestImg(Func, InItemData.ItemID, i);
 		}
 	}
 }

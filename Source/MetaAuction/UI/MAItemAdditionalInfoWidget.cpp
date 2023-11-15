@@ -2,6 +2,7 @@
 
 
 #include "UI/MAItemAdditionalInfoWidget.h"
+#include "UI/MABidRecordListWidget.h"
 #include "MetaAuction.h"
 
 #include <Components/TextBlock.h>
@@ -19,6 +20,7 @@ void UMAItemAdditionalInfoWidget::NativeConstruct()
 	ensure(TitleText);
 	ensure(InformationText);
 	ensure(SellerNameText);
+	ensure(WBP_BidRecordList);
 }
 
 void UMAItemAdditionalInfoWidget::Update(const FItemData& InItemData)
@@ -27,16 +29,5 @@ void UMAItemAdditionalInfoWidget::Update(const FItemData& InItemData)
 	TitleText->SetText(FText::FromString(InItemData.Title));
 	InformationText->SetText(FText::FromString(InItemData.Information));
 	SellerNameText->SetText(FText::FromString(InItemData.SellerName));
-
-	UChatHandler* ChatHandler = MAGetChatHandler(MAGetGameInstance());
-	if (!IsValid(ChatHandler))
-	{
-		return;
-	}
-
-	TWeakObjectPtr<ThisClass> ThisPtr(this);
-	if (!ThisPtr.IsValid())
-	{
-		return;
-	}
+	WBP_BidRecordList->Update(InItemData);
 }
