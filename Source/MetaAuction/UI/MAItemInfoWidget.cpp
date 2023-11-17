@@ -192,7 +192,7 @@ void UMAItemInfoWidget::Update(const FItemData& InItemData)
 	{
 		// TODO: 현재 OnChangePrice가 작동하지 않습니다!
 		ItemDataHandler->OnChangePrice.Remove(OnChangePriceHandle);
-		OnChangePriceHandle = ItemDataHandler->OnChangePrice.AddLambda([ThisPtr](const uint32 ItemID, const uint64 Price)
+		OnChangePriceHandle = ItemDataHandler->OnChangePrice.AddLambda([ThisPtr](const uint32 ItemID, const uint64 Price, const FString& Name)
 			{
 				LOG_WARN(TEXT("입찰가 변동 ID : %d"), ItemID);
 				if (ThisPtr.IsValid() && ThisPtr->CachedItemData.ItemID == ItemID)

@@ -31,6 +31,12 @@ public:
 	FORCEINLINE class UMAAuctionWidget* GetAuctionWidget() const { return AuctionWidget; }
 	void CreateAuctionWidget();
 
+	UFUNCTION(BlueprintCallable, Category = "UI|Popup")
+	class UMAConfirmCancelPopupWidget* CreateAndAddConfirmCancelPopupWidget();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Popup")
+	class UMAConfirmPopupWidget* CreateAndAddConfirmPopupWidget();
+
 	UFUNCTION(BlueprintCallable, Category = "UI|ChatLog")
 	void SendChatLog(const FMAChatLogEntryData& Data);
 
@@ -63,4 +69,12 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "UI|ChatLog")
 	FChatLogEventSignature OnReceivedChatLog;
+
+private:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Popup", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class UMAConfirmCancelPopupWidget> ConfirmCancelPopupWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Popup", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class UMAConfirmPopupWidget> ConfirmPopupWidgetClass;
 };

@@ -5,6 +5,8 @@
 #include "UI/MAHUDWidget.h"
 #include "UI/MAAuctionWidget.h"
 #include "UI/MAChatBubbleWidgetComponent.h"
+#include "UI/MAConfirmCancelPopupWidget.h"
+#include "UI/MAConfirmPopupWidget.h"
 #include "Character/MACharacter.h"
 #include "Core/MAGameState.h"
 #include "Manager/ItemManager.h"
@@ -55,7 +57,6 @@ void AMAPlayerController::CreateHUDWidget()
 		return;
 	}
 
-	// ���� �÷��̾� ��Ʈ�ѷ������� ����ϴ�.
 	if (!IsLocalPlayerController())
 	{
 		return;
@@ -67,20 +68,17 @@ void AMAPlayerController::CreateHUDWidget()
 
 void AMAPlayerController::CreateAuctionWidget()
 {
-	// �ϳ��� ������ �����ϵ��� �մϴ�.
 	if (AuctionWidget)
 	{
 		return;
 	}
 
-	// Ŭ������ ��ȿ���� Ȯ���մϴ�.
 	if (!AuctionWidgetClass)
 	{
 		ensure(AuctionWidgetClass);
 		return;
 	}
 
-	// ���� �÷��̾� ��Ʈ�ѷ������� ����ϴ�.
 	if (!IsLocalPlayerController())
 	{
 		return;
@@ -88,6 +86,26 @@ void AMAPlayerController::CreateAuctionWidget()
 
 	AuctionWidget = CreateWidget<UMAAuctionWidget>(this, AuctionWidgetClass);
 	AuctionWidget->AddToViewport();
+}
+
+UMAConfirmCancelPopupWidget* AMAPlayerController::CreateAndAddConfirmCancelPopupWidget()
+{
+	UMAConfirmCancelPopupWidget* PopupWidget = CreateWidget<UMAConfirmCancelPopupWidget>(this, ConfirmCancelPopupWidgetClass);
+	if (IsValid(PopupWidget))
+	{
+		PopupWidget->AddToViewport();
+	}
+	return PopupWidget;
+}
+
+UMAConfirmPopupWidget* AMAPlayerController::CreateAndAddConfirmPopupWidget()
+{
+	UMAConfirmPopupWidget* PopupWidget = CreateWidget<UMAConfirmPopupWidget>(this, ConfirmPopupWidgetClass);
+	if (IsValid(PopupWidget))
+	{
+		PopupWidget->AddToViewport();
+	}
+	return PopupWidget;
 }
 
 void AMAPlayerController::SendChatLog(const FMAChatLogEntryData& InData)

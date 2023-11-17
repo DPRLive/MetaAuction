@@ -77,7 +77,7 @@ void UMAInteractorComponent::UpdateInteracting()
 	CollisionQueryParams.AddIgnoredActors(PlayerPawnAttachedActors);
 	bool bHit = GetWorld()->LineTraceSingleByChannel(AimHit, AimStart, AimStart + AimRot.Vector() * InteractingRange, ECC_Visibility, CollisionQueryParams);
 
-#if ENABLE_DRAW_DEBUG
+#if UE_ENABLE_DEBUG_DRAWING
 	if (bDebug)
 	{
 		FHitResult DebugHit;
