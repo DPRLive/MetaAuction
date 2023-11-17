@@ -34,8 +34,11 @@ public:
 	virtual void BeginDestroy() override;
 
 	// 물품 id를 설정한다.
-	FORCEINLINE void SetItemID(uint32 InItemID) { ItemID = InItemID; }
+	FORCEINLINE void SetItemID(const uint32 InItemID) { ItemID = InItemID; }
 
+	// 모델의 상대적 Transform을 설정한다.
+	FORCEINLINE void SetModelRelativeTrans(const FTransform& InTransform) { ModelRelativeTrans = InTransform; }
+	
 	// 현재 설정된 물품 id를 가져온다.
 	FORCEINLINE uint32 GetItemID() const { return ItemID; }
 	
@@ -53,7 +56,11 @@ public:
 private:
 	// 물품 배치 해주는 함수, ItemID가 Replicate 되면 호출
 	UFUNCTION()
-	void OnRep_PlaceItem();
+	void OnRep_ItemID();
+
+	// 배치된 모델의 상대 Transform이 Replicate 되면 호출
+	UFUNCTION()
+	void OnRep_ModelRelativeTrans();
 	
 	// 모델을 그린다. (glTFRumtimeAsset을 기반으로 actor을 하나 생성하고, 그 포인터를 들고 있음)
 	// 클라이언트에서만 호출 가능합니다.
@@ -61,8 +68,12 @@ private:
 	void _Client_DrawModel(UglTFRuntimeAsset* InAsset);
 	
 	// 이 액터에 배치된 물품 ID, 0은 할당되지 않음을 의미
-	UPROPERTY( VisibleInstanceOnly, ReplicatedUsing = OnRep_PlaceItem)
+	UPROPERTY( VisibleInstanceOnly, ReplicatedUsing = OnRep_ItemID )
 	uint32 ItemID;
+
+	// 모델링의 상대적 Transform
+	UPROPERTY( VisibleInstanceOnly, ReplicatedUsing = OnRep_ModelRelativeTrans )
+	FTransform ModelRelativeTrans;
 	
 	// 현재 이 ItemActor의 레벨상 위치, 레벨에 배치 후 설정 (1 부터 순서대로)
 	// 웹과 공유해야하므로 평면도에 맞춰서 할당해주기

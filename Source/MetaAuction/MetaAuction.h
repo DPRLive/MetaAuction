@@ -19,7 +19,7 @@
 #include "Helper/StompHelper.h"
 #include "Handler/ItemFileHandler.h"
 #include "Handler/ItemDataHandler.h"
-#include "Handler\ChatHandler.h"
+#include "Handler/ChatHandler.h"
 
 #define CHECK_DEDI_FUNC									\
 	if(!IsRunningDedicatedServer())						\
@@ -54,3 +54,6 @@ FStompHelper* MAGetStompHelper(UGameInstance* InGameInstance);
 
 // 현재 로그인된 UserName반환
 FString MAGetMyUserName(UGameInstance* InGameInstance);
+
+// 현재 로그인된 JwtToken 반환
+FString MAGetMyJwtToken(UGameInstance* InGameInstance);

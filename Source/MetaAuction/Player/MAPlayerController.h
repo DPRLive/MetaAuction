@@ -34,12 +34,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|ChatLog")
 	void SendChatLog(const FMAChatLogEntryData& Data);
 
-	UFUNCTION(BlueprintCallable, Category = "UI|Popup")
-	class UMAConfirmCancelPopupWidget* CreateAndAddConfirmCancelPopupWidget();
-
-	UFUNCTION(BlueprintCallable, Category = "UI|Popup")
-	class UMAConfirmPopupWidget* CreateAndAddConfirmPopupWidget();
-
+	// Server RPC로 item actor에 배치된 모델의 상대적 transform을 변경을 요청합니다.
+	UFUNCTION( Server, Unreliable )
+	void ServerRPC_SetModelRelativeTrans(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InReleativeTrans);
 private:
 
 	UFUNCTION(Server, Reliable, Category = "UI|ChatLog")
@@ -66,12 +63,4 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "UI|ChatLog")
 	FChatLogEventSignature OnReceivedChatLog;
-
-private:
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Popup", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class UMAConfirmCancelPopupWidget> ConfirmCancelPopupWidgetClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Popup", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class UMAConfirmPopupWidget> ConfirmPopupWidgetClass;
 };

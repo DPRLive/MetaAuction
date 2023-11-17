@@ -279,6 +279,31 @@ void UItemDataHandler::RequestMyItem(const FCallbackRefArray<FItemData>& InFunc,
 }
 
 /**
+ *  물품의 판매자가 맞는지 JwtToken을 통해 검증하는 함수입니다.
+ *  @param InItemId : 검증할 아이템 id
+ *  @param InJwtToken : 검증할 유저의 토큰
+ *  @param InFunc : 검증 된 후 실행할 함수
+ */
+void UItemDataHandler::Server_ValidateItem(const uint32 InItemId, const FString& InJwtToken, const FCallbackOneParam<bool>& InFunc) const
+{
+	CHECK_DEDI_FUNC;
+
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
+	{
+		httpHelper->Request(DA_NETWORK(ValidateItemAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::GET,
+			[InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+							 {
+								 if (InFunc && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+								 {
+									 // true인지 확인
+									 bool isMine = InResponse->GetContentAsString().Contains(TEXT("true"));
+									 InFunc(isMine);
+								 }
+							 }, TEXT(""), InJwtToken);
+	}
+}
+
+/**
  *  Stomp 메세지로 온 아이템 가격 변동 알림을 받는다.
  */
 void UItemDataHandler::_Server_OnChangePrice(const IStompMessage& InMessage) const
@@ -288,9 +313,9 @@ void UItemDataHandler::_Server_OnChangePrice(const IStompMessage& InMessage) con
 	TArray<FString> idAndPrice;
 	InMessage.GetBodyAsString().ParseIntoArray(idAndPrice, TEXT("-"), true);
 
-	if(idAndPrice.Num() == 2) // ItemID. 가격. 딱 두개 정확히 왔을때 Multicast
+	if(idAndPrice.Num() >= 3) // ItemID. 가격. 최고 입찰자 3개의 정보가 충분히 들어왔는가
 	{
-		_MulticastRPC_ChangePrice(FCString::Atoi(*idAndPrice[0]), FCString::Atoi64(*idAndPrice[1]));
+		_MulticastRPC_ChangePrice(FCString::Atoi(*idAndPrice[0]), FCString::Atoi64(*idAndPrice[1]), idAndPrice[2]);
 	}
 }
 
@@ -322,16 +347,14 @@ void UItemDataHandler::_Server_OnChangeItemData(const IStompMessage& InMessage) 
  * 서버 -> RPC로 모든 클라에게 가격 변동 알림을 줍니다.
  * @param InItemId : 가격이 변동된 상품의 ID
  * @param InPrice : 현재 가격
+ * @param InBidder : 최고 입찰자
  */
-void UItemDataHandler::_MulticastRPC_ChangePrice_Implementation(const uint32& InItemId, const uint64& InPrice) const
+void UItemDataHandler::_MulticastRPC_ChangePrice_Implementation(const uint32& InItemId, const uint64& InPrice, const FString& InBidder) const
 {
-	LOG_WARN(TEXT("id[%d] change price : %lld"), InItemId, InPrice);
+	LOG_N(TEXT("id[%d] change price : [%lld], bidder : [%s]"), InItemId, InPrice, *InBidder);
 
-	if(!IsRunningDedicatedServer()) // 근데 서버는 안궁금해
-		return;
-	
 	if(OnChangePrice.IsBound())
-		OnChangePrice.Broadcast(InItemId, InPrice);
+		OnChangePrice.Broadcast(InItemId, InPrice, InBidder);
 }
 
 /**
@@ -342,7 +365,7 @@ void UItemDataHandler::_MulticastRPC_ChangePrice_Implementation(const uint32& In
  */
 void UItemDataHandler::_MulticastRPC_ChangeItemData_Implementation(const uint32& InItemId, const FString& InWorld, const FString& InChangeList) const
 {
-	LOG_WARN(TEXT("id[%d] item data changed!"), InItemId);
+	LOG_N(TEXT("id[%d] item data changed!"), InItemId);
 	
 	if(OnChangeItemData.IsBound())
 		OnChangeItemData.Broadcast(InItemId, InWorld, InChangeList);

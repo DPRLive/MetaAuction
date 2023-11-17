@@ -6,6 +6,7 @@
 #include "ItemManager.generated.h"
 
 class AItemActor;
+class UModelTransData;
 class IStompMessage;
 
 /**
@@ -36,7 +37,9 @@ public:
 	
 	// 아이템 정보 변동을 처리한다.
 	void Server_ChangeItemData(const uint32& InItemId, const FString& InWorld, const FString& InChangeList) const;
-	
+
+	// 배치된 물품 모델링의 상대적 Transform을 변경합니다. (서버에서만 사용 가능)
+	void Server_SetModelTransform(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InReleativeTrans);
 private:
 	// 웹서버에 등록된 현재 월드에 배치되어 판매되고 있는 아이템들의 ID를 가져와 배치한다.
 	// 데디 서버에서만 실행 가능합니다.
@@ -61,4 +64,8 @@ private:
 	// TODO : 근데 클라이언트에서 접근할 일이 있을까?
 	UPROPERTY( Replicated )
 	TArray<TWeakObjectPtr<AItemActor>> ItemActors;
+
+	// Item Actor 에서 그린 모델의 Transform에 대한 설정값들을 관리하는 클래스.
+	UPROPERTY()
+	TObjectPtr<UModelTransData> Server_ModelTransData;
 };

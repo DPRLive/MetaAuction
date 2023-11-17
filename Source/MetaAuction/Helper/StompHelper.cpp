@@ -28,7 +28,7 @@ FStompHelper::FStompHelper()
 */
 FStompSubscriptionId FStompHelper::Subscribe(const FString& InUrl, const FStompSubscriptionEvent& InEvent) const
 {
-	if(Stomp.IsValid() && Stomp->IsConnected())
+	if(Stomp.IsValid())
 	{
 		return Stomp->Subscribe(InUrl, InEvent);
 	}
@@ -41,7 +41,7 @@ FStompSubscriptionId FStompHelper::Subscribe(const FString& InUrl, const FStompS
 */
 void FStompHelper::Unsubscribe(const FStompSubscriptionId& InEventId) const
 {
-	if(Stomp.IsValid() && Stomp->IsConnected())
+	if(Stomp.IsValid())
 	{
 		Stomp->Unsubscribe(InEventId);
 	}
@@ -54,7 +54,7 @@ void FStompHelper::Unsubscribe(const FStompSubscriptionId& InEventId) const
  */
 void FStompHelper::SendMessage(const FString& InUrl, const FString& InContent) const
 {
-	if(Stomp.IsValid() && Stomp->IsConnected())
+	if(Stomp.IsValid())
 	{
 		Stomp->Send(InUrl, InContent);
 	}

@@ -18,7 +18,8 @@ public:
 	~FHttpHelper();
 	
 	// Http 요청 함수
-	void Request(const FString& InAddUrl, const EHttpRequestType InType, const FCompleteCallback& InFunc, const FString& InBody = TEXT("")) const;
+	void Request(const FString& InAddUrl, const EHttpRequestType InType, const FCompleteCallback& InFunc,
+		const FString& InBody = TEXT(""), const FString& InJwtToken = TEXT("")) const;
 	
 private:
 	// Http 요청에 사용할 모듈

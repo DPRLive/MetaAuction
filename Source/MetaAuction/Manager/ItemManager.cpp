@@ -1,10 +1,14 @@
 
 #include "ItemManager.h"
 #include "../Actor/ItemActor.h"
+#include "Data/ModelTransData.h"
 
 #include <Kismet/GameplayStatics.h>
 #include <Net/UnrealNetwork.h>
 #include <IStompMessage.h>
+
+#include "Core/MAGameInstance.h"
+#include "Data/LoginData.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ItemManager)
 
@@ -43,6 +47,10 @@ void UItemManager::BeginPlay()
 			return a1->GetLevelPosition() < a2->GetLevelPosition();
 		});
 
+		// 서버의 ItemManager에서는 Model들의 Trans를 관리한다.
+		Server_ModelTransData = NewObject<UModelTransData>(this);
+		Server_ModelTransData->LoadData();
+		
 		// TODO: 추후 login 기능 나오면 이후 로직으로 따로 빼면 좋을듯
 
 		// 서버에서 WebSocket에 구독할 것들을 구독한다.
@@ -86,6 +94,12 @@ void UItemManager::Server_UnregisterItem(uint32 InItemId) const
 		if(itemActor.IsValid() && itemActor->GetItemID() == InItemId)
 		{
 			itemActor->Server_RemoveItem();
+
+			// 트랜스폼 데이터도 지운다
+			if(IsValid((Server_ModelTransData)))
+			{
+				Server_ModelTransData->RemoveTrans(InItemId);
+			}
 			break;
 		}
 	}
@@ -148,6 +162,47 @@ void UItemManager::Server_ChangeItemData(const uint32& InItemId, const FString& 
 }
 
 /**
+ * 배치된 물품 모델링의 상대적 Transform을 변경합니다. (서버에서만 사용 가능)
+ * @param InJwtToken : 검증을 위한 JwtToken
+ * @param InItemLoc : 변경할 모델이 배치된 위치
+ * @param InReleativeTrans : 변경할 모델의 상대적 Transform
+ */
+void UItemManager::Server_SetModelTransform(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InReleativeTrans)
+{
+	CHECK_DEDI_FUNC;
+	
+	const uint8 itemActorIdx = InItemLoc - 1;
+	
+	if(!ItemActors[itemActorIdx].IsValid())
+		return;
+	
+	// 그 위치에 판매중인 물품을 확인
+	const uint32 itemId = ItemActors[itemActorIdx]->GetItemID();
+
+	// 검증 후 변경하던가 한다
+	if(const UItemDataHandler* itemDataHandler = MAGetItemDataHandler(GetWorld()->GetGameState()))
+	{
+		TWeakObjectPtr<UItemManager> thisPtr = this;
+		itemDataHandler->Server_ValidateItem(itemId, InJwtToken, [thisPtr, itemActorIdx, InReleativeTrans](const bool InIsMine)
+		{
+			if(thisPtr.IsValid() && InIsMine && thisPtr->ItemActors[itemActorIdx].IsValid())
+			{
+				// 검증 성공! 변경!
+				thisPtr->ItemActors[itemActorIdx]->SetModelRelativeTrans(InReleativeTrans);
+
+				const uint32 itemId = thisPtr->ItemActors[itemActorIdx]->GetItemID();
+				// 정보도 저장
+				thisPtr->Server_ModelTransData->TryEmplaceTrans(itemActorIdx + 1, itemId, InReleativeTrans);
+
+				return;
+			}
+
+			LOG_WARN(TEXT("Transform edit failed!!"));
+		});
+	}
+}
+
+/**
  * 웹서버에 등록된 현재 월드에 배치되어 판매되고 있는 아이템들의 ID를 가져와 배치한다.
  * 데디 서버에서만 실행 가능합니다.
  */
@@ -197,6 +252,21 @@ void UItemManager::_Server_RegisterItemByLoc(uint32 InItemId, uint8 InItemLoc) c
 	if(ItemActors[registerIdx].IsValid())
 	{
 		ItemActors[registerIdx]->SetItemID(InItemId);
+	}
+
+	// 그릴 모델의 상대적 trans도 있다면 같이 설정해준다.
+	if(IsValid(Server_ModelTransData))
+	{
+		if(auto* modelTrans = Server_ModelTransData->GetItemModelTrans().Find(InItemLoc))
+		{
+			if(modelTrans->Key == InItemId) // item id와 같으면 설정해줌
+			{
+				ItemActors[registerIdx]->SetModelRelativeTrans(modelTrans->Value);
+				return;
+			}
+			// 아니면 들고 있을 필요가 없으니 지워버린다
+			Server_ModelTransData->RemoveTrans(InItemLoc);
+		}
 	}
 }
 
