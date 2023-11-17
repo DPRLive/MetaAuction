@@ -11,6 +11,7 @@
 class UBoxComponent;
 class AglTFRuntimeAssetActor;
 class UUserWidget;
+class UMANameplateWidget;
 
 /**
  *  경매 물품을 랜더링해 줄 Actor,
@@ -61,13 +62,16 @@ public:
 	void Client_RedrawModel();
 
 	// 상호 작용을 위한 함수들
-	virtual bool CanInteracting_Implementation() const override;
+	virtual bool CanInteracting_Implementation(AActor* InInteractorActor) const override;
 
 	// 상호 작용 시작 함수
-	virtual void BeginInteracting_Implementation(AActor* InteractorActor, FHitResult& HitResult) override;
+	virtual void BeginInteracting_Implementation(AActor* InInteractorActor, FHitResult& HitResult) override;
 	
 	// 상호 작용 종료 함수
-	virtual void EndInteracting_Implementation(AActor* InteractorActor) override;
+	virtual void EndInteracting_Implementation(AActor* InInteractorActor) override;
+
+	// 입력 상호작용 함수
+	virtual void InputInteraction_Implementation(AActor* InteractorActor) override;
 private:
 	// 물품 배치 해주는 함수, ItemID가 Replicate 되면 호출
 	UFUNCTION()
@@ -111,7 +115,11 @@ private:
 	UPROPERTY( VisibleInstanceOnly )
 	TWeakObjectPtr<AglTFRuntimeAssetActor> Client_Model;
 
-	// 수정 관련 UI
+	// 수정 가이드 UI class
 	UPROPERTY(EditDefaultsOnly, Category = UI)
 	TSubclassOf<UUserWidget> GuideWidgetClass;
+
+	// 수정 가이드 UI의 instance
+	UPROPERTY( Transient )
+	TObjectPtr<UMANameplateWidget> GuideWidgetPtr;
 };

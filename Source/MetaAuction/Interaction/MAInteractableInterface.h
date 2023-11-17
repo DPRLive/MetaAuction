@@ -25,7 +25,7 @@ public:
 
 	// 상호작용할 수 있는지를 나타냅니다.
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	bool CanInteracting() const;
+	bool CanInteracting(AActor* InteractorActor) const;
 
 	// 상호작용이 시작될 때 호출됩니다.
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
@@ -34,4 +34,8 @@ public:
 	// 상호작용이 종료될 때 호출됩니다.
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void EndInteracting(AActor* InteractorActor);
+
+	// 입력 상호작용을 호출합니다.
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void InputInteraction(AActor* InteractorActor);
 };

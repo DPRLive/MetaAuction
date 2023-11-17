@@ -110,25 +110,25 @@ void AItemActor::Client_RedrawModel()
 /**
  * 상호 작용을 위한 함수들
  */
-bool AItemActor::CanInteracting_Implementation() const
+bool AItemActor::CanInteracting_Implementation(AActor* InInteractorActor) const
 {
+	// 클라이언트가 조종하고 있는 특정 actor일때만 반응합니다.
+	// 판매자랑 현재 로그인된 유저랑 일치할 때 반응합니다.
+	if((InInteractorActor->GetLocalRole() != ROLE_AutonomousProxy) ||
+		(SellerName != MAGetMyUserName(GetGameInstance())))
+			return false;
+	
 	return true;
 }
 
 /**
  * 상호 작용시작 함수
  */
-void AItemActor::BeginInteracting_Implementation(AActor* InteractorActor, FHitResult& HitResult)
+void AItemActor::BeginInteracting_Implementation(AActor* InInteractorActor, FHitResult& HitResult)
 {
-	// 클라이언트가 조종하고 있는 특정 actor일때만 반응합니다.
-	// 판매자랑 현재 로그인된 유저랑 일치할 때 반응합니다.
-	if((InteractorActor->GetLocalRole() != ROLE_AutonomousProxy) ||
-		(SellerName != MAGetMyUserName(GetGameInstance())))
-		return;
-
 	// PlayerController를 가져올 수 있는지 확인합니다.
 	APlayerController* controller = nullptr;
-	if(APawn* interActorPawn = Cast<APawn>(InteractorActor))
+	if(APawn* interActorPawn = Cast<APawn>(InInteractorActor))
 	{
 		controller = Cast<APlayerController>(interActorPawn->GetController());
 	}
@@ -136,26 +136,31 @@ void AItemActor::BeginInteracting_Implementation(AActor* InteractorActor, FHitRe
 	if(!IsValid(controller))
 		return;
 
+	if(!IsValid(GuideWidgetPtr))
+		GuideWidgetPtr = CreateWidget<UMANameplateWidget>(controller, GuideWidgetClass);
+	
 	// 위젯을 생성^^
-	if (UMANameplateWidget* NameplateWidget = CreateWidget<UMANameplateWidget>(controller, GuideWidgetClass))
-	{
-		NameplateWidget->SetName(FText::FromString(TEXT("F 키를 눌러 Transform 수정")));
-	
-		FVector2D screenPos;
-		controller->ProjectWorldLocationToScreen(HitResult.Location, screenPos);
-		
-		NameplateWidget->SetPositionInViewport(screenPos);
-		NameplateWidget->AddToViewport(-1);
-	}
-	
-	LOG_WARN(TEXT("Begin Interaction!"));
+	GuideWidgetPtr->SetName(FText::FromString(TEXT("F 키를 눌러 Transform 수정")));
 
-	
+	FVector2D screenPos;
+	controller->ProjectWorldLocationToScreen(HitResult.Location, screenPos);
+
+	GuideWidgetPtr->SetPositionInViewport(screenPos);
+	GuideWidgetPtr->AddToViewport(-1);
 }
 
-void AItemActor::EndInteracting_Implementation(AActor* InteractorActor)
+void AItemActor::EndInteracting_Implementation(AActor* InInteractorActor)
 {
-	LOG_WARN(TEXT("End Interaction!"));
+	if(IsValid(GuideWidgetPtr))
+	{
+		GuideWidgetPtr->RemoveFromParent();
+	}
+}
+
+void AItemActor::InputInteraction_Implementation(AActor* InteractorActor)
+{
+	IMAInteractableInterface::InputInteraction_Implementation(InteractorActor);
+	
 }
 
 /**
