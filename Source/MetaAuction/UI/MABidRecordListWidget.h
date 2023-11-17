@@ -28,6 +28,8 @@ public:
 
 private:
 
+	int32 Order;
+
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UListView> BidRecordListView;
 };

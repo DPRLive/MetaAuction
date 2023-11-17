@@ -18,7 +18,6 @@
 #include <Components/Button.h>
 #include <Components/ListView.h>
 #include <Components/EditableTextBox.h>
-#include <ImageUtils.h>
 
 UMAItemInfoWidget::UMAItemInfoWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -32,12 +31,15 @@ void UMAItemInfoWidget::NativeConstruct()
 
 	ensure(ItemImage);
 	ensure(TitleText);
-	ensure(InformationText);
-	ensure(BuyerNameText);
-	ensure(SellerNameText);
+	ensure(EndTimeText);
 	ensure(StartPriceText);
 	ensure(CurrentPriceText);
-	ensure(EndTimeText);
+	ensure(BuyerNameText);
+	ensure(SellerNameText);
+	ensure(ItemDealTypeText);
+	ensure(WorldText);
+	ensure(LocationText);
+	ensure(InformationText);
 	ensure(ItemImagePrevButton);
 	ensure(ItemImageNextButton);
 	ensure(WBP_ItemImageList);
@@ -76,9 +78,13 @@ void UMAItemInfoWidget::NativeConstruct()
 		}
 	}
 
+	if (IsValid(BidButton))
+	{
+		BidButton->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
 	if (IsValid(BidPriceText))
 	{
-		BidPriceText->SetVisibility(ESlateVisibility::Collapsed);
 		BidPriceText->OnTextChanged.AddDynamic(this, &ThisClass::BidPriceTextChanged);
 		BidPriceText->OnTextCommitted.AddDynamic(this, &ThisClass::BidPriceTextCommited);
 	}
@@ -127,10 +133,17 @@ void UMAItemInfoWidget::Update(const FItemData& InItemData)
 	CachedItemData = InItemData;
 
 	TitleText->SetText(FText::FromString(InItemData.Title));
-	InformationText->SetText(FText::FromString(InItemData.Information));
+	EndTimeText->SetText(FText::FromString(InItemData.EndTime.ToString()));
 	BuyerNameText->SetText(FText::FromString(InItemData.BuyerName));
 	SellerNameText->SetText(FText::FromString(InItemData.SellerName));
-	EndTimeText->SetText(FText::FromString(InItemData.EndTime.ToString()));
+	const UEnum* EnumPtr = FindFirstObjectSafe<UEnum>(TEXT("EItemDealType"));
+	if (IsValid(EnumPtr))
+	{
+		ItemDealTypeText->SetText(EnumPtr->GetDisplayNameTextByValue(static_cast<int64>(InItemData.Type)));
+	}
+	WorldText->SetText(FText::FromString(InItemData.World));
+	LocationText->SetText(FText::AsNumber(InItemData.Location));
+	InformationText->SetText(FText::FromString(InItemData.Information));
 
 	FNumberFormattingOptions NumberFormatOptions;
 	NumberFormatOptions.SetUseGrouping(true);
@@ -162,24 +175,20 @@ void UMAItemInfoWidget::Update(const FItemData& InItemData)
 			EItemCanDeal ItemCanDeal = AuctionWidget->GetCachedItemCanDeal();
 			if (ItemCanDeal == EItemCanDeal::Possible)
 			{
-				// 입찰 버튼 보이기 (판매중 && 경매 && 판매자가 내가 아닌경우) 
-				if (IsValid(BidButton) && CachedItemData.Type == EItemDealType::Auction && MAGetMyUserName(MAGetGameInstance()) != CachedItemData.SellerName)
+				// 입찰 박스 보이기 (판매중 && 경매 && 판매자가 내가 아닌경우) 
+				if (CachedItemData.Type == EItemDealType::Auction && MAGetMyUserName(MAGetGameInstance()) != CachedItemData.SellerName)
 				{
-					if (IsValid(BidPriceText))
-					{
-						BidPriceText->SetVisibility(ESlateVisibility::Visible);
-					}
 					BidButton->SetVisibility(ESlateVisibility::Visible);
 				}
 
 				// 채팅하기 버튼 보이기 (판매중 && 일반 판매 && 판매자가 내가 아닌경우)
-				if (IsValid(ChatButton) && CachedItemData.Type == EItemDealType::Normal && MAGetMyUserName(MAGetGameInstance()) != CachedItemData.SellerName)
+				if (CachedItemData.Type == EItemDealType::Normal && MAGetMyUserName(MAGetGameInstance()) != CachedItemData.SellerName)
 				{
 					ChatButton->SetVisibility(ESlateVisibility::Visible);
 				}
 
 				// 삭제하기 버튼 보이기 (판매중 && 내 물품인 경우)
-				if (IsValid(DeleteButton) && MAGetMyUserName(MAGetGameInstance()) == CachedItemData.SellerName)
+				if (MAGetMyUserName(MAGetGameInstance()) == CachedItemData.SellerName)
 				{
 					DeleteButton->SetVisibility(ESlateVisibility::Visible);
 				}
@@ -241,7 +250,6 @@ void UMAItemInfoWidget::BidButtonClicked()
 				{
 					if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(ThisPtr->GetOwningPlayer()))
 					{
-						UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget();
 						if (ThisPtr.IsValid() && Type == EMAConfirmCancelPopupType::Confirm)
 						{
 							UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState());
@@ -250,17 +258,13 @@ void UMAItemInfoWidget::BidButtonClicked()
 								int32 Price = FCString::Atoi(*ThisPtr->BidPriceText->GetText().ToString());
 								LOG_WARN(TEXT("입찰가 : %d"), Price);
 								ItemDataHandler->Client_RequestBid(ThisPtr->CachedItemData.ItemID, Price);
-							}
-							if (IsValid(PopupWidget))
-							{
-								PopupWidget->SetText(TEXT("입찰을 완료하였습니다."));
-							}
-						}
-						else
-						{
-							if (IsValid(PopupWidget))
-							{
-								PopupWidget->SetText(TEXT("입찰을 실패하였습니다."));
+								// TODO: Client_RequestBid()가 성공 및 실패를 알려주면 팝업 띄우기
+								//UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget();
+								//if (IsValid(PopupWidget))
+								//{
+								//	PopupWidget->SetText(TEXT("입찰을 완료하였습니다."));
+								//	PopupWidget->SetText(TEXT("입찰을 실패하였습니다."));
+								//}
 							}
 						}
 					}
@@ -299,22 +303,19 @@ void UMAItemInfoWidget::DetailsButtonClicked()
 // 텍스트 상자의 OnTextChanged 이벤트 핸들러에서 호출되는 함수
 void UMAItemInfoWidget::BidPriceTextChanged(const FText& InText)
 {
-	if (IsValid(BidPriceText))
+	FString FilteredString = "";
+	FString InString = InText.ToString();
+
+	for (int32 i = 0; i < InString.Len(); ++i)
 	{
-		FString FilteredString = "";
-		FString InString = InText.ToString();
-
-		for (int32 i = 0; i < InString.Len(); ++i)
+		// 숫자인 경우에만 문자열에 추가
+		if (FChar::IsDigit(InString[i]))
 		{
-			// 숫자인 경우에만 문자열에 추가
-			if (FChar::IsDigit(InString[i]))
-			{
-				FilteredString.AppendChar(InString[i]);
-			}
+			FilteredString.AppendChar(InString[i]);
 		}
-
-		BidPriceText->SetText(FText::FromString(FilteredString));
 	}
+
+	BidPriceText->SetText(FText::FromString(FilteredString));
 }
 
 void UMAItemInfoWidget::BidPriceTextCommited(const FText& InText, ETextCommit::Type InCommitMethod)

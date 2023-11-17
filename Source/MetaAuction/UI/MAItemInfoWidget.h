@@ -70,7 +70,13 @@ private:
 	TObjectPtr<class UTextBlock> TitleText;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UTextBlock> InformationText;
+	TObjectPtr<class UTextBlock> EndTimeText;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UTextBlock> StartPriceText;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UTextBlock> CurrentPriceText;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UTextBlock> BuyerNameText;
@@ -79,13 +85,16 @@ private:
 	TObjectPtr<class UTextBlock> SellerNameText;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UTextBlock> StartPriceText;
-	
+	TObjectPtr<class UTextBlock> ItemDealTypeText;
+
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UTextBlock> CurrentPriceText;
-	
+	TObjectPtr<class UTextBlock> WorldText;
+
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UTextBlock> EndTimeText;
+	TObjectPtr<class UTextBlock> LocationText;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UTextBlock> InformationText;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UButton> ItemImagePrevButton;

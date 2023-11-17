@@ -9,6 +9,7 @@
 #include <Components/Image.h>
 #include <Components/TextBlock.h>
 #include <Components/Button.h>
+#include <Components/HorizontalBox.h>
 #include <ImageUtils.h>
 
 UMAItemEntryWidget::UMAItemEntryWidget(const FObjectInitializer& ObjectInitializer)
@@ -21,10 +22,10 @@ void UMAItemEntryWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	ensure(TitleText);
-	ensure(BuyerNameText);
 	ensure(SellerNameText);
-	ensure(StartPriceText);
 	ensure(CurrentPriceText);
+	ensure(BuyerNameBox);
+	ensure(BuyerNameText);
 	ensure(EndTimeText);
 	ensure(ItemImage);
 	ensure(DetailsButton);
@@ -56,43 +57,22 @@ void UMAItemEntryWidget::UpdateAll(const FItemData& InItemData)
 void UMAItemEntryWidget::UpdateText(const FItemData& InItemData)
 {
 	TitleText->SetText(FText::FromString(InItemData.Title));
-	BuyerNameText->SetText(FText::FromString(InItemData.BuyerName));
 	SellerNameText->SetText(FText::FromString(InItemData.SellerName));
-	EndTimeText->SetText(FText::FromString(InItemData.EndTime.ToString()));
-
 	FNumberFormattingOptions NumberFormatOptions;
 	NumberFormatOptions.SetUseGrouping(true);
-
-	StartPriceText->SetText(FText::AsNumber(InItemData.StartPrice, &NumberFormatOptions));
 	CurrentPriceText->SetText(FText::AsNumber(InItemData.CurrentPrice, &NumberFormatOptions));
+	BuyerNameText->SetText(FText::FromString(InItemData.BuyerName.IsEmpty() ? TEXT("없음") : InItemData.BuyerName));
+	EndTimeText->SetText(FText::FromString(InItemData.EndTime.ToString()));
 
-	const int32 MaxEndTimeIndex = 5;
-	//const TArray<uint16>& EndTime = InItemData.EndTime;
-	// TArray<uint16> TempTime;
-	// TempTime.Init(0, 5);
-	// for (int32 i = 0; i < MaxEndTimeIndex; i++)
-	// {
-	// 	if (EndTime.IsValidIndex(i))
-	// 	{
-	// 		TempTime[i] = EndTime[i];
-	// 	}
-	// }
-	// FString EndTimeString = FString::Printf(TEXT("%04d.%02d.%02d.%02d.%02d"), TempTime[0], TempTime[1], TempTime[2], TempTime[3], TempTime[4]);
-	// EndTimeText->SetText(FText::FromString(EndTimeString));
+	// 경매가 아니면 숨기기
+	if (InItemData.Type != EItemDealType::Auction)
+	{
+		BuyerNameBox->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 
 void UMAItemEntryWidget::UpdateImage(const FItemData& InItemData)
 {
-	// for (const FString& ImgPath : InItemData.ImgPaths)
-	// {
-	// 	UTexture2D* Texture = FImageUtils::ImportFileAsTexture2D(ImgPath);
-	// 	if (IsValid(Texture))
-	// 	{
-	// 		ItemImage->SetBrushFromTexture(Texture, false);
-	// 		break;
-	// 	}
-	// }
-
 	FItemFileHandler* ItemFileHandler = MAGetItemFileHandler(MAGetGameInstance(GetWorld()));
 	if (nullptr != ItemFileHandler)
 	{

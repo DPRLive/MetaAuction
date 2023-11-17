@@ -46,16 +46,16 @@ private:
 	TObjectPtr<class UTextBlock> TitleText;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UTextBlock> BuyerNameText;
-
-	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UTextBlock> SellerNameText;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UTextBlock> StartPriceText;
+	TObjectPtr<class UTextBlock> CurrentPriceText;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UTextBlock> CurrentPriceText;
+	TObjectPtr<class UHorizontalBox> BuyerNameBox;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UTextBlock> BuyerNameText;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UTextBlock> EndTimeText;

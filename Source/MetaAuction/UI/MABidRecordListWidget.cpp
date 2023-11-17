@@ -10,6 +10,7 @@
 UMABidRecordListWidget::UMABidRecordListWidget(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
 {
+	Order = 0;
 }
 
 void UMABidRecordListWidget::NativeConstruct()
@@ -33,10 +34,13 @@ void UMABidRecordListWidget::Update(const FItemData& InItemData)
 				{
 					if (ThisPtr.IsValid())
 					{
+						ThisPtr->Order = InBidRecords.Num();
 						for (const FBidRecord& BidRecord : InBidRecords)
 						{
+							// Entry->Data.Order는 기본키 값이므로 순서가 이상할 수 있으므로 직접 세야 한다.
 							UMABidRecordEntry* Entry = NewObject<UMABidRecordEntry>();
 							Entry->Data = BidRecord;
+							Entry->Data.Order = ThisPtr->Order--;
 							ThisPtr->BidRecordListView->AddItem(Entry);
 						}
 					}
