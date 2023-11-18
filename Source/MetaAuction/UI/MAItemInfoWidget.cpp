@@ -249,7 +249,7 @@ void UMAItemInfoWidget::BidButtonClicked()
 							{
 								int32 Price = FCString::Atoi(*ThisPtr->BidPriceText->GetText().ToString());
 								LOG_WARN(TEXT("입찰가 : %d"), Price);
-								ItemDataHandler->Client_RequestBid(ThisPtr->CachedItemData.ItemID, Price);
+								// ItemDataHandler->Client_RequestBid(ThisPtr->CachedItemData.ItemID, Price);
 							}
 							if (IsValid(PopupWidget))
 							{

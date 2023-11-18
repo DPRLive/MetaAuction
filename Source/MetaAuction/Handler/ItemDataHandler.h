@@ -3,6 +3,7 @@
 #pragma once
 
 #include <Components/ActorComponent.h>
+
 #include "ItemDataHandler.generated.h"
 
 class IStompMessage;
@@ -144,14 +145,14 @@ public:
 	void RequestItemDataByOption(const FCallbackRefArray<FItemData>& InFunc, const FItemSearchOption& InSearchOption) const;
 
 	// HTTP 통신으로 웹서버에 입찰을 요청하는 함수입니다.
-	void Client_RequestBid(uint32 InItemId, uint64 InPrice) const;
+	void Client_RequestBid(const uint32 InItemId, const uint64& InPrice, const FCallbackRefOneParam<FString>& InFunc) const;
 
 	// ItemID로 물품에 대한 입찰 기록을 조회합니다. DB에서 입찰 순서대로 내림차순(최근 입찰 기록이 먼저)해서 정렬하여 주니, 그대로 배열을 사용하시면 됩니다.
 	// 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
-	void RequestBidRecordByItemId(const FCallbackRefArray<FBidRecord>& InFunc, uint32 InItemId) const;
+	void RequestBidRecordByItemId(const FCallbackRefArray<FBidRecord>& InFunc, const uint32 InItemId) const;
 
 	// ItemId로 물품을 삭제합니다. (로그인 된 상태여야 함), (JWT 토큰 확인으로 내 물품이 맞을 경우만 삭제함, 판매 종료 3시간 전에는 삭제 불가)
-	void RequestRemoveItem(uint32 InItemId) const;
+	void RequestRemoveItem(const uint32 InItemId) const;
 
 	// Type : Sell (내가 판매했던 or 판매 중인 or 판매했는데 입찰 실패한 물품을 요청합니다. 최근에 업로드한 물품이 배열의 앞) 
 	// Type : Buy (내가 구매 성공한 물품을 요청합니다. 최근에 업로드한 물품이 배열의 앞)
