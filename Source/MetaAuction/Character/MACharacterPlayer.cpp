@@ -5,7 +5,7 @@
 #include "Camera/MACameraModeComponent.h"
 #include "Input/MAInputInitializeComponent.h"
 #include "UI/MANameplateWidget.h"
-#include "UI/MAChatBubbleWidgetComponent.h"
+#include "UI/Chat/MAChatBubbleWidgetComponent.h"
 
 #include <Camera/CameraComponent.h>
 #include <Components/CapsuleComponent.h>

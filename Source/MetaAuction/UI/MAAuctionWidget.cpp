@@ -2,8 +2,8 @@
 
 
 #include "UI/MAAuctionWidget.h"
-#include "UI/MAItemTileWidget.h"
-#include "UI/MAItemFilterWidget.h"
+#include "UI/Item/MAItemTileWidget.h"
+#include "UI/Item/MAItemFilterWidget.h"
 #include "Common/MALog.h"
 
 #include <Components/HorizontalBox.h>
