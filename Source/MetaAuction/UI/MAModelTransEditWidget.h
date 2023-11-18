@@ -5,7 +5,6 @@
 #include <Blueprint/UserWidget.h>
 #include "MAModelTransEditWidget.generated.h"
 
-class AMAPlayerController;
 class UEditableTextBox;
 class UButton;
 
@@ -20,9 +19,13 @@ class METAAUCTION_API UMAModelTransEditWidget : public UUserWidget
 protected:
 	virtual void NativeConstruct() override;
 
+	
 public:
 	virtual void RemoveFromParent() override;
 
+	// UI에서 변경을 위해 사용할 Data를 넣습니다.
+	void PushData(const uint8 InItemLoc, const FTransform& InNowTransform);
+	
 private:
 	UFUNCTION()
 	void _OnClickVerifyBtn();
@@ -66,8 +69,5 @@ private:
 	TObjectPtr<UButton> VerifyBtn;
 
 	// 변경할 Item의 Location
-	uint32 ItemLoc;
-
-	// 변경을 요청할 컨트롤러
-	TWeakObjectPtr<AMAPlayerController> RequestController; 
+	uint8 ItemLoc;
 };

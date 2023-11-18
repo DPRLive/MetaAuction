@@ -4,12 +4,11 @@
 #include "ItemActor.h"
 #include "glTFRuntimeAssetActor.h"
 #include "GameFramework/Pawn.h"
-#include "../UI/MANameplateWidget.h"
+#include "UI/MAHUDWidget.h"
+#include "Player/MAPlayerController.h"
 
 #include <Components/BoxComponent.h>
 #include <Net/UnrealNetwork.h>
-#include <Blueprint/UserWidget.h>
-
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ItemActor)
 
@@ -27,13 +26,14 @@ AItemActor::AItemActor()
 	RootComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	RootComp->CanCharacterStepUpOn = ECB_No;
 	SetRootComponent(RootComp);
-	
+
+	InteractInfo = FText();
 	LevelPosition = 0;
+	Client_Model = nullptr;
+	
 	ItemID = 0;
 	SellerName = TEXT("");
 	ModelRelativeTrans = FTransform();
-	
-	Client_Model = nullptr;
 }
 
 void AItemActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -127,40 +127,61 @@ bool AItemActor::CanInteracting_Implementation(AActor* InInteractorActor) const
 void AItemActor::BeginInteracting_Implementation(AActor* InInteractorActor, FHitResult& HitResult)
 {
 	// PlayerController를 가져올 수 있는지 확인합니다.
-	APlayerController* controller = nullptr;
+	AMAPlayerController* controller = nullptr;
 	if(APawn* interActorPawn = Cast<APawn>(InInteractorActor))
 	{
-		controller = Cast<APlayerController>(interActorPawn->GetController());
+		controller = Cast<AMAPlayerController>(interActorPawn->GetController());
 	}
 
 	if(!IsValid(controller))
 		return;
 
-	if(!IsValid(GuideWidgetPtr))
-		GuideWidgetPtr = CreateWidget<UMANameplateWidget>(controller, GuideWidgetClass);
-	
-	// 위젯을 생성^^
-	GuideWidgetPtr->SetName(FText::FromString(TEXT("F 키를 눌러 Transform 수정")));
-
-	FVector2D screenPos;
-	controller->ProjectWorldLocationToScreen(HitResult.Location, screenPos);
-
-	GuideWidgetPtr->SetPositionInViewport(screenPos);
-	GuideWidgetPtr->AddToViewport(-1);
-}
-
-void AItemActor::EndInteracting_Implementation(AActor* InInteractorActor)
-{
-	if(IsValid(GuideWidgetPtr))
+	// hud에게 어떤 상호작용인지 알려준다.
+	UMAHUDWidget* hud = controller->GetHUDWidget();
+	if(IsValid(hud))
 	{
-		GuideWidgetPtr->RemoveFromParent();
+		hud->ToggleInteract(true, InteractInfo);
 	}
 }
 
+/**
+ * 상호 작용 종료 함수
+ */
+void AItemActor::EndInteracting_Implementation(AActor* InInteractorActor)
+{
+	// PlayerController를 가져올 수 있는지 확인합니다.
+	AMAPlayerController* controller = nullptr;
+	if(APawn* interActorPawn = Cast<APawn>(InInteractorActor))
+	{
+		controller = Cast<AMAPlayerController>(interActorPawn->GetController());
+	}
+
+	if(!IsValid(controller))
+		return;
+
+	// hud에게 상호작용 안내를 종료시킨다.
+	UMAHUDWidget* hud = controller->GetHUDWidget();
+	if(IsValid(hud))
+	{
+		hud->ToggleInteract(false);
+	}
+}
+
+/**
+ * 입력 상호 작용 함수
+ */
 void AItemActor::InputInteraction_Implementation(AActor* InteractorActor)
 {
-	IMAInteractableInterface::InputInteraction_Implementation(InteractorActor);
-	
+	LOG_N(TEXT("Input Interaction!"));
+
+	// Player Controller에게 수정 위젯을 띄우라고 명령
+	if(APawn* interActorPawn = Cast<APawn>(InteractorActor))
+	{
+		if(AMAPlayerController* controller = Cast<AMAPlayerController>(interActorPawn->GetController()))
+		{
+			controller->CreateModelTransEditWidget(LevelPosition, ModelRelativeTrans);
+		}
+	}
 }
 
 /**

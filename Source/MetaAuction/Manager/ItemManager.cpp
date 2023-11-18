@@ -165,9 +165,9 @@ void UItemManager::Server_ChangeItemData(const uint32& InItemId, const FString& 
  * 배치된 물품 모델링의 상대적 Transform을 변경합니다. (서버에서만 사용 가능)
  * @param InJwtToken : 검증을 위한 JwtToken
  * @param InItemLoc : 변경할 모델이 배치된 위치
- * @param InReleativeTrans : 변경할 모델의 상대적 Transform
+ * @param InRelativeTrans : 변경할 모델의 상대적 Transform
  */
-void UItemManager::Server_SetModelTransform(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InReleativeTrans)
+void UItemManager::Server_SetModelTransform(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InRelativeTrans)
 {
 	CHECK_DEDI_FUNC;
 	
@@ -183,16 +183,16 @@ void UItemManager::Server_SetModelTransform(const FString& InJwtToken, const uin
 	if(const UItemDataHandler* itemDataHandler = MAGetItemDataHandler(GetWorld()->GetGameState()))
 	{
 		TWeakObjectPtr<UItemManager> thisPtr = this;
-		itemDataHandler->Server_ValidateItem(itemId, InJwtToken, [thisPtr, itemActorIdx, InReleativeTrans](const bool InIsMine)
+		itemDataHandler->Server_ValidateItem(itemId, InJwtToken, [thisPtr, itemActorIdx, InRelativeTrans](const bool InIsMine)
 		{
 			if(thisPtr.IsValid() && InIsMine && thisPtr->ItemActors[itemActorIdx].IsValid())
 			{
 				// 검증 성공! 변경!
-				thisPtr->ItemActors[itemActorIdx]->SetModelRelativeTrans(InReleativeTrans);
+				thisPtr->ItemActors[itemActorIdx]->SetModelRelativeTrans(InRelativeTrans);
 
 				const uint32 itemId = thisPtr->ItemActors[itemActorIdx]->GetItemID();
 				// 정보도 저장
-				thisPtr->Server_ModelTransData->TryEmplaceTrans(itemActorIdx + 1, itemId, InReleativeTrans);
+				thisPtr->Server_ModelTransData->TryEmplaceTrans(itemActorIdx + 1, itemId, InRelativeTrans);
 
 				return;
 			}

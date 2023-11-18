@@ -2,6 +2,7 @@
 
 
 #include "UI/MAModelTransEditWidget.h"
+#include "Player/MAPlayerController.h"
 
 #include <Components/EditableTextBox.h>
 #include <Components/Button.h>
@@ -24,18 +25,44 @@ void UMAModelTransEditWidget::NativeConstruct()
 	VerifyBtn->OnClicked.AddDynamic(this, &UMAModelTransEditWidget::UMAModelTransEditWidget::_OnClickVerifyBtn);
 
 	ItemLoc = 0;
-	RequestController = nullptr;
 }
 
 /**
- *	데이터를 정리하고 닫습니다.
+ *	InputMode를 게임으로 설정하고 닫습니다.
  */
 void UMAModelTransEditWidget::RemoveFromParent()
 {
-	ItemLoc = 0;
-	RequestController = nullptr;
+	if(APlayerController* playerController = GetOwningPlayer())
+	{
+		FInputModeGameOnly gameInput;
+		playerController->SetInputMode(gameInput);
+		playerController->SetShowMouseCursor(false);
+	}
 	
 	Super::RemoveFromParent();
+}
+
+/**
+ *	UI에서 변경을 위해 사용할 Data를 넣습니다.
+ *	@param InItemLoc : 변경을 시도할 물품의 레벨 상 위치
+ *	@param InNowTransform : 현재 설정되어 있는 Transform
+ */
+void UMAModelTransEditWidget::PushData(const uint8 InItemLoc, const FTransform& InNowTransform)
+{
+	ItemLoc = InItemLoc;
+	
+	// 현재 Location 설정
+	TransXInput->SetText(FText::AsNumber(InNowTransform.GetLocation().X));
+	TransYInput->SetText(FText::AsNumber(InNowTransform.GetLocation().Y));
+	TransZInput->SetText(FText::AsNumber(InNowTransform.GetLocation().Z));
+	
+	// 현재 Rotate 설정
+	RotateRollInput->SetText(FText::AsNumber(InNowTransform.GetRotation().Rotator().Roll));
+	RotatePitchInput->SetText(FText::AsNumber(InNowTransform.GetRotation().Rotator().Pitch));
+	RotateYawInput->SetText(FText::AsNumber(InNowTransform.GetRotation().Rotator().Yaw));
+
+	// 현재 Scale 설정
+	ScaleInput->SetText(FText::AsNumber(InNowTransform.GetMinimumAxisScale()));
 }
 
 /**
@@ -61,12 +88,15 @@ void UMAModelTransEditWidget::_OnClickVerifyBtn()
 
 	// scale 0으로 들어오면 1로 변환
 	float scale = _CastNum(ScaleInput->GetText().ToString());
-	scale = FMath::IsNearlyZero(0.f) ? 1.f : scale;
+	scale = FMath::IsNearlyZero(scale) ? 1.f : scale;
 
 	FTransform newTransform = FTransform(newRot, newLoc, FVector(scale));
 
-	// TODO : PC받아와서 요청해야하
-	
+	// 서버로 변경 요청
+	if(AMAPlayerController* playerController = Cast<AMAPlayerController>(GetOwningPlayer()))
+	{
+		playerController->ServerRPC_SetModelRelativeTrans(MAGetMyJwtToken(GetGameInstance()), ItemLoc, newTransform);
+	}
 	
 	RemoveFromParent();
 }

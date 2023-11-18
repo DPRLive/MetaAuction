@@ -10,8 +10,6 @@
 
 class UBoxComponent;
 class AglTFRuntimeAssetActor;
-class UUserWidget;
-class UMANameplateWidget;
 
 /**
  *  경매 물품을 랜더링해 줄 Actor,
@@ -61,17 +59,12 @@ public:
 	// 클라이언트에서만 호출 가능합니다.
 	void Client_RedrawModel();
 
-	// 상호 작용을 위한 함수들
+	// 트랜스폼 수정 상호 작용을 위한 함수들
 	virtual bool CanInteracting_Implementation(AActor* InInteractorActor) const override;
-
-	// 상호 작용 시작 함수
 	virtual void BeginInteracting_Implementation(AActor* InInteractorActor, FHitResult& HitResult) override;
-	
-	// 상호 작용 종료 함수
 	virtual void EndInteracting_Implementation(AActor* InInteractorActor) override;
-
-	// 입력 상호작용 함수
 	virtual void InputInteraction_Implementation(AActor* InteractorActor) override;
+	
 private:
 	// 물품 배치 해주는 함수, ItemID가 Replicate 되면 호출
 	UFUNCTION()
@@ -90,36 +83,32 @@ private:
 	// 액터의 RootComp입니다
 	UPROPERTY( EditDefaultsOnly )
 	TObjectPtr<UBoxComponent> RootComp;
-	
-	// 이 액터에 배치된 물품 ID, 0은 할당되지 않음을 의미
-	UPROPERTY( VisibleInstanceOnly, ReplicatedUsing = OnRep_ItemID )
-	uint32 ItemID;
 
-	// 이 액터에 배치된 물품의 판매자 이름
-	UPROPERTY( VisibleInstanceOnly, Replicated )
-	FString SellerName;
-	
-	// 모델링의 상대적 Transform
-	UPROPERTY( VisibleInstanceOnly, ReplicatedUsing = OnRep_ModelRelativeTrans )
-	FTransform ModelRelativeTrans;
+	// 이 액터와 상호작용시 할 안내
+	UPROPERTY( EditDefaultsOnly )
+	FText InteractInfo;
 	
 	// 현재 이 ItemActor의 레벨상 위치, 레벨에 배치 후 설정 (1 부터 순서대로)
 	// 웹과 공유해야하므로 평면도에 맞춰서 할당해주기
 	UPROPERTY( EditAnywhere, meta = (AllowPrivateAccess = true) )
 	uint8 LevelPosition;
-
+	
 	// 모델 요청이 완료되면 execute될 delegate
 	FglTFRuntimeHttpResponse Client_OnRequestModelCompleted;
 	
+	// 이 액터에 배치된 물품 ID, 0은 할당되지 않음을 의미
+	UPROPERTY( Transient, VisibleInstanceOnly, ReplicatedUsing = OnRep_ItemID )
+	uint32 ItemID;
+
+	// 이 액터에 배치된 물품의 판매자 이름
+	UPROPERTY( Transient, VisibleInstanceOnly, Replicated )
+	FString SellerName;
+	
+	// 모델링의 상대적 Transform
+	UPROPERTY( Transient, VisibleInstanceOnly, ReplicatedUsing = OnRep_ModelRelativeTrans )
+	FTransform ModelRelativeTrans;
+	
 	// 모델링된 Actor
-	UPROPERTY( VisibleInstanceOnly )
+	UPROPERTY( Transient, VisibleInstanceOnly )
 	TWeakObjectPtr<AglTFRuntimeAssetActor> Client_Model;
-
-	// 수정 가이드 UI class
-	UPROPERTY(EditDefaultsOnly, Category = UI)
-	TSubclassOf<UUserWidget> GuideWidgetClass;
-
-	// 수정 가이드 UI의 instance
-	UPROPERTY( Transient )
-	TObjectPtr<UMANameplateWidget> GuideWidgetPtr;
 };
