@@ -10,8 +10,10 @@
 #include "Character/MACharacter.h"
 #include "Core/MAGameState.h"
 #include "Manager/ItemManager.h"
+#include "UI/MAModelTransEditWidget.h"
 
 #include <EngineUtils.h>
+
 
 
 AMAPlayerController::AMAPlayerController()
@@ -115,6 +117,34 @@ void AMAPlayerController::SendChatLog(const FMAChatLogEntryData& InData)
 }
 
 /**
+ *  모델 트랜스폼 변경 UI를 생성하여 띄웁니다.
+ *  @param InItemLoc : 아이템의 위치
+ *  @param InNowTransform : 현재 모델의 Relative Transform
+ */
+void AMAPlayerController::CreateModelTransEditWidget(const uint8 InItemLoc, const FTransform& InNowTransform)
+{
+	if(IsValid(TransEditWidgetPtr) && TransEditWidgetPtr->IsInViewport())
+	{
+		LOG_WARN(TEXT("already add viewport."));
+		return;
+	}
+
+	TransEditWidgetPtr = CreateWidget<UMAModelTransEditWidget>(this, TransEditWidgetClass);
+
+	if(IsValid(TransEditWidgetPtr))
+	{
+		// 위젯을 생성^^
+		FInputModeUIOnly uiInput;
+		SetInputMode(uiInput);
+		SetShowMouseCursor(true);
+		FlushPressedKeys();
+	
+		TransEditWidgetPtr->AddToViewport();
+		TransEditWidgetPtr->PushData(InItemLoc, InNowTransform);
+	}
+}
+
+/**
  *  Server RPC로 item actor에 배치된 모델의 상대적 transform을 변경을 요청합니다.
  *  @param InJwtToken : 요청한 사람의 토큰
  *  @param InItemLoc : 아이템의 위치
@@ -122,9 +152,10 @@ void AMAPlayerController::SendChatLog(const FMAChatLogEntryData& InData)
  */
 void AMAPlayerController::ServerRPC_SetModelRelativeTrans_Implementation(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InReleativeTrans)
 {
+	LOG_WARN(TEXT("Server RPC"));
 	if(const AMAGameState* gameState = Cast<AMAGameState>(GetWorld()->GetGameState()))
 	{
-		if(UItemManager* itemManager = Cast<UItemManager>(gameState->GetItemManager()))
+		if(UItemManager* itemManager = gameState->GetItemManager())
 		{
 			itemManager->Server_SetModelTransform(InJwtToken, InItemLoc, InReleativeTrans);
 		}

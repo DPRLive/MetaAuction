@@ -4,6 +4,7 @@
 #include "MAInputInitializeComponent.h"
 #include "Character/MACharacter.h"
 #include "Input/MAInputConfig.h"
+#include "Interaction/MAInteractorComponent.h"
 
 #include <GameFramework/Character.h>
 #include <GameFramework/PlayerController.h>
@@ -11,6 +12,7 @@
 #include <InputMappingContext.h>
 #include <EnhancedInputComponent.h>
 #include <EnhancedInputSubsystems.h>
+
 
 UMAInputInitializeComponent::UMAInputInitializeComponent()
 {
@@ -57,6 +59,9 @@ void UMAInputInitializeComponent::InitializePlayerInput(UInputComponent* PlayerI
 			// Looking
 			EnhancedInputComponent->BindAction(InputConfig->LookAction, ETriggerEvent::Triggered, this, &ThisClass::Input_Look);
 
+			// Interaction
+			EnhancedInputComponent->BindAction(InputConfig->InteractAction, ETriggerEvent::Started, this, &UMAInputInitializeComponent::Input_Interact);
+			
 			bReadyToBindInputs = true;
 		}
 		else
@@ -185,4 +190,25 @@ void UMAInputInitializeComponent::Input_StopJumping(const FInputActionValue& Val
 	{
 		Character->StopJumping();
 	}
+}
+
+/**
+ * 상호작용 컴포넌트를 찾아 입력을 넣습니다.
+ */
+void UMAInputInitializeComponent::Input_Interact(const FInputActionValue& Value)
+{
+	APawn* pawn = Cast<APawn>(GetOwner());
+	if (pawn == nullptr)
+	{
+		LOG_WARN(TEXT("Pawn is nullptr."));
+		return;
+	}
+	
+	if(UMAInteractorComponent* interComp = pawn->FindComponentByClass<UMAInteractorComponent>())
+	{
+		interComp->InputInteraction();
+		return;
+	}
+
+	LOG_WARN(TEXT("interComp is not exist."));
 }

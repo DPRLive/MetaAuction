@@ -32,13 +32,15 @@ public:
 	float InteractingRange;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MA|Interact")
-	TObjectPtr<class AActor> InteractingActor;
+	TWeakObjectPtr<class AActor> InteractingActor;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MA|Interact")
 	uint8 bDebug : 1;
 
+	// Interaction을 요청하는 입력을 넣습니다.
+	void InputInteraction();
 private:
 
-	void NotifyInteractingActorChanged(AActor* OldActor, AActor* NewActor);
+	void NotifyInteractingActorChanged(AActor* OldActor, AActor* NewActor, FHitResult& HitResult);
 	void UpdateInteracting();
 };

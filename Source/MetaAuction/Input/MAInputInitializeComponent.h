@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "InputActionValue.h"
 #include "MetaAuction.h"
 #include "Components/ActorComponent.h"
 #include "MAInputInitializeComponent.generated.h"
@@ -39,7 +40,8 @@ protected:
 	void Input_Look(const FInputActionValue& Value);
 	void Input_Jump(const FInputActionValue& Value);
 	void Input_StopJumping(const FInputActionValue& Value);
-
+	void Input_Interact(const FInputActionValue& Value);
+	
 public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "MA|Input")

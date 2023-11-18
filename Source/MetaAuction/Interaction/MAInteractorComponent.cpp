@@ -7,6 +7,7 @@
 #include <GameFramework/Actor.h>
 #include <GameFramework/Controller.h>
 #include <Kismet/KismetSystemLibrary.h>
+#include <DrawDebugHelpers.h>
 
 UMAInteractorComponent::UMAInteractorComponent()
 {
@@ -28,7 +29,17 @@ void UMAInteractorComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	UpdateInteracting();
 }
 
-void UMAInteractorComponent::NotifyInteractingActorChanged(AActor* OldActor, AActor* NewActor)
+void UMAInteractorComponent::InputInteraction()
+{
+	// 상호작용이 가능하면 input 상호작용 호출
+	if (InteractingActor.IsValid() &&
+		InteractingActor->GetClass()->ImplementsInterface(UMAInteractableInterface::StaticClass()))
+	{
+		IMAInteractableInterface::Execute_InputInteraction(InteractingActor.Get(), GetOwner());
+	}
+}
+
+void UMAInteractorComponent::NotifyInteractingActorChanged(AActor* OldActor, AActor* NewActor, FHitResult& HitResult)
 {
 	if (IsValid(OldActor))
 	{
@@ -42,7 +53,7 @@ void UMAInteractorComponent::NotifyInteractingActorChanged(AActor* OldActor, AAc
 	{
 		if (NewActor->GetClass()->ImplementsInterface(UMAInteractableInterface::StaticClass()))
 		{
-			IMAInteractableInterface::Execute_BeginInteracting(NewActor, GetOwner());
+			IMAInteractableInterface::Execute_BeginInteracting(NewActor, GetOwner(), HitResult);
 		}
 	}
 }
@@ -85,13 +96,13 @@ void UMAInteractorComponent::UpdateInteracting()
 	}
 #endif
 
-	AActor* OldActor = InteractingActor;
+	AActor* OldActor = InteractingActor.Get();
 	AActor* NewActor = bHit ? AimHit.GetActor() : nullptr;
 
 	if (nullptr != NewActor)
 	{
 		if (!NewActor->GetClass()->ImplementsInterface(UMAInteractableInterface::StaticClass()) ||
-			!IMAInteractableInterface::Execute_CanInteracting(NewActor))
+			!IMAInteractableInterface::Execute_CanInteracting(NewActor, GetOwner()))
 		{
 			NewActor = nullptr;
 		}
@@ -100,6 +111,6 @@ void UMAInteractorComponent::UpdateInteracting()
 	if (OldActor != NewActor)
 	{
 		InteractingActor = NewActor;
-		NotifyInteractingActorChanged(OldActor, NewActor);
+		NotifyInteractingActorChanged(OldActor, NewActor, AimHit);
 	}
 }

@@ -2,10 +2,12 @@
 
 
 #include "ItemActor.h"
-
 #include "glTFRuntimeAssetActor.h"
+#include "GameFramework/Pawn.h"
+#include "UI/MAHUDWidget.h"
+#include "Player/MAPlayerController.h"
 
-#include <Core/MAGameInstance.h>
+#include <Components/BoxComponent.h>
 #include <Net/UnrealNetwork.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ItemActor)
@@ -14,17 +16,31 @@ AItemActor::AItemActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
+
+	// Visibility trace에만 반응 하도록 변경
+	RootComp = CreateDefaultSubobject<UBoxComponent>(TEXT("RootComp"));
+	RootComp->SetBoxExtent(FVector(50.f, 50.f, 300.f));
+	RootComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+	RootComp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	RootComp->SetGenerateOverlapEvents(false);
+	RootComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	RootComp->CanCharacterStepUpOn = ECB_No;
+	SetRootComponent(RootComp);
+
+	InteractInfo = FText();
 	LevelPosition = 0;
-	ItemID = 0;
-	ModelRelativeTrans = FTransform();
-	
 	Client_Model = nullptr;
+	
+	ItemID = 0;
+	SellerName = TEXT("");
+	ModelRelativeTrans = FTransform();
 }
 
 void AItemActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AItemActor, ItemID);
+	DOREPLIFETIME(AItemActor, SellerName);
 	DOREPLIFETIME(AItemActor, ModelRelativeTrans);
 }
 
@@ -88,6 +104,83 @@ void AItemActor::Client_RedrawModel()
 				UglTFRuntimeFunctionLibrary::glTFLoadAssetFromFilenameAsync(InGlbPath, false, FglTFRuntimeConfig(), thisPtr->Client_OnRequestModelCompleted);
 			}
 		}, ItemID);
+	}
+}
+
+/**
+ * 상호 작용을 위한 함수들
+ */
+bool AItemActor::CanInteracting_Implementation(AActor* InInteractorActor) const
+{
+	// 클라이언트가 조종하고 있는 특정 actor일때만 반응합니다.
+	// 판매자랑 현재 로그인된 유저랑 일치할 때 반응합니다.
+	if((InInteractorActor->GetLocalRole() != ROLE_AutonomousProxy) ||
+		(SellerName != MAGetMyUserName(GetGameInstance())))
+			return false;
+	
+	return true;
+}
+
+/**
+ * 상호 작용시작 함수
+ */
+void AItemActor::BeginInteracting_Implementation(AActor* InInteractorActor, FHitResult& HitResult)
+{
+	// PlayerController를 가져올 수 있는지 확인합니다.
+	AMAPlayerController* controller = nullptr;
+	if(APawn* interActorPawn = Cast<APawn>(InInteractorActor))
+	{
+		controller = Cast<AMAPlayerController>(interActorPawn->GetController());
+	}
+
+	if(!IsValid(controller))
+		return;
+
+	// hud에게 어떤 상호작용인지 알려준다.
+	UMAHUDWidget* hud = controller->GetHUDWidget();
+	if(IsValid(hud))
+	{
+		hud->ToggleInteract(true, InteractInfo);
+	}
+}
+
+/**
+ * 상호 작용 종료 함수
+ */
+void AItemActor::EndInteracting_Implementation(AActor* InInteractorActor)
+{
+	// PlayerController를 가져올 수 있는지 확인합니다.
+	AMAPlayerController* controller = nullptr;
+	if(APawn* interActorPawn = Cast<APawn>(InInteractorActor))
+	{
+		controller = Cast<AMAPlayerController>(interActorPawn->GetController());
+	}
+
+	if(!IsValid(controller))
+		return;
+
+	// hud에게 상호작용 안내를 종료시킨다.
+	UMAHUDWidget* hud = controller->GetHUDWidget();
+	if(IsValid(hud))
+	{
+		hud->ToggleInteract(false);
+	}
+}
+
+/**
+ * 입력 상호 작용 함수
+ */
+void AItemActor::InputInteraction_Implementation(AActor* InteractorActor)
+{
+	LOG_N(TEXT("Input Interaction!"));
+
+	// Player Controller에게 수정 위젯을 띄우라고 명령
+	if(APawn* interActorPawn = Cast<APawn>(InteractorActor))
+	{
+		if(AMAPlayerController* controller = Cast<AMAPlayerController>(interActorPawn->GetController()))
+		{
+			controller->CreateModelTransEditWidget(LevelPosition, ModelRelativeTrans);
+		}
 	}
 }
 

@@ -6,6 +6,7 @@
 #include "UObject/Interface.h"
 #include "MAInteractableInterface.generated.h"
 
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UMAInteractableInterface : public UInterface
@@ -24,13 +25,17 @@ public:
 
 	// 상호작용할 수 있는지를 나타냅니다.
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	bool CanInteracting() const;
+	bool CanInteracting(AActor* InteractorActor) const;
 
 	// 상호작용이 시작될 때 호출됩니다.
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void BeginInteracting(AActor* InteractorActor);
-
+	void BeginInteracting(AActor* InteractorActor, FHitResult& HitResult);
+	
 	// 상호작용이 종료될 때 호출됩니다.
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void EndInteracting(AActor* InteractorActor);
+
+	// 입력 상호작용을 호출합니다.
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void InputInteraction(AActor* InteractorActor);
 };

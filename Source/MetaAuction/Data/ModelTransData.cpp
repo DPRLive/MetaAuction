@@ -29,12 +29,10 @@ void UModelTransData::LoadData()
 void UModelTransData::TryEmplaceTrans(const uint8 InItemLoc, const uint32 InItemId, const FTransform& InTransform)
 {
 	if(TPair<uint32, FTransform>* modelTrans = ItemModelTrans.Find(InItemLoc))
-	{
 		*modelTrans = {InItemId, InTransform};
-		return;
-	}
-
-	ItemModelTrans.Emplace(InItemLoc, {InItemId, InTransform});
+	else
+		ItemModelTrans.Emplace(InItemLoc, {InItemId, InTransform});
+	
 	_SaveChanged();
 }
 
