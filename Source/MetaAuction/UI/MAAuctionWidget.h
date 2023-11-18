@@ -43,6 +43,8 @@ private:
 	UFUNCTION()
 	void ItemTryBidButtonClicked();
 
+	UFUNCTION()
+	void ChatInfoButtonClicked();
 
 	bool MenuButtonClicked(class UButton* ClickedButton);
 
@@ -70,10 +72,16 @@ private:
 	TObjectPtr<class UButton> ItemTryBidButton;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UButton> ChatInfoButton;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UMAItemFilterWidget> WBP_ItemFilter;
 	
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UMAItemTileWidget> WBP_ItemView;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class UMAChatInfoWidget> ChatInfoWidgetClass;
 
 	TArray<TObjectPtr<class UButton>> AllMenuButtons;
 

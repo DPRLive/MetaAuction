@@ -29,7 +29,6 @@ void UMAItemTileWidget::UpdateSearchItems(const FItemSearchOption& InItemOption)
 		return;
 	}
 
-	LOG_SCREEN(FColor::Green, TEXT("Request %s"), *FString(__FUNCTION__));
 	TWeakObjectPtr<ThisClass> ThisPtr(this);
 	if (ThisPtr.IsValid())
 	{
@@ -38,7 +37,6 @@ void UMAItemTileWidget::UpdateSearchItems(const FItemSearchOption& InItemOption)
 				if (ThisPtr.IsValid())
 				{
 					ThisPtr->UpdateItems(InData);
-					LOG_SCREEN(FColor::Green, TEXT("Successed %s"), *FString(__FUNCTION__));
 				}
 			};
 		ItemDataHandler->RequestItemDataByOption(Func, InItemOption);
@@ -55,7 +53,6 @@ void UMAItemTileWidget::UpdateMyItems(EMyItemReqType InType)
 		return;
 	}
 
-	LOG_SCREEN(FColor::Green, TEXT("Request %s"), *FString(__FUNCTION__));
 	TWeakObjectPtr<ThisClass> ThisPtr(this);
 	if (ThisPtr.IsValid())
 	{
@@ -64,7 +61,6 @@ void UMAItemTileWidget::UpdateMyItems(EMyItemReqType InType)
 				if (ThisPtr.IsValid())
 				{
 					ThisPtr->UpdateItems(InData);
-					LOG_SCREEN(FColor::Green, TEXT("Successed %s"), *FString(__FUNCTION__));
 				}
 			};
 		ItemDataHandler->RequestMyItem(Func, InType);

@@ -26,8 +26,7 @@ void UMAItemImageListWidget::Update(const FItemData& InItemData)
 {
 	ItemImageListView->ClearListItems();
 
-	FItemFileHandler* ItemFileHandler = MAGetItemFileHandler(MAGetGameInstance(GetWorld()));
-	if (nullptr != ItemFileHandler)
+	if (FItemFileHandler* ItemFileHandler = MAGetItemFileHandler(MAGetGameInstance(GetWorld())))
 	{
 		for (int32 i = 1; i <= InItemData.ImgCount; i++)
 		{

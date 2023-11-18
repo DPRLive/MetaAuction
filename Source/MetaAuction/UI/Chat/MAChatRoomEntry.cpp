@@ -2,4 +2,3 @@
 
 
 #include "UI/Chat/MAChatRoomEntry.h"
-

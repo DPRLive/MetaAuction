@@ -4,23 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "MAChatRoomListWidget.generated.h"
+#include "MAChatInfoWidget.generated.h"
 
-/** UMAChatRoomListWidget
- * ChatRoomEntry의 리스트를 표시하는 위젯입니다.
+/**
+ * 
  */
 UCLASS()
-class METAAUCTION_API UMAChatRoomListWidget : public UUserWidget
+class METAAUCTION_API UMAChatInfoWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
 public:
 
-	UMAChatRoomListWidget(const FObjectInitializer& ObjectInitializer);
+	UMAChatInfoWidget(const FObjectInitializer& ObjectInitializer);
 
 protected:
 
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 public:
 
@@ -29,5 +30,5 @@ public:
 private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UListView> ChatRoomListView;
+	TObjectPtr<class UMAChatRoomListWidget> WBP_ChatRoomList;
 };

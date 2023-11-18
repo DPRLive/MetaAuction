@@ -4,6 +4,7 @@
 #include "UI/Item/MAItemEntryWidget.h"
 #include "UI/Item/MAItemEntry.h"
 #include "UI/ItemInfo/MAItemInfoWidget.h"
+#include "UI/MAWidgetHelperLibrary.h"
 #include "Handler/ItemFileHandler.h"
 
 #include <Components/Image.h>
@@ -73,24 +74,26 @@ void UMAItemEntryWidget::UpdateText(const FItemData& InItemData)
 
 void UMAItemEntryWidget::UpdateImage(const FItemData& InItemData)
 {
-	FItemFileHandler* ItemFileHandler = MAGetItemFileHandler(MAGetGameInstance(GetWorld()));
-	if (nullptr != ItemFileHandler)
-	{
-		TWeakObjectPtr<ThisClass> ThisPtr(this);
-		if (ThisPtr.IsValid())
-		{
-			auto Func = [ThisPtr](UTexture2DDynamic* InImage)
-				{
-					if (ThisPtr.IsValid())
-					{
-						ThisPtr->ItemImage->SetBrushFromTextureDynamic(InImage);
-					}
-				};
+	//FItemFileHandler* ItemFileHandler = MAGetItemFileHandler(MAGetGameInstance(GetWorld()));
+	//if (nullptr != ItemFileHandler)
+	//{
+	//	TWeakObjectPtr<ThisClass> ThisPtr(this);
+	//	if (ThisPtr.IsValid())
+	//	{
+	//		auto Func = [ThisPtr](UTexture2DDynamic* InImage)
+	//			{
+	//				if (ThisPtr.IsValid())
+	//				{
+	//					ThisPtr->ItemImage->SetBrushFromTextureDynamic(InImage);
+	//				}
+	//			};
+	//
+	//		// 0번 인덱스 이미지는 없으므로 1번 인덱스 이미지를 가져옵니다.
+	//		ItemFileHandler->RequestImg(Func, InItemData.ItemID, 1);
+	//	}
+	//}
 
-			// 0번 인덱스 이미지는 없으므로 1번 인덱스 이미지를 가져옵니다.
-			ItemFileHandler->RequestImg(Func, InItemData.ItemID, 1);
-		}
-	}
+	UMAWidgetHelperLibrary::RequestImageByItemID(ItemImage, InItemData.ItemID);
 }
 
 void UMAItemEntryWidget::DetailsButtonClicked()

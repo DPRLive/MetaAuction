@@ -203,10 +203,8 @@ void UMAItemInfoWidget::Update(const FItemData& InItemData)
 		ItemDataHandler->OnChangePrice.Remove(OnChangePriceHandle);
 		OnChangePriceHandle = ItemDataHandler->OnChangePrice.AddLambda([ThisPtr](const uint32 ItemID, const uint64 Price, const FString& Name)
 			{
-				LOG_WARN(TEXT("입찰가 변동 ID : %d"), ItemID);
 				if (ThisPtr.IsValid() && ThisPtr->CachedItemData.ItemID == ItemID)
 				{
-					LOG_WARN(TEXT("입찰가 변동 ID : %d"), Price);
 					FNumberFormattingOptions NumberFormatOptions;
 					NumberFormatOptions.SetUseGrouping(true);
 					ThisPtr->CachedItemData.CurrentPrice = Price;
@@ -215,10 +213,6 @@ void UMAItemInfoWidget::Update(const FItemData& InItemData)
 					ThisPtr->BidPriceText->SetText(FText::AsNumber(Price + ThisPtr->BidMinimum));
 				}
 			});
-		if (OnChangePriceHandle.IsValid())
-		{
-			LOG_WARN(TEXT("입찰가 변동 델리게이트 등록 성공"));
-		}
 	}
 }
 
@@ -256,7 +250,6 @@ void UMAItemInfoWidget::BidButtonClicked()
 							if (IsValid(ItemDataHandler))
 							{
 								int32 Price = FCString::Atoi(*ThisPtr->BidPriceText->GetText().ToString());
-								LOG_WARN(TEXT("입찰가 : %d"), Price);
 								ItemDataHandler->Client_RequestBid(ThisPtr->CachedItemData.ItemID, Price);
 								// TODO: Client_RequestBid()가 성공 및 실패를 알려주면 팝업 띄우기
 								//UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget();
@@ -286,17 +279,13 @@ void UMAItemInfoWidget::DeleteButtonClicked()
 
 void UMAItemInfoWidget::DetailsButtonClicked()
 {
-	APlayerController* PC = GetOwningPlayer();
-	if (!IsValid(PC))
+	if (APlayerController* PC = GetOwningPlayer())
 	{
-		return;
-	}
-
-	UMAItemAdditionalInfoWidget* ItemAdditionalInfoWidget = CreateWidget<UMAItemAdditionalInfoWidget>(PC, ItemAdditionalInfoWidgetClass);
-	if (IsValid(ItemAdditionalInfoWidget))
-	{
-		ItemAdditionalInfoWidget->AddToViewport();
-		ItemAdditionalInfoWidget->Update(CachedItemData);
+		if (UMAItemAdditionalInfoWidget* ItemAdditionalInfoWidget = CreateWidget<UMAItemAdditionalInfoWidget>(PC, ItemAdditionalInfoWidgetClass))
+		{
+			ItemAdditionalInfoWidget->AddToViewport();
+			ItemAdditionalInfoWidget->Update(CachedItemData);
+		}
 	}
 }
 
