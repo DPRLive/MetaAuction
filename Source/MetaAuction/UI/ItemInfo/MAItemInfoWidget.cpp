@@ -250,14 +250,24 @@ void UMAItemInfoWidget::BidButtonClicked()
 							if (IsValid(ItemDataHandler))
 							{
 								int32 Price = FCString::Atoi(*ThisPtr->BidPriceText->GetText().ToString());
-								ItemDataHandler->Client_RequestBid(ThisPtr->CachedItemData.ItemID, Price);
-								// TODO: Client_RequestBid()가 성공 및 실패를 알려주면 팝업 띄우기
-								//UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget();
-								//if (IsValid(PopupWidget))
-								//{
-								//	PopupWidget->SetText(TEXT("입찰을 완료하였습니다."));
-								//	PopupWidget->SetText(TEXT("입찰을 실패하였습니다."));
-								//}
+
+								// 결과 팝업 띄우기
+								auto ResultFunc = [ThisPtr](const FString& Message)
+									{
+										if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(ThisPtr->GetOwningPlayer()))
+										{
+											if (ThisPtr.IsValid())
+											{
+												UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget();
+												if (IsValid(PopupWidget))
+												{
+													PopupWidget->SetText(Message);
+												}
+											}
+										}
+									};
+
+								ItemDataHandler->Client_RequestBid(ThisPtr->CachedItemData.ItemID, Price, ResultFunc);
 							}
 						}
 					}
