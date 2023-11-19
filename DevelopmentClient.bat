@@ -1,0 +1,1 @@
+UnrealEditor.exe "%cd%\MetaAuction.uproject" 127.0.0.1 -game -log

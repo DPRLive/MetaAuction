@@ -122,7 +122,7 @@ void UItemManager::Server_RegisterNewItem(uint32 InItemId) const
 			// TODO: 월드 관리 어떻게 해야하지.. 일단 하드코딩
 			if (thisPtr.IsValid() && InItemData.World == TEXT("1"))
 			{
-				thisPtr->_Server_RegisterItemByLoc(InItemId, InItemData.Location);
+				thisPtr->_Server_RegisterItemByLoc(InItemId, InItemData.SellerName, InItemData.Location);
 			}
 		}, InItemId);
 	}
@@ -165,9 +165,9 @@ void UItemManager::Server_ChangeItemData(const uint32& InItemId, const FString& 
  * 배치된 물품 모델링의 상대적 Transform을 변경합니다. (서버에서만 사용 가능)
  * @param InJwtToken : 검증을 위한 JwtToken
  * @param InItemLoc : 변경할 모델이 배치된 위치
- * @param InReleativeTrans : 변경할 모델의 상대적 Transform
+ * @param InRelativeTrans : 변경할 모델의 상대적 Transform
  */
-void UItemManager::Server_SetModelTransform(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InReleativeTrans)
+void UItemManager::Server_SetModelTransform(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InRelativeTrans)
 {
 	CHECK_DEDI_FUNC;
 	
@@ -183,16 +183,16 @@ void UItemManager::Server_SetModelTransform(const FString& InJwtToken, const uin
 	if(const UItemDataHandler* itemDataHandler = MAGetItemDataHandler(GetWorld()->GetGameState()))
 	{
 		TWeakObjectPtr<UItemManager> thisPtr = this;
-		itemDataHandler->Server_ValidateItem(itemId, InJwtToken, [thisPtr, itemActorIdx, InReleativeTrans](const bool InIsMine)
+		itemDataHandler->Server_ValidateItem(itemId, InJwtToken, [thisPtr, itemActorIdx, InRelativeTrans](const bool InIsMine)
 		{
 			if(thisPtr.IsValid() && InIsMine && thisPtr->ItemActors[itemActorIdx].IsValid())
 			{
 				// 검증 성공! 변경!
-				thisPtr->ItemActors[itemActorIdx]->SetModelRelativeTrans(InReleativeTrans);
+				thisPtr->ItemActors[itemActorIdx]->SetModelRelativeTrans(InRelativeTrans);
 
 				const uint32 itemId = thisPtr->ItemActors[itemActorIdx]->GetItemID();
 				// 정보도 저장
-				thisPtr->Server_ModelTransData->TryEmplaceTrans(itemActorIdx + 1, itemId, InReleativeTrans);
+				thisPtr->Server_ModelTransData->TryEmplaceTrans(itemActorIdx + 1, itemId, InRelativeTrans);
 
 				return;
 			}
@@ -225,7 +225,7 @@ void UItemManager::_Server_RegisterAllWorldItemID() const
 			{
 				for (const FItemData& data : InItemData)
 				{
-					thisPtr->_Server_RegisterItemByLoc(data.ItemID, data.Location);
+					thisPtr->_Server_RegisterItemByLoc(data.ItemID, data.SellerName, data.Location);
 				}
 			}
 		}, option);
@@ -235,9 +235,10 @@ void UItemManager::_Server_RegisterAllWorldItemID() const
 /**
  * Item Data의 Location을 기준으로, Item Actor에 상품ID를 등록한다. 데디 서버에서만 실행 가능합니다.
  * @param InItemId : 등록할 상품의 ID
+ * @param InSellerName : 판매자의 이름
  * @param InItemLoc : 상품을 등록할 ItemActor의 위치
  */
-void UItemManager::_Server_RegisterItemByLoc(uint32 InItemId, uint8 InItemLoc) const
+void UItemManager::_Server_RegisterItemByLoc(const uint32 InItemId, const FString& InSellerName, const uint8 InItemLoc) const
 {
 	CHECK_DEDI_FUNC;
 
@@ -251,7 +252,7 @@ void UItemManager::_Server_RegisterItemByLoc(uint32 InItemId, uint8 InItemLoc) c
 	
 	if(ItemActors[registerIdx].IsValid())
 	{
-		ItemActors[registerIdx]->SetItemID(InItemId);
+		ItemActors[registerIdx]->SetItem(InItemId, InSellerName);
 	}
 
 	// 그릴 모델의 상대적 trans도 있다면 같이 설정해준다.

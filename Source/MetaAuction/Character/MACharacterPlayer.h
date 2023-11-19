@@ -6,6 +6,7 @@
 #include "MACharacter.h"
 #include "MACharacterPlayer.generated.h"
 
+class UMAInteractorComponent;
 /**
  * 
  */
@@ -49,4 +50,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI)
 	TObjectPtr<class UMAChatBubbleWidgetComponent> ChatBubbleWidgetComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
+	TObjectPtr<UMAInteractorComponent> InteractorComponent;
 };

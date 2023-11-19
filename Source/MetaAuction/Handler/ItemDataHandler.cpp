@@ -127,36 +127,42 @@ void UItemDataHandler::RequestItemDataByOption(const FCallbackRefArray<FItemData
 
 /**
 * HTTP 통신으로 웹서버에 입찰을 요청하는 함수입니다.
+* 웹에 정보를 새로 요청하는 구조이므로 도착하면 실행할 함수를 Lambda로 넣어주세요. this 캡처시 weak capture로 꼭 생명주기 체크를 해야합니다!
 * @param InItemId : 입찰할 item의 id
 * @param InPrice : 입찰할 가격
+* @param InFunc : 입찰 요청 후 응답이 도착하였을때 실행함 함수입니다. FString : 입찰이 어떻게 되었는지에 대한 설명
 */
-void UItemDataHandler::Client_RequestBid(uint32 InItemId, uint64 InPrice) const
+void UItemDataHandler::Client_RequestBid(const uint32 InItemId, const uint64& InPrice, const FCallbackRefOneParam<FString>& InFunc) const
 {
 	if (IsRunningDedicatedServer()) return; // 데디면 하지 마라.
 
 	// Body를 만든다.
 	FString requestBody = FString::Printf(TEXT("%llu"), InPrice);
 
-	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance())) // 로컬에 없으니 다운로드를 함
+	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
 	{
 		httpHelper->Request(DA_NETWORK(BidAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::POST,
-		                     [](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		                     [InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 		                     {
+			                     if (!InFunc)
+				                     return;
+
 			                     if (InbWasSuccessful && InResponse.IsValid())
 			                     {
 				                     if (EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
 				                     {
 					                     // 입찰 성공
-					                     LOG_WARN(TEXT("Bid Success!"));
+					                     InFunc(TEXT("입찰에 성공하였습니다."));
+					                     return;
 				                     }
-				                     else
-				                     {
-					                     // 입찰 실패, InResponse->GetContentAsString() : 서버에서 알려준 입찰 실패 이유
-					                     LOG_WARN(TEXT("bid Failed!"));
-					                     // Json reader 생성
-					                     UE_LOG(LogTemp, Warning, TEXT("%s"), *InResponse->GetContentAsString());
-				                     }
+			                     	
+				                     // 입찰 실패, InResponse->GetContentAsString() : 서버에서 알려준 입찰 실패 이유
+				                     InFunc(InResponse->GetContentAsString());
+				                     return;
 			                     }
+
+			                     InFunc(TEXT("입찰 요청에 실패하였습니다."));
+		                     	
 		                     }, requestBody);
 	}
 }
@@ -167,7 +173,7 @@ void UItemDataHandler::Client_RequestBid(uint32 InItemId, uint64 InPrice) const
  * @param InFunc : 정보가 도착하면 실행할 FCallbackRefArray 형태의 함수 
  * @param InItemId : 입찰 기록을 조회할 상품의 ID
  */
-void UItemDataHandler::RequestBidRecordByItemId(const FCallbackRefArray<FBidRecord>& InFunc, uint32 InItemId) const
+void UItemDataHandler::RequestBidRecordByItemId(const FCallbackRefArray<FBidRecord>& InFunc, const uint32 InItemId) const
 {
 	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
 	{
@@ -202,7 +208,7 @@ void UItemDataHandler::RequestBidRecordByItemId(const FCallbackRefArray<FBidReco
  * ItemId로 물품을 삭제합니다. (JWT 토큰 확인으로 내 물품이 맞을 경우만 삭제함, 판매 종료 3시간 전에는 삭제 불가)
  * @param InItemId : 삭제할 상품의 ID
  */
-void UItemDataHandler::RequestRemoveItem(uint32 InItemId) const
+void UItemDataHandler::RequestRemoveItem(const uint32 InItemId) const
 {
 	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
 	{

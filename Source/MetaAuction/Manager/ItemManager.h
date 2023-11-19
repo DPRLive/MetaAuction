@@ -39,7 +39,7 @@ public:
 	void Server_ChangeItemData(const uint32& InItemId, const FString& InWorld, const FString& InChangeList) const;
 
 	// 배치된 물품 모델링의 상대적 Transform을 변경합니다. (서버에서만 사용 가능)
-	void Server_SetModelTransform(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InReleativeTrans);
+	void Server_SetModelTransform(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InRelativeTrans);
 private:
 	// 웹서버에 등록된 현재 월드에 배치되어 판매되고 있는 아이템들의 ID를 가져와 배치한다.
 	// 데디 서버에서만 실행 가능합니다.
@@ -47,7 +47,7 @@ private:
 	
 	// Item Data의 Location을 기준으로, Item Actor에 상품ID를 등록한다.
 	// 데디 서버에서만 실행 가능합니다.
-	void _Server_RegisterItemByLoc(uint32 InItemId, uint8 InItemLoc) const;
+	void _Server_RegisterItemByLoc(const uint32 InItemId, const FString& InSellerName, const uint8 InItemLoc) const;
 
 	// Stomp를 통해 들어오는 새 아이템 등록 알림을 처리한다.
 	void _Server_OnNewItem(const IStompMessage& InMessage) const;
