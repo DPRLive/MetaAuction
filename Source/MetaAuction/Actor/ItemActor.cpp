@@ -2,10 +2,10 @@
 
 
 #include "ItemActor.h"
-#include "glTFRuntimeAssetActor.h"
 #include "GameFramework/Pawn.h"
 #include "UI/MAHUDWidget.h"
 #include "Player/MAPlayerController.h"
+#include "Component/ModelDrawComponent.h"
 
 #include <Components/BoxComponent.h>
 #include <Net/UnrealNetwork.h>
@@ -27,9 +27,10 @@ AItemActor::AItemActor()
 	RootComp->CanCharacterStepUpOn = ECB_No;
 	SetRootComponent(RootComp);
 
-	InteractInfo = FText();
+	ModelDrawComp = CreateDefaultSubobject<UModelDrawComponent>(TEXT("ModelDrawComp"));
+	
 	LevelPosition = 0;
-	Client_Model = nullptr;
+	InteractInfo = FText();
 	
 	ItemID = 0;
 	SellerName = TEXT("");
@@ -44,28 +45,9 @@ void AItemActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME(AItemActor, ModelRelativeTrans);
 }
 
-/**
- * Allow actors to initialize themselves on the C++ side after all of their components have been initialized, only called during gameplay
- */
-void AItemActor::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-
-	// BeginPlay 전 item id가 들어오는 경우(Replicate)가 있는거 같음, post init에서 bind
-	Client_OnRequestModelCompleted.BindDynamic(this, &AItemActor::_Client_DrawModel);
-}
-
 void AItemActor::BeginPlay()
 {
 	Super::BeginPlay();
-}
-
-/**
- * 소멸자 용도로 쓸 Begin Destroy
- */
-void AItemActor::BeginDestroy()
-{
-	Super::BeginDestroy();
 }
 
 /**
@@ -81,30 +63,20 @@ void AItemActor::Server_RemoveItem()
 /**
  * 이 액터에 배치된 모델링을 다시 다운받아 그립니다.
  */
-void AItemActor::Client_RedrawModel()
+void AItemActor::Client_RedrawModel() const
 {
 	if(IsRunningDedicatedServer()) return; // 데디 ㄴㄴ
 	
-	if (Client_Model.IsValid()) // 모델을 지우고
-	{
-		Client_Model->Destroy();
-		Client_Model = nullptr;
-	}
+	// 모델을 지우고
+	ModelDrawComp->RemoveModel();
 	
-	if (FItemFileHandler* fileHandler = MAGetItemFileHandler(GetGameInstance()))
+	if (const FItemFileHandler* fileHandler = MAGetItemFileHandler(GetGameInstance()))
 	{
 		fileHandler->RemoveGlbFile(ItemID); // 파일을 지우고
-
-		// 다시 요청.
-		TWeakObjectPtr<AItemActor> thisPtr = this;
-		fileHandler->RequestGlb([thisPtr](const FString& InGlbPath)
-		{
-			if (thisPtr.IsValid())
-			{
-				UglTFRuntimeFunctionLibrary::glTFLoadAssetFromFilenameAsync(InGlbPath, false, FglTFRuntimeConfig(), thisPtr->Client_OnRequestModelCompleted);
-			}
-		}, ItemID);
 	}
+	
+	// 다시 요청.
+	_RequestCreateModel();
 }
 
 /**
@@ -194,77 +166,43 @@ void AItemActor::OnRep_ItemID()
 	{
 		LOG_N(TEXT("Item ID is Zero!"));
 
-		if (Client_Model.IsValid()) // 모델이 있다면 지움
-		{
-			Client_Model->Destroy();
-			Client_Model = nullptr;
-		}
-		
+		// 모델을 지움
+		ModelDrawComp->RemoveModel();
 		ModelRelativeTrans = FTransform();
 		return;
 	}
 
-	if (const FItemFileHandler* fileHandler = MAGetItemFileHandler(GetGameInstance()))
-	{
-		// 파일 요청.
-		TWeakObjectPtr<AItemActor> thisPtr = this;
-		fileHandler->RequestGlb([thisPtr](const FString& InGlbPath)
-		{
-			if (thisPtr.IsValid())
-			{
-				UglTFRuntimeFunctionLibrary::glTFLoadAssetFromFilenameAsync(InGlbPath, false, FglTFRuntimeConfig(), thisPtr->Client_OnRequestModelCompleted);
-			}
-		}, ItemID);
-	}
+	// 그린다.
+	_RequestCreateModel();
 }
 
 /**
  * 배치된 모델의 상대 Transform이 Replicate 되면 호출
  */
-void AItemActor::OnRep_ModelRelativeTrans()
+void AItemActor::OnRep_ModelRelativeTrans() const
 {
-	if(!Client_Model.IsValid())
+	if(!IsValid(ModelDrawComp))
 		return;
 
+	// world transform을 구해
+	FTransform trans;
+	trans.SetLocation(GetActorLocation() + ModelRelativeTrans.GetLocation());
+	trans.SetRotation(GetActorQuat() * ModelRelativeTrans.GetRotation());
+	trans.SetScale3D(ModelRelativeTrans.GetScale3D());
+				
 	// 트랜스폼을 변경한다.
-	Client_Model->SetActorLocation(GetActorLocation() + ModelRelativeTrans.GetLocation());
-	Client_Model->SetActorRotation(GetActorRotation() + ModelRelativeTrans.GetRotation().Rotator());
-	Client_Model->SetActorScale3D(ModelRelativeTrans.GetScale3D());
+	ModelDrawComp->SetModelTransform(trans);
 }
 
 /**
- * 모델을 그린다. (glTFRumtimeAsset을 기반으로 actor을 하나 생성하고, 그 포인터를 들고 있음)
+ * 모델을 그리기를 요청하는 함수입니다.
  */
-void AItemActor::_Client_DrawModel(UglTFRuntimeAsset* InAsset)
+void AItemActor::_RequestCreateModel() const
 {
-	if(IsRunningDedicatedServer()) return; // 데디 ㄴㄴ
-	
-	UE_SCOPED_TIMER(TEXT("Draw Model"), LogTemp, Warning);
+	FTransform trans;
+	trans.SetLocation(GetActorLocation() + ModelRelativeTrans.GetLocation());
+	trans.SetRotation(GetActorQuat() * ModelRelativeTrans.GetRotation());
+	trans.SetScale3D(ModelRelativeTrans.GetScale3D());
 
-	if (InAsset == nullptr)
-	{
-		LOG_ERROR(TEXT("UglTFRuntimeAsset is nullptr !"));
-		return;
-	}
-
-	if (Client_Model.IsValid()) // 이미 뭐가 그려져 있으면 지워버림.
-	{
-		Client_Model->Destroy();
-		Client_Model = nullptr;
-	}
-
-	// UglTFRuntimeAsset을 기반으로 모델을 spawn 한다.
-	Client_Model = GetWorld()->SpawnActorDeferred<AglTFRuntimeAssetActor>(AglTFRuntimeAssetActor::StaticClass(),GetActorTransform(), this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
-	if (Client_Model == nullptr)
-	{
-		LOG_ERROR(TEXT("Spawn AglTFRuntimeAssetActor Failed!"));
-		return;
-	}
-	Client_Model->Asset = InAsset;
-	Client_Model->FinishSpawning(GetActorTransform());
-
-	// 트랜스폼 변경
-	Client_Model->SetActorLocation(GetActorLocation() + ModelRelativeTrans.GetLocation());
-	Client_Model->SetActorRotation(GetActorRotation() + ModelRelativeTrans.GetRotation().Rotator());
-	Client_Model->SetActorScale3D(ModelRelativeTrans.GetScale3D());
+	ModelDrawComp->CreateModel(ItemID, trans);
 }
