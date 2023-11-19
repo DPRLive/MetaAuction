@@ -21,6 +21,7 @@ public:
 protected:
 
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 public:
 
@@ -29,19 +30,22 @@ public:
 private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UTextBlock> TitleText;
-
-	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UTextBlock> InformationText;
-
-	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UTextBlock> SellerNameText;
+	TObjectPtr<class UImage> ItemModelImage;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UMABidRecordListWidget> WBP_BidRecordList;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	FTransform ItemDisplayerTransform;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class AMAItemDisplayer> ItemDisplayerClass;
+
+	UPROPERTY(Transient)
 	FItemData CachedItemData;
+
+	UPROPERTY(Transient)
+	TWeakObjectPtr<class AMAItemDisplayer> SpawnedItemDisplayer;
 
 	FDelegateHandle ItemReplyHandle;
 	int32 CommentCount;

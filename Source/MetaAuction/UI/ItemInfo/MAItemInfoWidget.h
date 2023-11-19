@@ -129,6 +129,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	int32 BidMinimum;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	FItemData CachedItemData;
 };
