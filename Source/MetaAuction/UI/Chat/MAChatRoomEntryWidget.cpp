@@ -34,23 +34,20 @@ void UMAChatRoomEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 		SellerNameText->SetText(FText::FromString(Entry->Data.Seller));
 		UMAWidgetHelperLibrary::RequestImageByItemID(ItemImage, Entry->Data.ItemId);
 
-		UChatHandler* ChatHandler = MAGetChatHandler(MAGetGameInstance());
-		if (!IsValid(ChatHandler))
+		if (UChatHandler* ChatHandler = MAGetChatHandler(MAGetGameInstance()))
 		{
-			return;
-		}
+			TWeakObjectPtr<ThisClass> ThisPtr(this);
 
-		TWeakObjectPtr<ThisClass> ThisPtr(this);
-
-		// 채팅 정보를 모두 요청하여 마지막 메시지를 초기화합니다. (TODO : 비효율적이므로 추후 고쳐야 합니다.)
-		auto RequestFunc = [ThisPtr](const TArray<FChatData>& Data)
-			{
-				if (ThisPtr.IsValid() && !Data.IsEmpty())
+			// 채팅 정보를 모두 요청하여 마지막 메시지를 초기화합니다. (TODO : 비효율적이므로 추후 고쳐야 합니다.)
+			auto RequestFunc = [ThisPtr](const TArray<FChatData>& Data)
 				{
-					ThisPtr->LastMessageText->SetText(FText::FromString(Data.Last().Content));
-					ThisPtr->LastTimeText->SetText(FText::FromString(Data.Last().Time.ToString()));
-				}
-			};
-		ChatHandler->RequestChatsById(ERequestChatType::Chatroom, Entry->Data.ChatRoomId, RequestFunc);
+					if (ThisPtr.IsValid() && !Data.IsEmpty())
+					{
+						ThisPtr->LastMessageText->SetText(FText::FromString(Data.Last().Content));
+						ThisPtr->LastTimeText->SetText(FText::FromString(Data.Last().Time.ToString()));
+					}
+				};
+			ChatHandler->RequestChatsById(ERequestChatType::Chatroom, Entry->Data.ChatRoomId, RequestFunc);
+		}
 	}
 }

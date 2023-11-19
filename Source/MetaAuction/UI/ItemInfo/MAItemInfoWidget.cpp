@@ -7,6 +7,7 @@
 #include "UI/ItemInfo/MAItemAdditionalInfoWidget.h"
 #include "UI/Item/MAItemFilterWidget.h"
 #include "UI/Chat/MACommentWidget.h"
+#include "UI/Chat/MAChatInfoWidget.h"
 #include "UI/Common/MAConfirmCancelPopupWidget.h"
 #include "UI/Common/MAConfirmPopupWidget.h"
 #include "UI/MAAuctionWidget.h"
@@ -279,12 +280,32 @@ void UMAItemInfoWidget::BidButtonClicked()
 
 void UMAItemInfoWidget::ChatButtonClicked()
 {
-
+	// 채팅방 요청하기
+	if (UChatHandler* ChatHandler = MAGetChatHandler(MAGetGameInstance()))
+	{
+		TWeakObjectPtr<ThisClass> ThisPtr(this);
+		auto Func = [ThisPtr](const FChatRoomData& InData)
+			{
+				if (ThisPtr.IsValid())
+				{
+					if (APlayerController* PC = ThisPtr->GetOwningPlayer())
+					{
+						if (UMAChatInfoWidget* ChatInfoWidget = CreateWidget<UMAChatInfoWidget>(PC, ThisPtr->ChatInfoWidgetClass))
+						{
+							ChatInfoWidget->AddToViewport();
+							ChatInfoWidget->Update();
+							ChatInfoWidget->SelectListItem(InData);
+						}
+					}
+				}
+			};
+		ChatHandler->RequestNewChatRoom(CachedItemData.ItemID, CachedItemData.SellerName, Func);
+	}
 }
 
 void UMAItemInfoWidget::DeleteButtonClicked()
 {
-
+	// TODO : 아이템 삭제하기 구현
 }
 
 void UMAItemInfoWidget::DetailsButtonClicked()

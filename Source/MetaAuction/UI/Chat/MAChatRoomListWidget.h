@@ -25,6 +25,7 @@ protected:
 public:
 
 	void Update();
+	class UListView* GetListView() const;
 
 private:
 

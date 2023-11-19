@@ -4,7 +4,6 @@
 #include "UI/Chat/MAChatLogWidget.h"
 #include "UI/Chat/MAChatLogListWidget.h"
 #include "Player/MAPlayerController.h"
-#include "Core/MAGameInstance.h"
 #include "Common/MALog.h"
 #include "Data/LoginData.h"
 
@@ -59,7 +58,6 @@ void UMAChatLogWidget::EnableInputText()
 	UWidget* InWidgetToFocus = this;
 	bool bFlushInput = false;
 
-	// �Է� ��� ���� UI
 	APlayerController* PlayerController = GetOwningPlayer();
 	if (IsValid(PlayerController))
 	{
@@ -77,14 +75,11 @@ void UMAChatLogWidget::EnableInputText()
 			PlayerController->FlushPressedKeys();
 		}
 
-		// ���콺 Ŀ�� ���̱�
 		PlayerController->SetShowMouseCursor(true);
 	}
 
-	// ��Ŀ�� ����
 	InputText->SetFocus();
 
-	// �� ����
 	InputShade->SetColorAndOpacity(EnableColor);
 }
 
@@ -117,11 +112,7 @@ void UMAChatLogWidget::SendInputText()
 	{
 		FMAChatLogEntryData ChatLog;
 
-		UMAGameInstance* MAGameInstance = Cast<UMAGameInstance>(MAGetGameInstance());
-		if (IsValid(MAGameInstance))
-		{
-			ChatLog.ChatName = FText::FromString(MAGameInstance->GetLoginData()->GetUserName());
-		}
+		ChatLog.ChatName = FText::FromString(MAGetMyUserName(MAGetGameInstance()));
 		ChatLog.ChatLog = InputText->GetText();
 		InputText->SetText(FText());
 

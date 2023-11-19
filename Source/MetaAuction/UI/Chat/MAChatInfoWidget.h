@@ -26,9 +26,16 @@ protected:
 public:
 
 	void Update();
+	void SelectListItem(const FChatRoomData& InData);
+	class UListView* GetListView() const;
 
 private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UMAChatRoomListWidget> WBP_ChatRoomList;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UMAChatRoomWidget> WBP_ChatRoom;
+
+	FDelegateHandle OnItemSelectionChangedHandle;
 };

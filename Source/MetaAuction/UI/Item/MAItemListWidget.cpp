@@ -23,22 +23,14 @@ void UMAItemListWidget::UpdateSearchItems(const FItemSearchOption& InItemOption)
 {
 	ItemListView->ClearListItems();
 
-	UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld()));
-	if (!IsValid(ItemDataHandler))
+	if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld())))
 	{
-		return;
-	}
-
-	LOG_SCREEN(FColor::Green, TEXT("Request %s"), *FString(__FUNCTION__));
-	TWeakObjectPtr<ThisClass> ThisPtr(this);
-	if (ThisPtr.IsValid())
-	{
+		TWeakObjectPtr<ThisClass> ThisPtr(this);
 		auto Func = [ThisPtr](const TArray<FItemData>& InData)
 			{
 				if (ThisPtr.IsValid())
 				{
 					ThisPtr->UpdateItems(InData);
-					LOG_SCREEN(FColor::Green, TEXT("Successed %s"), *FString(__FUNCTION__));
 				}
 			};
 		ItemDataHandler->RequestItemDataByOption(Func, InItemOption);
@@ -49,22 +41,14 @@ void UMAItemListWidget::UpdateMyItems(EMyItemReqType InType)
 {
 	ItemListView->ClearListItems();
 
-	UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld()));
-	if (!IsValid(ItemDataHandler))
+	if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld())))
 	{
-		return;
-	}
-
-	LOG_SCREEN(FColor::Green, TEXT("Request %s"), *FString(__FUNCTION__));
-	TWeakObjectPtr<ThisClass> ThisPtr(this);
-	if (ThisPtr.IsValid())
-	{
+		TWeakObjectPtr<ThisClass> ThisPtr(this);
 		auto Func = [ThisPtr](const TArray<FItemData>& InData)
 			{
 				if (ThisPtr.IsValid())
 				{
 					ThisPtr->UpdateItems(InData);
-					LOG_SCREEN(FColor::Green, TEXT("Successed %s"), *FString(__FUNCTION__));
 				}
 			};
 		ItemDataHandler->RequestMyItem(Func, InType);
