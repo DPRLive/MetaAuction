@@ -207,31 +207,33 @@ void UItemDataHandler::RequestBidRecordByItemId(const FCallbackRefArray<FBidReco
 /**
  * ItemId로 물품을 삭제합니다. (JWT 토큰 확인으로 내 물품이 맞을 경우만 삭제함, 판매 종료 3시간 전에는 삭제 불가)
  * @param InItemId : 삭제할 상품의 ID
+ * @param InFunc : 입찰 요청 후 응답이 도착하였을때 실행함 함수입니다. FString : 삭제 요청이 어떻게 되었는지에 대한 설명
  */
-void UItemDataHandler::RequestRemoveItem(const uint32 InItemId) const
+void UItemDataHandler::RequestRemoveItem(const uint32 InItemId, const FCallbackRefOneParam<FString>& InFunc) const
 {
 	if (const FHttpHelper* httpHelper = MAGetHttpHelper(GetOwner()->GetGameInstance()))
 	{
-		httpHelper->Request(DA_NETWORK(RemoveItemAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::POST,[](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+		httpHelper->Request(DA_NETWORK(RemoveItemAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::POST,
+			[InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
 							 {
-								 if (InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+								 if (!InFunc)
+									 return;
+
+								 if (InbWasSuccessful && InResponse.IsValid())
 								 {
-								 	if (InbWasSuccessful && InResponse.IsValid())
-								 	{
-										 if (EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
-										 {
-											 // 삭제 성공
-											 LOG_WARN(TEXT("Remove Success!"));
-										 }
-										 else
-										 {
-											 // 삭제 실패, InResponse->GetContentAsString() : 서버에서 알려준 삭제 실패 이유
-											 LOG_WARN(TEXT("Remove Item Failed!"));
-											 // Json reader 생성
-											 UE_LOG(LogTemp, Warning, TEXT("%s"), *InResponse->GetContentAsString());
-										 }
+									 if (EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+									 {
+										 // 삭제 성공
+										 InFunc(TEXT("삭제에 성공하였습니다."));
+										 return;
 									 }
+
+									 // 삭제 실패, InResponse->GetContentAsString() : 서버에서 알려준 삭제 실패 이유
+									 InFunc(InResponse->GetContentAsString());
+									 return;
 								 }
+
+								 InFunc(TEXT("삭제 요청에 실패하였습니다."));
 							 });
 	}
 }
