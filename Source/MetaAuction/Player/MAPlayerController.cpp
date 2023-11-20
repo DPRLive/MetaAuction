@@ -7,10 +7,10 @@
 #include "UI/Chat/MAChatBubbleWidgetComponent.h"
 #include "UI/Common/MAConfirmCancelPopupWidget.h"
 #include "UI/Common/MAConfirmPopupWidget.h"
+#include "UI/ItemInfo/MAItemInfoWidget.h"
 #include "Character/MACharacter.h"
 #include "Core/MAGameState.h"
 #include "Manager/ItemManager.h"
-#include "UI/MAModelTransEditWidget.h"
 
 #include <EngineUtils.h>
 
@@ -28,20 +28,6 @@ void AMAPlayerController::BeginPlay()
 	{
 		AuctionWidget->SetVisibility(ESlateVisibility::Hidden);
 	}
-
-	// 테스트
-	// if(IsRunningDedicatedServer())
-	// 	return;
-	//
-	// FTransform trans;
-	// trans.SetRotation(FRotator(0.f, 180.f, 0.f).Quaternion());
-	//
-	// FTimerHandle handle;
-	// GetWorld()->GetTimerManager().SetTimer(handle, [this, trans]()
-	// {
-	// 	ServerRPC_SetModelRelativeTrans(MAGetMyJwtToken(GetGameInstance()), 7, trans);
-	// }, 10.f, false);
-	//////////////
 }
 
 void AMAPlayerController::CreateHUDWidget()
@@ -117,21 +103,23 @@ void AMAPlayerController::SendChatLog(const FMAChatLogEntryData& InData)
 }
 
 /**
- *  모델 트랜스폼 변경 UI를 생성하여 띄웁니다.
- *  @param InItemLoc : 아이템의 위치
- *  @param InNowTransform : 현재 모델의 Relative Transform
+ *  아이템 정보 UI를 생성하여 띄웁니다.
+ *  @param InItemId : 볼 아이템의 id, uint32 범위로 넣어야함
  */
-void AMAPlayerController::CreateModelTransEditWidget(const uint8 InItemLoc, const FTransform& InNowTransform)
+void AMAPlayerController::CreateItemInfoWidget(const int64 InItemId)
 {
-	if(IsValid(TransEditWidgetPtr) && TransEditWidgetPtr->IsInViewport())
+	if(InItemId <= 0)
+		return;
+	
+	if(IsValid(ItemInfoWidgetPtr) && ItemInfoWidgetPtr->IsInViewport())
 	{
 		LOG_WARN(TEXT("already add viewport."));
 		return;
 	}
 
-	TransEditWidgetPtr = CreateWidget<UMAModelTransEditWidget>(this, TransEditWidgetClass);
+	ItemInfoWidgetPtr = CreateWidget<UMAItemInfoWidget>(this, ItemInfoWidgetClass);
 
-	if(IsValid(TransEditWidgetPtr))
+	if(IsValid(ItemInfoWidgetPtr))
 	{
 		// 위젯을 생성^^
 		FInputModeUIOnly uiInput;
@@ -139,8 +127,20 @@ void AMAPlayerController::CreateModelTransEditWidget(const uint8 InItemLoc, cons
 		SetShowMouseCursor(true);
 		FlushPressedKeys();
 	
-		TransEditWidgetPtr->AddToViewport();
-		TransEditWidgetPtr->PushData(InItemLoc, InNowTransform);
+		ItemInfoWidgetPtr->AddToViewport();
+	}
+
+	// 데이터를 넣는다.
+	if (const UItemDataHandler* itemDataHandler = MAGetItemDataHandler(GetWorld()->GetGameState()))
+	{
+		TWeakObjectPtr<const AMAPlayerController> thisPtr = this;
+		itemDataHandler->RequestItemDataById([thisPtr](const FItemData& InItemData)
+		{
+			if (IsValid(thisPtr->ItemInfoWidgetPtr))
+			{
+				thisPtr->ItemInfoWidgetPtr->Update(InItemData);
+			}
+		}, InItemId);
 	}
 }
 

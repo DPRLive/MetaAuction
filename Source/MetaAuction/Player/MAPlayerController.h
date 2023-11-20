@@ -40,8 +40,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI|ChatLog")
 	void SendChatLog(const FMAChatLogEntryData& Data);
 
-	UFUNCTION(BlueprintCallable, Category = "UI|Transform")
-	void CreateModelTransEditWidget(const uint8 InItemLoc, const FTransform& InNowTransform);
+	// 아이템 정보 UI를 생성하여 띄웁니다.
+	UFUNCTION(BlueprintCallable, Category = "UI|Auction")
+	void CreateItemInfoWidget(const int64 InItemId);
 	
 	// Server RPC로 item actor에 배치된 모델의 상대적 transform을 변경을 요청합니다.
 	UFUNCTION( Server, Unreliable )
@@ -70,13 +71,13 @@ public:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = "UI|Auction")
 	TObjectPtr<class UMAAuctionWidget> AuctionWidget;
 
-	// 트랜스폼 수정 UI class
-	UPROPERTY(EditDefaultsOnly, Category = "UI|Transform")
-	TSubclassOf<UUserWidget> TransEditWidgetClass;
+	// 아이템 정보 UI class
+	UPROPERTY(EditDefaultsOnly, Category = "UI|Auction")
+	TSubclassOf<UUserWidget> ItemInfoWidgetClass;
 
-	// 트랜스폼 수정 UI instance
+	// 아이템 정보 UI instance
 	UPROPERTY( Transient )
-	TObjectPtr<class UMAModelTransEditWidget> TransEditWidgetPtr;
+	TObjectPtr<class UMAItemInfoWidget> ItemInfoWidgetPtr;
 	
 	UPROPERTY(BlueprintAssignable, Category = "UI|ChatLog")
 	FChatLogEventSignature OnReceivedChatLog;
