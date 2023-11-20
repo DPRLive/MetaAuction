@@ -64,10 +64,10 @@ private:
 	FVector2D MoveDestination;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
-	int32 MoveSpeed;
+	float MoveSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
-	int32 MoveInterpSpeed;
+	float MoveInterpSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	FRotator RotationRate;
