@@ -35,7 +35,13 @@ private:
 	UFUNCTION()
 	FEventReply ItemModelClicked(FGeometry MyGeometry, const FPointerEvent& MouseEvent);
 
+	UFUNCTION()
+	void ModelTransEditButtonClicked();
+
 private:
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UButton> ModelTransEditButton;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UImage> ItemModelImage;
@@ -47,6 +53,9 @@ private:
 	FTransform ItemDisplayerTransform;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class UMAModelTransEditWidget> ModelTransEditWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AMAItemDisplayer> ItemDisplayerClass;
 
 	UPROPERTY(Transient)
@@ -55,9 +64,11 @@ private:
 	UPROPERTY(Transient)
 	TWeakObjectPtr<class AMAItemDisplayer> SpawnedItemDisplayer;
 
+	UPROPERTY(Transient)
+	TWeakObjectPtr<UMAModelTransEditWidget> SpawnedModelTransEditWidget;
+
 	FDelegateHandle ItemReplyHandle;
 	int32 CommentCount;
-
 
 	uint8 bIsItemModelClicked : 1;
 	FVector2D StartMousePosition;

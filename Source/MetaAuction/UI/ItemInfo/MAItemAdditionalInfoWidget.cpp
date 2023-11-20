@@ -4,10 +4,12 @@
 #include "UI/ItemInfo/MAItemAdditionalInfoWidget.h"
 #include "UI/ItemInfo/MAItemDisplayer.h"
 #include "UI/Bidrecord/MABidRecordListWidget.h"
+#include "UI/MAModelTransEditWidget.h"
 #include "MetaAuction.h"
 
 #include <Components/TextBlock.h>
 #include <Components/Image.h>
+#include <Components/Button.h>
 
 UMAItemAdditionalInfoWidget::UMAItemAdditionalInfoWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -23,11 +25,17 @@ void UMAItemAdditionalInfoWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	ensure(ItemModelImage);
+	ensure(ModelTransEditButton);
 	ensure(WBP_BidRecordList);
 
-	if (ItemModelImage)
+	if (IsValid(ItemModelImage))
 	{
 		ItemModelImage->OnMouseButtonDownEvent.BindUFunction(this, TEXT("ItemModelClicked"));
+	}
+
+	if (IsValid(ModelTransEditButton))
+	{
+		ModelTransEditButton->OnClicked.AddDynamic(this, &ThisClass::ModelTransEditButtonClicked);
 	}
 }
 
@@ -37,6 +45,11 @@ void UMAItemAdditionalInfoWidget::NativeDestruct()
 	{
 		SpawnedItemDisplayer->Destroy();
 		SpawnedItemDisplayer = nullptr;
+	}
+
+	if (SpawnedModelTransEditWidget.IsValid())
+	{
+		SpawnedModelTransEditWidget->RemoveFromParent();
 	}
 
 	Super::NativeDestruct();
@@ -103,4 +116,19 @@ FEventReply UMAItemAdditionalInfoWidget::ItemModelClicked(FGeometry MyGeometry, 
 	StartMousePosition = MouseEvent.GetScreenSpacePosition();
 	bIsItemModelClicked = true;
 	return FEventReply();
+}
+
+void UMAItemAdditionalInfoWidget::ModelTransEditButtonClicked()
+{
+	if (!SpawnedModelTransEditWidget.IsValid())
+	{
+		if (APlayerController* PC = GetOwningPlayer())
+		{
+			SpawnedModelTransEditWidget = CreateWidget<UMAModelTransEditWidget>(PC, ModelTransEditWidgetClass);
+			if (SpawnedModelTransEditWidget.IsValid())
+			{
+				SpawnedModelTransEditWidget->AddToViewport();
+			}
+		}
+	}
 }
