@@ -28,6 +28,13 @@ void UMAItemFilterWidget::NativeConstruct()
 		SearchButton->OnClicked.AddDynamic(this, &ThisClass::SearchButtonClicked);
 	}
 
+	if (IsValid(ItemWorldTypeComboBox))
+	{
+		ItemWorldTypeComboBox->ClearOptions();
+		ItemWorldTypeComboBox->AddOption(MAGetNowWorldId(MAGetGameState()));
+		ItemWorldTypeComboBox->SetSelectedIndex(0);
+	}
+
 	if (IsValid(ItemDealTypeComboBox))
 	{
 		ItemDealTypeComboBox->ClearOptions();
@@ -75,7 +82,7 @@ FItemSearchOption UMAItemFilterWidget::GetCurrentOption()
 {
 	FItemSearchOption NewOption;
 	NewOption.SearchString = SearchText->GetText().ToString();
-	// TODO: NewOption.World = ???
+	NewOption.World = MAGetNowWorldId(MAGetGameState());
 
 	// enum의 0번째 옵션은 제거되었으므로 +1
 	NewOption.ItemType = static_cast<EItemDealType>(ItemDealTypeComboBox->GetSelectedIndex() + 1);
