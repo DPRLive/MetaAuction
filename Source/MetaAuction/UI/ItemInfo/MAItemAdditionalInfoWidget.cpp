@@ -36,6 +36,7 @@ void UMAItemAdditionalInfoWidget::NativeConstruct()
 	if (IsValid(ModelTransEditButton))
 	{
 		ModelTransEditButton->OnClicked.AddDynamic(this, &ThisClass::ModelTransEditButtonClicked);
+		ModelTransEditButton->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
@@ -102,6 +103,11 @@ void UMAItemAdditionalInfoWidget::Update(const FItemData& InItemData)
 	{
 		SpawnedItemDisplayer->Destroy();
 		SpawnedItemDisplayer = nullptr;
+	}
+
+	if (InItemData.SellerName == MAGetMyUserName(MAGetGameInstance()))
+	{
+		ModelTransEditButton->SetVisibility(ESlateVisibility::Visible);
 	}
 
 	FActorSpawnParameters SpawnParams;
