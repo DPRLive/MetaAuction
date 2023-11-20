@@ -8,7 +8,6 @@
 #include <IStompMessage.h>
 
 #include "Core/MAGameInstance.h"
-#include "Data/LoginData.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ItemManager)
 
@@ -88,17 +87,17 @@ void UItemManager::Server_UnregisterItem(uint32 InItemId) const
 	CHECK_DEDI_FUNC;
 	
 	// 선형 검색..
-	for(const TWeakObjectPtr<AItemActor>& itemActor : ItemActors)
+	for(uint8 idx = 0; idx < ItemActors.Num(); ++idx)
 	{
 		// 어 내 월드에 있던 물품이었네 -> 삭제
-		if(itemActor.IsValid() && itemActor->GetItemID() == InItemId)
+		if(ItemActors[idx].IsValid() && ItemActors[idx]->GetItemID() == InItemId)
 		{
-			itemActor->Server_RemoveItem();
+			ItemActors[idx]->Server_RemoveItem();
 
 			// 트랜스폼 데이터도 지운다
 			if(IsValid((Server_ModelTransData)))
 			{
-				Server_ModelTransData->RemoveTrans(InItemId);
+				Server_ModelTransData->RemoveTrans(idx + 1);
 			}
 			break;
 		}
@@ -119,10 +118,10 @@ void UItemManager::Server_RegisterNewItem(uint32 InItemId) const
 		TWeakObjectPtr<const UItemManager> thisPtr = this;
 		itemDataHandler->RequestItemDataById([thisPtr, InItemId](const FItemData& InItemData)
 		{
-			// TODO: 월드 관리 어떻게 해야하지.. 일단 하드코딩
-			if (thisPtr.IsValid() && InItemData.World == TEXT("1"))
+			// 월드를 확인해본다
+			if (thisPtr.IsValid() && (InItemData.World == MAGetNowWorldId(thisPtr->GetWorld()->GetGameState())))
 			{
-				thisPtr->_Server_RegisterItemByLoc(InItemId, InItemData.SellerName, InItemData.Location);
+				thisPtr->_Server_RegisterItemByLoc(InItemId, InItemData.Location);
 			}
 		}, InItemId);
 	}
@@ -145,9 +144,8 @@ void UItemManager::Server_ChangeItemData(const uint32& InItemId, const FString& 
 		Server_UnregisterItem(InItemId); // 삭제 후 재등록 시도해봄 (월드 1->1 같은 쿼리가 들어올 수도 있음)
 		Server_RegisterNewItem(InItemId);
 	}
-	else if(InWorld == TEXT("1") && InChangeList.Contains(TEXT("glb"))) // 내 월드에 있는거고 위치는 안바뀌었는데 glb가 바뀌었다면
+	else if(InWorld == MAGetNowWorldId(GetWorld()->GetGameState()) && InChangeList.Contains(TEXT("glb"))) // 내 월드에 있는거고 위치는 안바뀌었는데 glb가 바뀌었다면
 	{
-		// TODO: 월드 확인 어쩌지??????
 		// glb만 변경 된거면 클라이언트의 ItemManager에게 그거 redraw 명령
 		// 배치된 곳을 찾는다
 		for (uint8 idx = 0; idx < ItemActors.Num(); ++idx)
@@ -213,9 +211,8 @@ void UItemManager::_Server_RegisterAllWorldItemID() const
 	if(const UItemDataHandler* itemDataHandler = MAGetItemDataHandler(GetWorld()->GetGameState()))
 	{
 		// 현재 월드에서, 구매 가능하게 배치되어 있는 상품을 검색하기 위한 Body를 만든다.
-		// TODO : 월드 어케 관리함 근데? 일단 1로 하드코딩
 		FItemSearchOption option;
-		option.World = TEXT("1");
+		option.World = MAGetNowWorldId(GetWorld()->GetGameState());
 		option.CanDeal = EItemCanDeal::Possible;
 		
 		TWeakObjectPtr<const UItemManager> thisPtr = this;
@@ -225,7 +222,7 @@ void UItemManager::_Server_RegisterAllWorldItemID() const
 			{
 				for (const FItemData& data : InItemData)
 				{
-					thisPtr->_Server_RegisterItemByLoc(data.ItemID, data.SellerName, data.Location);
+					thisPtr->_Server_RegisterItemByLoc(data.ItemID, data.Location);
 				}
 			}
 		}, option);
@@ -235,10 +232,9 @@ void UItemManager::_Server_RegisterAllWorldItemID() const
 /**
  * Item Data의 Location을 기준으로, Item Actor에 상품ID를 등록한다. 데디 서버에서만 실행 가능합니다.
  * @param InItemId : 등록할 상품의 ID
- * @param InSellerName : 판매자의 이름
  * @param InItemLoc : 상품을 등록할 ItemActor의 위치
  */
-void UItemManager::_Server_RegisterItemByLoc(const uint32 InItemId, const FString& InSellerName, const uint8 InItemLoc) const
+void UItemManager::_Server_RegisterItemByLoc(const uint32 InItemId, const uint8 InItemLoc) const
 {
 	CHECK_DEDI_FUNC;
 
@@ -252,7 +248,7 @@ void UItemManager::_Server_RegisterItemByLoc(const uint32 InItemId, const FStrin
 	
 	if(ItemActors[registerIdx].IsValid())
 	{
-		ItemActors[registerIdx]->SetItem(InItemId, InSellerName);
+		ItemActors[registerIdx]->SetItemId(InItemId);
 	}
 
 	// 그릴 모델의 상대적 trans도 있다면 같이 설정해준다.

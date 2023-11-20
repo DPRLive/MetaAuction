@@ -30,16 +30,13 @@ protected:
 
 public:
 	// 물품을 설정한다.
-	FORCEINLINE void SetItem(const uint32 InItemID, const FString& InSellerName) { ItemID = InItemID; SellerName = InSellerName;}
+	FORCEINLINE void SetItemId(const uint32 InItemID) { ItemID = InItemID; }
 	
 	// 모델의 상대적 Transform을 설정한다.
 	FORCEINLINE void SetModelRelativeTrans(const FTransform& InTransform) { ModelRelativeTrans = InTransform; }
 	
 	// 현재 설정된 물품 id를 가져온다.
 	FORCEINLINE uint32 GetItemID() const { return ItemID; }
-
-	// 현재 설정된 물품의 판매자의 이름을 return 한다.
-	FORCEINLINE const FString& GetSellerName() const { return SellerName; } 
 	
 	// 현재 레벨의 어떤 위치에 배치되어 있는지 알려줌
 	FORCEINLINE const uint8 GetLevelPosition() const { return LevelPosition; }
@@ -90,10 +87,6 @@ private:
 	// 이 액터에 배치된 물품 ID, 0은 할당되지 않음을 의미
 	UPROPERTY( Transient, VisibleInstanceOnly, ReplicatedUsing = OnRep_ItemID )
 	uint32 ItemID;
-
-	// 이 액터에 배치된 물품의 판매자 이름
-	UPROPERTY( Transient, VisibleInstanceOnly, Replicated )
-	FString SellerName;
 	
 	// 모델링의 상대적 Transform
 	UPROPERTY( Transient, VisibleInstanceOnly, ReplicatedUsing = OnRep_ModelRelativeTrans )

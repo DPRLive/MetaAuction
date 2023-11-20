@@ -47,7 +47,7 @@ private:
 	
 	// Item Data의 Location을 기준으로, Item Actor에 상품ID를 등록한다.
 	// 데디 서버에서만 실행 가능합니다.
-	void _Server_RegisterItemByLoc(const uint32 InItemId, const FString& InSellerName, const uint8 InItemLoc) const;
+	void _Server_RegisterItemByLoc(const uint32 InItemId, const uint8 InItemLoc) const;
 
 	// Stomp를 통해 들어오는 새 아이템 등록 알림을 처리한다.
 	void _Server_OnNewItem(const IStompMessage& InMessage) const;

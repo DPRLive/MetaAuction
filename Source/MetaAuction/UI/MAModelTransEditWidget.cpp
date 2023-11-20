@@ -22,7 +22,7 @@ void UMAModelTransEditWidget::NativeConstruct()
 	ensure(ScaleInput);
 
 	CancelBtn->OnClicked.AddDynamic(this, &UMAModelTransEditWidget::_OnClickCancelBtn);
-	VerifyBtn->OnClicked.AddDynamic(this, &UMAModelTransEditWidget::UMAModelTransEditWidget::_OnClickVerifyBtn);
+	VerifyBtn->OnClicked.AddDynamic(this, &UMAModelTransEditWidget::_OnClickVerifyBtn);
 
 	ItemLoc = 0;
 }
@@ -57,9 +57,9 @@ void UMAModelTransEditWidget::PushData(const uint8 InItemLoc, const FTransform& 
 	TransZInput->SetText(FText::AsNumber(InNowTransform.GetLocation().Z));
 	
 	// 현재 Rotate 설정
-	RotateRollInput->SetText(FText::AsNumber(InNowTransform.GetRotation().Rotator().Roll));
-	RotatePitchInput->SetText(FText::AsNumber(InNowTransform.GetRotation().Rotator().Pitch));
-	RotateYawInput->SetText(FText::AsNumber(InNowTransform.GetRotation().Rotator().Yaw));
+	RotateRollInput->SetText(FText::AsNumber(InNowTransform.Rotator().Roll));
+	RotatePitchInput->SetText(FText::AsNumber(InNowTransform.Rotator().Pitch));
+	RotateYawInput->SetText(FText::AsNumber(InNowTransform.Rotator().Yaw));
 
 	// 현재 Scale 설정
 	ScaleInput->SetText(FText::AsNumber(InNowTransform.GetMinimumAxisScale()));
@@ -82,9 +82,12 @@ void UMAModelTransEditWidget::_OnClickVerifyBtn()
 	newLoc.Z = _CastNum(TransZInput->GetText().ToString());
 
 	FRotator newRot;
-	newRot.Roll = _CastNum(RotateRollInput->GetText().ToString());
-	newRot.Pitch = _CastNum(RotatePitchInput->GetText().ToString());
-	newRot.Yaw = _CastNum(RotateYawInput->GetText().ToString());
+	// Roll의 경우 -180~180 사이 허용
+	newRot.Roll = FMath::Clamp(_CastNum(RotateRollInput->GetText().ToString()), -179.0, 179.0);
+	// Pitch의 경우 -90 ~ 90 까지 허용
+	newRot.Pitch = FMath::Clamp(_CastNum(RotatePitchInput->GetText().ToString()), -89.0, 89.0);
+	// Yaw의 경우 -180 ~ 180 허용
+	newRot.Yaw = FMath::Clamp(_CastNum(RotateYawInput->GetText().ToString()), -179.0, 179.0);
 
 	// scale 0으로 들어오면 1로 변환
 	float scale = _CastNum(ScaleInput->GetText().ToString());

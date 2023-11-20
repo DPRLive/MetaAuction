@@ -33,7 +33,6 @@ AItemActor::AItemActor()
 	InteractInfo = FText();
 	
 	ItemID = 0;
-	SellerName = TEXT("");
 	ModelRelativeTrans = FTransform();
 }
 
@@ -41,7 +40,6 @@ void AItemActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AItemActor, ItemID);
-	DOREPLIFETIME(AItemActor, SellerName);
 	DOREPLIFETIME(AItemActor, ModelRelativeTrans);
 }
 
@@ -85,9 +83,9 @@ void AItemActor::Client_RedrawModel() const
 bool AItemActor::CanInteracting_Implementation(AActor* InInteractorActor) const
 {
 	// 클라이언트가 조종하고 있는 특정 actor일때만 반응합니다.
-	// 판매자랑 현재 로그인된 유저랑 일치할 때 반응합니다.
+	// item이 할당 되어 있을때만 반응합니다.
 	if((InInteractorActor->GetLocalRole() != ROLE_AutonomousProxy) ||
-		(SellerName != MAGetMyUserName(GetGameInstance())))
+		(ItemID == 0))
 			return false;
 	
 	return true;
@@ -146,12 +144,12 @@ void AItemActor::InputInteraction_Implementation(AActor* InteractorActor)
 {
 	LOG_N(TEXT("Input Interaction!"));
 
-	// Player Controller에게 수정 위젯을 띄우라고 명령
+	// Player Controller에게 아이템 상세정보 위젯을 띄우라고 명령
 	if(APawn* interActorPawn = Cast<APawn>(InteractorActor))
 	{
 		if(AMAPlayerController* controller = Cast<AMAPlayerController>(interActorPawn->GetController()))
 		{
-			controller->CreateModelTransEditWidget(LevelPosition, ModelRelativeTrans);
+			controller->CreateItemInfoWidget(ItemID);
 		}
 	}
 }
