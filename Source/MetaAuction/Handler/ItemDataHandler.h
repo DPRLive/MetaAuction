@@ -152,7 +152,7 @@ public:
 	void RequestBidRecordByItemId(const FCallbackRefArray<FBidRecord>& InFunc, const uint32 InItemId) const;
 
 	// ItemId로 물품을 삭제합니다. (로그인 된 상태여야 함), (JWT 토큰 확인으로 내 물품이 맞을 경우만 삭제함, 판매 종료 3시간 전에는 삭제 불가)
-	void RequestRemoveItem(const uint32 InItemId) const;
+	void RequestRemoveItem(const uint32 InItemId, const FCallbackRefOneParam<FString>& InFunc) const;
 
 	// Type : Sell (내가 판매했던 or 판매 중인 or 판매했는데 입찰 실패한 물품을 요청합니다. 최근에 업로드한 물품이 배열의 앞) 
 	// Type : Buy (내가 구매 성공한 물품을 요청합니다. 최근에 업로드한 물품이 배열의 앞)
