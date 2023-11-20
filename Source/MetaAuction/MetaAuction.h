@@ -57,3 +57,6 @@ FString MAGetMyUserName(UGameInstance* InGameInstance);
 
 // 현재 로그인된 JwtToken 반환
 FString MAGetMyJwtToken(UGameInstance* InGameInstance);
+
+// 현재 어떤 월드에 속해있는지 반환
+const FString MAGetNowWorldId(AGameStateBase* InGameState);

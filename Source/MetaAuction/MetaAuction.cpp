@@ -152,3 +152,16 @@ FString MAGetMyJwtToken(UGameInstance* InGameInstance)
 	}
 	return TEXT("");
 }
+
+/**
+ * 현재 어떤 월드에 속해있는지 반환
+ */
+const FString MAGetNowWorldId(AGameStateBase* InGameState)
+{
+	if(AMAGameState* gameState = Cast<AMAGameState>(InGameState))
+	{
+		return gameState->GetWorldId();
+	}
+	
+	return TEXT("");
+}

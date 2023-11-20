@@ -129,4 +129,8 @@ public:
 	// 웹서버 시간을 UTC에 맞추기 위해 변화해야 하는 변화 값 설정
 	UPROPERTY( EditDefaultsOnly, Category = "Server" )
 	FTimespan WebServerUTCDiff = - FTimespan(9, 0, 0);
+
+	// 현재 데디 서버가 어떤 월드를 담당할지 string입니다.
+	UPROPERTY( EditDefaultsOnly, Category = "Server" )
+	FString DediWorld = TEXT("1");
 };
