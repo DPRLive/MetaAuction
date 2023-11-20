@@ -19,11 +19,11 @@ protected:
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:
 
-	UFUNCTION(BlueprintCallable)
-	void Init(class UStaticMesh* NewMesh);
+	void Init(const uint32 InItemID);
 
 private:
 
@@ -45,6 +45,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UStaticMeshComponent> DisplayMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UModelDrawComponent> ModelDrawComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USceneCaptureComponent2D> DisplayCamera;
@@ -69,4 +72,7 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	uint8 bIsRotate : 1;
+
+	UPROPERTY(Transient)
+	TWeakObjectPtr<AActor> DrawedModel;
 };

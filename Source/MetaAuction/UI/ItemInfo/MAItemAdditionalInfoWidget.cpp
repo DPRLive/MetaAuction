@@ -51,5 +51,5 @@ void UMAItemAdditionalInfoWidget::Update(const FItemData& InItemData)
 	SpawnParams.Owner = GetOwningPlayer();
 	SpawnParams.Instigator = GetOwningPlayerPawn();
 	SpawnedItemDisplayer = GetWorld()->SpawnActor<AMAItemDisplayer>(ItemDisplayerClass, ItemDisplayerTransform, SpawnParams);
-	// SpawnedItemDisplayer->Init(/* TODO : Set Static Mesh */);
+	SpawnedItemDisplayer->Init(InItemData.ItemID);
 }

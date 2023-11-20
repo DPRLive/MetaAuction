@@ -2,6 +2,7 @@
 
 
 #include "UI/ItemInfo/MAItemDisplayer.h"
+#include "Component/ModelDrawComponent.h"
 
 #include <Components/SceneComponent.h>
 #include <Components/StaticMeshComponent.h>
@@ -19,14 +20,15 @@ AMAItemDisplayer::AMAItemDisplayer()
 	RotateSceneComponent->SetupAttachment(RootComponent);
 
 	BackgroundMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BackgroundMesh"));
-	BackgroundMesh->SetupAttachment(RootComponent);
+	BackgroundMesh->SetupAttachment(RotateSceneComponent);
 
 	DisplayMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DisplayMesh"));
-	DisplayMesh->SetupAttachment(RotateSceneComponent);
+	DisplayMesh->SetupAttachment(RootComponent);
+
+	ModelDrawComponent = CreateDefaultSubobject<UModelDrawComponent>(TEXT("ModelDrawComponent"));
 
 	DisplayCamera = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("DisplayCamera"));
-	DisplayCamera->SetupAttachment(RootComponent);
-	DisplayCamera->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
+	DisplayCamera->SetupAttachment(RotateSceneComponent);
 	DisplayCamera->CaptureSource = ESceneCaptureSource::SCS_SceneColorHDR;
 	
 	MoveRange = 1000.0f;
@@ -39,7 +41,6 @@ void AMAItemDisplayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	DisplayCamera->ShowOnlyActors.Emplace(this);
 	DefaultCameraLocation = DisplayCamera->GetComponentLocation();
 }
 
@@ -54,18 +55,24 @@ void AMAItemDisplayer::Tick(float DeltaTime)
 	}
 
 	// Move Camera
-	const FVector& CameraLocation = DisplayCamera->GetComponentLocation();
-	const FVector& UpVector = DisplayCamera->GetUpVector();
-	const FVector& RightVector = DisplayCamera->GetRightVector();
-	FVector NewLocation = DefaultCameraLocation;
-	NewLocation += UpVector * MoveDestination.Y;
-	NewLocation += RightVector * MoveDestination.X;
-	DisplayCamera->SetWorldLocation(FMath::VInterpTo(CameraLocation, NewLocation, DeltaTime, InterpSpeed));
+	// const FVector& CameraLocation = DisplayCamera->GetRelativeLocation();
+	// const FVector& UpVector = DisplayCamera->GetUpVector();
+	// const FVector& RightVector = DisplayCamera->GetRightVector();
+	// FVector NewLocation = DefaultCameraLocation;
+	// NewLocation += UpVector * MoveDestination.Y;
+	// NewLocation += RightVector * MoveDestination.X;
+	// DisplayCamera->SetWorldLocation(FMath::VInterpTo(CameraLocation, NewLocation, DeltaTime, InterpSpeed));
 }
 
-void AMAItemDisplayer::Init(UStaticMesh* NewMesh)
+void AMAItemDisplayer::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	DisplayMesh->SetStaticMesh(NewMesh);
+	ModelDrawComponent->RemoveModel();
+
+	Super::EndPlay(EndPlayReason);
+}
+
+void AMAItemDisplayer::Init(const uint32 InItemID)
+{
 	RotateSceneComponent->SetRelativeRotation(FRotator::ZeroRotator);
 
 	/*
@@ -84,6 +91,9 @@ void AMAItemDisplayer::Init(UStaticMesh* NewMesh)
 	NewDisplayCameraLocation.Z -= Delta;
 	DisplayCamera->SetRelativeLocation(NewDisplayCameraLocation);
 	*/
+
+	ModelDrawComponent->RemoveModel();
+	ModelDrawComponent->CreateModel(InItemID, DisplayMesh->GetComponentTransform());
 }
 
 float AMAItemDisplayer::GetAxisDeltaRotation(float InAxisRotationRate, float DeltaTime) const
