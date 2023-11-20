@@ -35,8 +35,8 @@ AMAItemDisplayer::AMAItemDisplayer()
 	MoveInterpSpeed = 10.0f;
 	RotationRate = FRotator(0.0f, 0.0f, 60.0f);
 	bIsRotate = true;
-	DefaultZoom = 90.0f;
-	ZoomRange = 60.0f;
+	MinZoom = 15.0f;
+	MaxZoom = 120.0f;
 	ZoomValue = 5.0f;
 	ZoomInterpSpeed = 10.0f;
 	MoveSpeed = 0.2f;
@@ -47,7 +47,7 @@ void AMAItemDisplayer::BeginPlay()
 	Super::BeginPlay();
 
 	DefaultCameraLocation = DisplayCamera->GetRelativeLocation();
-	DefaultZoom = CurrentZoom = DisplayCamera->FOVAngle;
+	CurrentZoom = DisplayCamera->FOVAngle;
 }
 
 void AMAItemDisplayer::Tick(float DeltaTime)
@@ -126,13 +126,13 @@ void AMAItemDisplayer::MoveCamera(const FVector2D& InPos)
 void AMAItemDisplayer::ZoomInCamera()
 {
 	CurrentZoom -= ZoomValue;
-	CurrentZoom = FMath::Clamp(CurrentZoom, DefaultZoom - ZoomRange, DefaultZoom + ZoomRange);
+	CurrentZoom = FMath::Clamp(CurrentZoom, MinZoom, MaxZoom);
 }
 
 void AMAItemDisplayer::ZoomOutCamera()
 {
 	CurrentZoom += ZoomValue;
-	CurrentZoom = FMath::Clamp(CurrentZoom, DefaultZoom - ZoomRange, DefaultZoom + ZoomRange);
+	CurrentZoom = FMath::Clamp(CurrentZoom, MinZoom, MaxZoom);
 }
 
 FVector AMAItemDisplayer::GetHitZLocation(const FVector& InStart, const int32 InTrace, const TArray<TWeakObjectPtr<UPrimitiveComponent>>& Ignores) const

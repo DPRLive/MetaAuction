@@ -76,13 +76,13 @@ private:
 	uint8 bIsRotate : 1;
 
 	UPROPERTY(Transient)
-	float DefaultZoom;
-
-	UPROPERTY(Transient)
 	float CurrentZoom;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
-	float ZoomRange;
+	float MinZoom;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	float MaxZoom;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	float ZoomValue;

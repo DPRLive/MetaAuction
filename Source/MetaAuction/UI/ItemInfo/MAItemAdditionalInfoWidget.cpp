@@ -119,8 +119,13 @@ void UMAItemAdditionalInfoWidget::Update(const FItemData& InItemData)
 
 FEventReply UMAItemAdditionalInfoWidget::ItemModelClicked(FGeometry MyGeometry, const FPointerEvent& MouseEvent)
 {
-	StartMousePosition = MouseEvent.GetScreenSpacePosition();
-	bIsItemModelClicked = true;
+	if (MouseEvent.GetEffectingButton() == EKeys::LeftMouseButton ||
+		MouseEvent.GetEffectingButton() == EKeys::RightMouseButton)
+	{
+		StartMousePosition = MouseEvent.GetScreenSpacePosition();
+		bIsItemModelClicked = true;
+	}
+
 	return FEventReply();
 }
 
