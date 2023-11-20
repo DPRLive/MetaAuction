@@ -32,9 +32,13 @@ AMAItemDisplayer::AMAItemDisplayer()
 	DisplayCamera->CaptureSource = ESceneCaptureSource::SCS_SceneColorHDR;
 	
 	MoveRange = 1000.0f;
-	InterpSpeed = 10.0f;
+	MoveInterpSpeed = 10.0f;
 	RotationRate = FRotator(0.0f, 0.0f, 60.0f);
 	bIsRotate = true;
+	DefaultZoom = 90.0f;
+	ZoomRange = 45.0f;
+	ZoomValue = 5.0f;
+	ZoomInterpSpeed = 10.0f;
 }
 
 void AMAItemDisplayer::BeginPlay()
@@ -42,6 +46,7 @@ void AMAItemDisplayer::BeginPlay()
 	Super::BeginPlay();
 
 	DefaultCameraLocation = DisplayCamera->GetComponentLocation();
+	DefaultZoom = CurrentZoom = DisplayCamera->FOVAngle;
 }
 
 void AMAItemDisplayer::Tick(float DeltaTime)
@@ -62,6 +67,9 @@ void AMAItemDisplayer::Tick(float DeltaTime)
 	// NewLocation += UpVector * MoveDestination.Y;
 	// NewLocation += RightVector * MoveDestination.X;
 	// DisplayCamera->SetWorldLocation(FMath::VInterpTo(CameraLocation, NewLocation, DeltaTime, InterpSpeed));
+
+	// Zoom Camera
+	DisplayCamera->FOVAngle = FMath::FInterpTo(DisplayCamera->FOVAngle, CurrentZoom, DeltaTime, ZoomInterpSpeed);
 }
 
 void AMAItemDisplayer::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -113,6 +121,18 @@ void AMAItemDisplayer::MoveCamera(const FVector2D& InPos)
 	MoveDestination = InPos * MoveSpeed;
 	MoveDestination.X = FMath::Clamp(MoveDestination.X, -MoveRange, MoveRange);
 	MoveDestination.Y = FMath::Clamp(MoveDestination.Y, -MoveRange, MoveRange);
+}
+
+void AMAItemDisplayer::ZoomInCamera()
+{
+	CurrentZoom -= ZoomValue;
+	CurrentZoom = FMath::Clamp(CurrentZoom, DefaultZoom - ZoomRange, DefaultZoom + ZoomRange);
+}
+
+void AMAItemDisplayer::ZoomOutCamera()
+{
+	CurrentZoom += ZoomValue;
+	CurrentZoom = FMath::Clamp(CurrentZoom, DefaultZoom - ZoomRange, DefaultZoom + ZoomRange);
 }
 
 FVector AMAItemDisplayer::GetHitZLocation(const FVector& InStart, const int32 InTrace, const TArray<TWeakObjectPtr<UPrimitiveComponent>>& Ignores) const

@@ -13,6 +13,8 @@ UMAItemAdditionalInfoWidget::UMAItemAdditionalInfoWidget(const FObjectInitialize
 	: Super(ObjectInitializer)
 {
 	CommentCount = 0;
+
+	SetIsFocusable(true);
 }
 
 void UMAItemAdditionalInfoWidget::NativeConstruct()
@@ -32,6 +34,23 @@ void UMAItemAdditionalInfoWidget::NativeDestruct()
 	}
 
 	Super::NativeDestruct();
+}
+
+FReply UMAItemAdditionalInfoWidget::NativeOnMouseWheel(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	if (SpawnedItemDisplayer.IsValid())
+	{
+		if (InMouseEvent.GetWheelDelta() < 0)
+		{
+			SpawnedItemDisplayer->ZoomOutCamera();
+		}
+		else if (InMouseEvent.GetWheelDelta() > 0)
+		{
+			SpawnedItemDisplayer->ZoomInCamera();
+		}
+	}
+	
+	return Super::NativeOnMouseWheel(InGeometry, InMouseEvent);
 }
 
 void UMAItemAdditionalInfoWidget::Update(const FItemData& InItemData)

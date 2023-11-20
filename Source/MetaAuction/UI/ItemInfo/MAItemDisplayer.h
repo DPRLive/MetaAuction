@@ -24,12 +24,14 @@ protected:
 public:
 
 	void Init(const uint32 InItemID);
+	void MoveCamera(const FVector2D& InPos);
+	void ZoomInCamera();
+	void ZoomOutCamera();
 
 private:
 
 	float GetAxisDeltaRotation(float InAxisRotationRate, float DeltaTime) const;
 	FRotator GetDeltaRotation(float DeltaTime) const;
-	void MoveCamera(const FVector2D& InPos);
 	FVector GetHitZLocation(const FVector& InStart, const int32 InTrace, const TArray<TWeakObjectPtr<UPrimitiveComponent>>& Ignores) const;
 
 private:
@@ -65,13 +67,28 @@ private:
 	int32 MoveSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
-	int32 InterpSpeed;
+	int32 MoveInterpSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	FRotator RotationRate;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
 	uint8 bIsRotate : 1;
+
+	UPROPERTY(Transient)
+	float DefaultZoom;
+
+	UPROPERTY(Transient)
+	float CurrentZoom;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	float ZoomRange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	float ZoomValue;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = "true"))
+	int32 ZoomInterpSpeed;
 
 	UPROPERTY(Transient)
 	TWeakObjectPtr<AActor> DrawedModel;
