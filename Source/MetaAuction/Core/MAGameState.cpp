@@ -22,7 +22,7 @@ void AMAGameState::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	if(IsRunningDedicatedServer()) // 서버일 때만 월드 설정 // ServerTravel 시에도 잘 작동할지는 봐야함..
+	if(IsRunningDedicatedServer()) // 서버일 때만 월드 설정 TODO: ServerTravel 시에도 잘 작동할지는 봐야함..
 	{
 		WorldId = DA_NETWORK(DediWorld);
 	}
