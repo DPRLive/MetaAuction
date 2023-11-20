@@ -2,8 +2,9 @@
 
 
 #include "UI/MAAuctionWidget.h"
-#include "UI/MAItemTileWidget.h"
-#include "UI/MAItemFilterWidget.h"
+#include "UI/Item/MAItemTileWidget.h"
+#include "UI/Item/MAItemFilterWidget.h"
+#include "UI/Chat/MAChatInfoWidget.h"
 #include "Common/MALog.h"
 
 #include <Components/HorizontalBox.h>
@@ -27,6 +28,7 @@ void UMAAuctionWidget::NativeConstruct()
 	ensure(ItemSellButton);
 	ensure(ItemBuyButton);
 	ensure(ItemTryBidButton);
+	ensure(ChatInfoButton);
 	ensure(WBP_ItemFilter);
 	ensure(WBP_ItemView);
 
@@ -61,6 +63,11 @@ void UMAAuctionWidget::NativeConstruct()
 	if (IsValid(ItemTryBidButton))
 	{
 		ItemTryBidButton->OnClicked.AddDynamic(this, &ThisClass::ItemTryBidButtonClicked);
+	}
+
+	if (IsValid(ChatInfoButton))
+	{
+		ChatInfoButton->OnClicked.AddDynamic(this, &ThisClass::ChatInfoButtonClicked);
 	}
 
 	if (IsValid(WBP_ItemFilter))
@@ -163,6 +170,18 @@ void UMAAuctionWidget::ItemTryBidButtonClicked()
 		CachedItemCanDeal = EItemCanDeal::Possible;
 		WBP_ItemView->UpdateMyItems(EMyItemReqType::TryBid);
 		WBP_ItemFilter->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+void UMAAuctionWidget::ChatInfoButtonClicked()
+{
+	if (APlayerController* PC = GetOwningPlayer())
+	{
+		if (UMAChatInfoWidget* ChatInfoWidget = CreateWidget<UMAChatInfoWidget>(PC, ChatInfoWidgetClass))
+		{
+			ChatInfoWidget->AddToViewport();
+			ChatInfoWidget->Update();
+		}
 	}
 }
 
