@@ -24,6 +24,7 @@ public:
 	// Server only
 	virtual void PossessedBy(AController* NewController) override;
 
+	virtual void OnRep_PlayerState() override;
 private:
 
 	void SetupNameplateWidget();

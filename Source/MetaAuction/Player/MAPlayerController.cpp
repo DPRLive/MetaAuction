@@ -22,12 +22,16 @@ AMAPlayerController::AMAPlayerController()
 
 void AMAPlayerController::BeginPlay()
 {
+	LOG_WARN(TEXT("Begin!"));
+
 	CreateHUDWidget();
 	CreateAuctionWidget();
 	if (AuctionWidget)
 	{
 		AuctionWidget->SetVisibility(ESlateVisibility::Hidden);
 	}
+	LOG_WARN(TEXT("End!"));
+
 }
 
 void AMAPlayerController::CreateHUDWidget()
@@ -192,4 +196,9 @@ void AMAPlayerController::ShowChatBubble(APawn* SourcePawn, const FMAChatLogEntr
 			ChatBubbleWidgetComponent->ShowChatBubble(InData.ChatLog.ToString());
 		}
 	}
+}
+
+void AMAPlayerController::ClientTravels(const FString& InUrl)
+{
+	ClientTravel(InUrl, TRAVEL_Absolute);
 }

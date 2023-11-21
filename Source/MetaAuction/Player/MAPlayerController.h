@@ -82,6 +82,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "UI|ChatLog")
 	FChatLogEventSignature OnReceivedChatLog;
 
+	UFUNCTION(BlueprintCallable)
+	void ClientTravels(const FString& InUrl);
 private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Popup", meta = (AllowPrivateAccess = "true"))

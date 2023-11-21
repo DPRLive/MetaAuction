@@ -132,7 +132,7 @@ FString MAGetMyUserName(UGameInstance* InGameInstance)
 	{
 		if(gameInstance->GetLoginData().IsValid())
 		{
-			return gameInstance->GetLoginData()->GetUserName();
+			// return gameInstance->GetLoginData()->GetMyUserName();
 		}
 	}
 	return TEXT("");

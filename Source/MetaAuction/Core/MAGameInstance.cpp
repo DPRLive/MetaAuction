@@ -10,7 +10,12 @@
 
 UMAGameInstance::UMAGameInstance()
 {
+	LoginData = nullptr;
+	MyUserData = FUserShareData();
+	ItemFileHandler = nullptr;
 	ChatHandler = CreateDefaultSubobject<UChatHandler>(TEXT("ChatHandler"));
+	HttpHelper = nullptr;
+	StompHelper = nullptr;
 }
 
 /**

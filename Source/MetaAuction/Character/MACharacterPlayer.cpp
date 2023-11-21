@@ -96,9 +96,13 @@ AMACharacterPlayer::AMACharacterPlayer(const FObjectInitializer& ObjectInitializ
 */
 void AMACharacterPlayer::BeginPlay()
 {
+	LOG_WARN(TEXT("Begin!"));
+
 	Super::BeginPlay();
 
 	SetupNameplateWidget();
+	LOG_WARN(TEXT("End!"));
+
 }
 
 void AMACharacterPlayer::PossessedBy(AController* NewController)
@@ -113,6 +117,15 @@ void AMACharacterPlayer::PossessedBy(AController* NewController)
 	//	NameplateWidgetComponent->SetTickMode(ETickMode::Disabled);
 	//	NameplateWidgetComponent->SetVisibility(false, true);
 	//}
+}
+
+void AMACharacterPlayer::OnRep_PlayerState()
+{
+	LOG_WARN(TEXT("Begin!"));
+
+	Super::OnRep_PlayerState();
+	LOG_WARN(TEXT("End!"));
+
 }
 
 void AMACharacterPlayer::SetupNameplateWidget()

@@ -25,7 +25,7 @@ void UMANameplateWidget::Update()
 		UMAGameInstance* MAGameInstance = Cast<UMAGameInstance>(MAGetGameInstance());
 		if (IsValid(MAGameInstance) && MAGameInstance->GetLoginData().IsValid())
 		{
-			NameText->SetText(FText::FromString(MAGameInstance->GetLoginData()->GetUserName()));
+			// NameText->SetText(FText::FromString(MAGameInstance->GetLoginData()->GetUserName()));
 		}
 	}
 }
