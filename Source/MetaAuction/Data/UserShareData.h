@@ -11,18 +11,6 @@ struct FUserShareData
 	GENERATED_BODY()
 
 	FUserShareData() : UserName(TEXT("")) { }
-
-	FUserShareData& operator=(const FUserShareData& InUserData)
-	{
-		UserName = InUserData.UserName;
-		return *this;
-	}
-
-	FUserShareData& operator=(FUserShareData&& InUserData) noexcept
-	{
-		UserName = MoveTemp(InUserData.UserName);
-		return *this;
-	}
 	
 	UPROPERTY()
 	FString UserName;

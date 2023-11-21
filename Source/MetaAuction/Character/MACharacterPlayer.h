@@ -29,6 +29,12 @@ private:
 
 	void SetupNameplateWidget();
 
+	// PlayerState에 데이터가 도착했을때, 데이터를 받아내야 할 때 호출합니다.
+	void ReceiveUserData();
+
+protected:
+	virtual void OnPlayerStateChanged(APlayerState* NewPlayerState, APlayerState* OldPlayerState) override;
+	
 public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
@@ -54,4 +60,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Interaction")
 	TObjectPtr<UMAInteractorComponent> InteractorComponent;
+
+private:
+	// PlayerState로부터 데이터가 바뀔때 받아내기 위한 delegate handle입니다.
+	FDelegateHandle ReceiveUserDataHandle;
 };

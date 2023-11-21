@@ -22,16 +22,12 @@ AMAPlayerController::AMAPlayerController()
 
 void AMAPlayerController::BeginPlay()
 {
-	LOG_WARN(TEXT("Begin!"));
-
 	CreateHUDWidget();
 	CreateAuctionWidget();
 	if (AuctionWidget)
 	{
 		AuctionWidget->SetVisibility(ESlateVisibility::Hidden);
 	}
-	LOG_WARN(TEXT("End!"));
-
 }
 
 void AMAPlayerController::CreateHUDWidget()
@@ -152,16 +148,16 @@ void AMAPlayerController::CreateItemInfoWidget(const int64 InItemId)
  *  Server RPC로 item actor에 배치된 모델의 상대적 transform을 변경을 요청합니다.
  *  @param InJwtToken : 요청한 사람의 토큰
  *  @param InItemLoc : 아이템의 위치
- *  @param InReleativeTrans : 변경할 transform
+ *  @param InRelativeTrans : 변경할 transform
  */
-void AMAPlayerController::ServerRPC_SetModelRelativeTrans_Implementation(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InReleativeTrans)
+void AMAPlayerController::ServerRPC_SetModelRelativeTrans_Implementation(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InRelativeTrans)
 {
 	LOG_WARN(TEXT("Server RPC"));
 	if(const AMAGameState* gameState = Cast<AMAGameState>(GetWorld()->GetGameState()))
 	{
 		if(UItemManager* itemManager = gameState->GetItemManager())
 		{
-			itemManager->Server_SetModelTransform(InJwtToken, InItemLoc, InReleativeTrans);
+			itemManager->Server_SetModelTransform(InJwtToken, InItemLoc, InRelativeTrans);
 		}
 	}
 }
@@ -196,9 +192,4 @@ void AMAPlayerController::ShowChatBubble(APawn* SourcePawn, const FMAChatLogEntr
 			ChatBubbleWidgetComponent->ShowChatBubble(InData.ChatLog.ToString());
 		}
 	}
-}
-
-void AMAPlayerController::ClientTravels(const FString& InUrl)
-{
-	ClientTravel(InUrl, TRAVEL_Absolute);
 }

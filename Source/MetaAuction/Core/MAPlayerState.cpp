@@ -2,24 +2,22 @@
 
 
 #include "Core/MAPlayerState.h"
+#include "MAGameInstance.h"
 
 #include <Net/UnrealNetwork.h>
 
-#include "MAGameInstance.h"
+#include UE_INLINE_GENERATED_CPP_BY_NAME(MAPlayerState)
 
 void AMAPlayerState::BeginPlay()
 {
-	LOG_WARN(TEXT("Begin!"));
 	Super::BeginPlay();
-	LOG_WARN(TEXT("End!"));
 	
 	// 로컬 유저의 PlayerState 라면 game instance에 있는 나의 공유 데이터를 보낸다.
 	if(!IsRunningDedicatedServer() && (GetPlayerController() != nullptr))
 	{
 		if(const UMAGameInstance* gameInstance = Cast<UMAGameInstance>(GetGameInstance()))
 		{
-			LOG_WARN(TEXT("t2q"));
-			ServerRPC_SendUserData(gameInstance->GetMyUserData());
+			ServerRPC_SendUserData(gameInstance->GetTempUserShareData());
 		}
 	}
 }
@@ -36,16 +34,15 @@ void AMAPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 */
 void AMAPlayerState::ServerRPC_SendUserData_Implementation(const FUserShareData& InUserData)
 {
-	LOG_WARN(TEXT("sibal"));
-
-	UserData = MoveTemp(UserData);
+	LOG_N(TEXT("Receive [%s]User Data."), *InUserData.UserName);
+	UserData = InUserData;
 }
 
 /**
-* UserData가 Replicate 되면 Delegate로 변경이 있었다고 알립니다.
+* UserData가 Replicate 되면 Delegate로 데이터가 들어왔다고 알립니다.
 */
 void AMAPlayerState::OnRep_UserData() const
 {
-	if(OnChangeUserData.IsBound())
-		OnChangeUserData.Broadcast();
+	if(OnReceiveUserData.IsBound())
+		OnReceiveUserData.Broadcast();
 }

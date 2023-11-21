@@ -7,6 +7,7 @@
 #include "UI/MANameplateWidget.h"
 #include "UI/Chat/MAChatBubbleWidgetComponent.h"
 #include "Interaction/MAInteractorComponent.h"
+#include "Core/MAPlayerState.h"
 
 #include <Camera/CameraComponent.h>
 #include <Components/CapsuleComponent.h>
@@ -19,6 +20,7 @@
 #include <GameFramework/SpringArmComponent.h>
 #include <UObject/ConstructorHelpers.h>
 #include <Kismet/GameplayStatics.h>
+
 
 
 AMACharacterPlayer::AMACharacterPlayer(const FObjectInitializer& ObjectInitializer)
@@ -96,13 +98,9 @@ AMACharacterPlayer::AMACharacterPlayer(const FObjectInitializer& ObjectInitializ
 */
 void AMACharacterPlayer::BeginPlay()
 {
-	LOG_WARN(TEXT("Begin!"));
-
 	Super::BeginPlay();
 
 	SetupNameplateWidget();
-	LOG_WARN(TEXT("End!"));
-
 }
 
 void AMACharacterPlayer::PossessedBy(AController* NewController)
@@ -119,13 +117,21 @@ void AMACharacterPlayer::PossessedBy(AController* NewController)
 	//}
 }
 
+/**
+* Player State가 On Rep되면 데이터를 받을 준비를 합니다.
+*/
 void AMACharacterPlayer::OnRep_PlayerState()
 {
-	LOG_WARN(TEXT("Begin!"));
-
 	Super::OnRep_PlayerState();
-	LOG_WARN(TEXT("End!"));
 
+	// 이미 데이터가 먼저 들어가 있을 수도 있음
+	ReceiveUserData();
+	
+	// 추후에 데이터가 도착하는 경우를 대비하여 Delegate에 bind
+	if(AMAPlayerState* playerState = Cast<AMAPlayerState>(GetPlayerState()))
+	{
+		ReceiveUserDataHandle = playerState->OnReceiveUserData.AddUObject(this, &AMACharacterPlayer::ReceiveUserData);
+	}
 }
 
 void AMACharacterPlayer::SetupNameplateWidget()
@@ -139,5 +145,33 @@ void AMACharacterPlayer::SetupNameplateWidget()
 			NameplateWidgetComponent->SetWidget(NameplateWidget);
 			NameplateWidget->Update();
 		}
+	}
+}
+
+/**
+* Player State가 변경되면, 이전에 등록해뒀던 delegate를 해제시킵니다.
+* 여기에 Player State의 정보를 사용해야 하는 로직을 작성해주세요 !
+*/
+void AMACharacterPlayer::ReceiveUserData()
+{
+	AMAPlayerState* playerState = Cast<AMAPlayerState>(GetPlayerState());
+
+	if(playerState == nullptr)
+		return;
+	
+	// 여기에 로직 작성 //
+	LOG_WARN(TEXT("Receive Data. [%s]"), *playerState->GetUserData().UserName);
+}
+
+/**
+* Player State가 변경되면, 이전에 등록해뒀던 delegate를 해제시킵니다.
+*/
+void AMACharacterPlayer::OnPlayerStateChanged(APlayerState* NewPlayerState, APlayerState* OldPlayerState)
+{
+	Super::OnPlayerStateChanged(NewPlayerState, OldPlayerState);
+
+	if(AMAPlayerState* playerState = Cast<AMAPlayerState>(OldPlayerState))
+	{
+		playerState->OnReceiveUserData.Remove(ReceiveUserDataHandle);
 	}
 }

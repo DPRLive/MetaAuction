@@ -46,7 +46,8 @@ public:
 	
 	// Server RPC로 item actor에 배치된 모델의 상대적 transform을 변경을 요청합니다.
 	UFUNCTION( Server, Unreliable )
-	void ServerRPC_SetModelRelativeTrans(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InReleativeTrans);
+	void ServerRPC_SetModelRelativeTrans(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InRelativeTrans);
+	
 private:
 
 	UFUNCTION(Server, Reliable, Category = "UI|ChatLog")
@@ -82,8 +83,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "UI|ChatLog")
 	FChatLogEventSignature OnReceivedChatLog;
 
+	// 테스트용
 	UFUNCTION(BlueprintCallable)
-	void ClientTravels(const FString& InUrl);
+	void ClientTravels(const FString& InString) { ClientTravel(InString, TRAVEL_Absolute, true); }
 private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Popup", meta = (AllowPrivateAccess = "true"))

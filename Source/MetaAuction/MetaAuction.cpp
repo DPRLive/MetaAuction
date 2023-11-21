@@ -4,10 +4,10 @@
 #include "Core/MAGameInstance.h"
 #include "Core/MAGameState.h"
 #include "Data/LoginData.h"
+#include "Core/MAPlayerState.h"
 
 #include <Kismet/GameplayStatics.h>
 #include <Modules/ModuleManager.h>
-
 
 IMPLEMENT_PRIMARY_GAME_MODULE(FDefaultGameModuleImpl, MetaAuction, "MetaAuction");
 
@@ -128,13 +128,27 @@ FStompHelper* MAGetStompHelper(UGameInstance* InGameInstance)
  */
 FString MAGetMyUserName(UGameInstance* InGameInstance)
 {
-	if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(InGameInstance))
+	// Player State에서 꺼내기 시도
+	UMAGameInstance* gameInstance = Cast<UMAGameInstance>(InGameInstance);
+	if(gameInstance == nullptr)
+		return TEXT("");
+	
+	// Player State에서 꺼내온다.
+	if(APlayerController* controller = gameInstance->GetFirstLocalPlayerController())
 	{
-		if(gameInstance->GetLoginData().IsValid())
+		if(AMAPlayerState* playerState = controller->GetPlayerState<AMAPlayerState>())
 		{
-			// return gameInstance->GetLoginData()->GetMyUserName();
+			return playerState->GetUserData().UserName;
 		}
 	}
+
+	// 아니면 game instance에서 파싱해서 준다.
+	if (gameInstance->GetFirstLocalPlayerController())
+	{
+		return gameInstance->GetLoginData()->GetMyUserName();
+	}
+	
+	// 그것도 안되면 안줌
 	return TEXT("");
 }
 

@@ -8,7 +8,7 @@
 #include "MAPlayerState.generated.h"
 
 /**
- *	 
+ *	Player State 입니다
  */
 UCLASS()
 class METAAUCTION_API AMAPlayerState : public APlayerState
@@ -21,17 +21,20 @@ class METAAUCTION_API AMAPlayerState : public APlayerState
 	
 public:
 	// UserData를 서버로 보냅니다.
-	UFUNCTION(Server, Unreliable)
+	UFUNCTION(Server, Reliable)
 	void ServerRPC_SendUserData(const FUserShareData& InUserData);
 
+	// User Data Getter
+	FORCEINLINE const FUserShareData& GetUserData() const { return UserData; }
+	
 private:
 	UFUNCTION()
 	void OnRep_UserData() const;
 
 public:
-	// UserData가 변경되면 변경되었다고 알려주는 Delegate 입니다.
-	DECLARE_MULTICAST_DELEGATE(FOnChangeUserData)
-	FOnChangeUserData OnChangeUserData;
+	// UserData가 수신 되었다고 알려주는 Delegate 입니다.
+	DECLARE_MULTICAST_DELEGATE(FOnReceiveUserData)
+	FOnReceiveUserData OnReceiveUserData;
 	
 private:
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_UserData )
