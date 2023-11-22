@@ -56,3 +56,10 @@ enum class ERemoveCacheType : uint8
 	MAX			UMETA(Hidden)
 
 };
+
+UENUM(BlueprintType)
+enum class ELevelType : uint8
+{
+	Lobby		UMETA( Tooltip = "로비" ),
+	Auction		UMETA( Tooltip = "경매장" )
+};
