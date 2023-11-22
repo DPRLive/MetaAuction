@@ -149,7 +149,7 @@ void AMACharacterPlayer::SetupNameplateWidget()
 }
 
 /**
-* Player State가 변경되면, 이전에 등록해뒀던 delegate를 해제시킵니다.
+* Player State로부터 데이터를 받습니다.
 * 여기에 Player State의 정보를 사용해야 하는 로직을 작성해주세요 !
 */
 void AMACharacterPlayer::ReceiveUserData()
@@ -161,6 +161,7 @@ void AMACharacterPlayer::ReceiveUserData()
 	
 	// 여기에 로직 작성 //
 	LOG_WARN(TEXT("Receive Data. [%s]"), *playerState->GetUserData().UserName);
+	
 }
 
 /**
