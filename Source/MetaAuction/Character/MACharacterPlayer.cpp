@@ -8,6 +8,7 @@
 #include "UI/Chat/MAChatBubbleWidgetComponent.h"
 #include "Interaction/MAInteractorComponent.h"
 #include "Core/MAPlayerState.h"
+#include "MACharacterDataSet.h"
 
 #include <Camera/CameraComponent.h>
 #include <Components/CapsuleComponent.h>
@@ -90,6 +91,8 @@ AMACharacterPlayer::AMACharacterPlayer(const FObjectInitializer& ObjectInitializ
 	InteractorComponent = CreateDefaultSubobject<UMAInteractorComponent>(TEXT("InteractorComponent"));
 	// 1인칭 & 3인칭 적절한 거리 찾으면 좋을듯
 	InteractorComponent->InteractingRange = 1000.f;
+
+	NowPerspectiveIdx = 0;
 }
 
 /**
@@ -131,6 +134,22 @@ void AMACharacterPlayer::OnRep_PlayerState()
 	if(AMAPlayerState* playerState = Cast<AMAPlayerState>(GetPlayerState()))
 	{
 		ReceiveUserDataHandle = playerState->OnReceiveUserData.AddUObject(this, &AMACharacterPlayer::ReceiveUserData);
+	}
+}
+
+/**
+* 시점을 변경합니다.
+*/
+void AMACharacterPlayer::ChangePerspective()
+{
+	LOG_WARN(TEXT("Change Perspective!"));
+	
+	if(IsValid(CharacterDataSet))
+	{
+		const uint8 nextIdx = ( NowPerspectiveIdx + 1 ) % CharacterDataSet->CameraModeDatas.Num();
+		
+		CameraModeComponent->PushCameraMode(CharacterDataSet->CameraModeDatas[nextIdx]);
+		NowPerspectiveIdx = nextIdx;
 	}
 }
 

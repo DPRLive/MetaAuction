@@ -41,6 +41,7 @@ protected:
 	void Input_Jump(const FInputActionValue& Value);
 	void Input_StopJumping(const FInputActionValue& Value);
 	void Input_Interact(const FInputActionValue& Value);
+	void Input_ChangePerspective(const FInputActionValue& Value);
 	
 public:
 

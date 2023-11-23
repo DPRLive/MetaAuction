@@ -4,6 +4,8 @@
 
 #include "MetaAuction.h"
 #include "MACharacter.h"
+#include "Interface/MAPerspectiveInterface.h"
+
 #include "MACharacterPlayer.generated.h"
 
 class UMAInteractorComponent;
@@ -11,7 +13,7 @@ class UMAInteractorComponent;
  * 
  */
 UCLASS()
-class METAAUCTION_API AMACharacterPlayer : public AMACharacter
+class METAAUCTION_API AMACharacterPlayer : public AMACharacter, public IMAPerspectiveInterface
 {
 	GENERATED_BODY()
 	
@@ -25,6 +27,9 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 
 	virtual void OnRep_PlayerState() override;
+
+	// 시점을 변경합니다.
+	virtual void ChangePerspective() override;
 private:
 
 	void SetupNameplateWidget();
@@ -64,4 +69,8 @@ public:
 private:
 	// PlayerState로부터 데이터가 바뀔때 받아내기 위한 delegate handle입니다.
 	FDelegateHandle ReceiveUserDataHandle;
+
+	// 시점 변경을 위한 idx입니다.
+	UPROPERTY(Transient)
+	uint8 NowPerspectiveIdx;
 };

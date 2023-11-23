@@ -67,7 +67,7 @@ void UMACameraModeComponent::PushCameraMode(UMACameraModeData* InCameraModeData)
 				StartTargetArmLength = CameraBoom->TargetArmLength;
 				StartTargetArmLocation = CameraBoom->GetRelativeLocation();
 			}
-
+			// TODO : 소켓에 부착시 계산 다르게 해야할 수도?
 			SetBlendWeight(0.0f);
 		}
 		else

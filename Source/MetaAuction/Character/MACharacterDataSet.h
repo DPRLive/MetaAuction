@@ -24,8 +24,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character|Mesh")
 	TObjectPtr<class UMACharacterMeshData> CharacterMeshData;
 
+	// 카메라 데이터를 여러개 설정하여 시점을 변경할 수 있도록 합니다.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Camera")
-	TObjectPtr<class UMACameraModeData> CameraModeData;
+	TArray<TObjectPtr<class UMACameraModeData>> CameraModeDatas;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player|Input")
 	TObjectPtr<class UMAInputConfig> InputConfig;
