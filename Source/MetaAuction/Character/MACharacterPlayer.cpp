@@ -127,8 +127,8 @@ void AMACharacterPlayer::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
 
-	// 이미 데이터가 먼저 들어가 있을 수도 있음
-	ReceiveUserData();
+	// 이미 데이터가 먼저 들어가 있을 수도 있음 -> TODO : 어차피 OnRep 호출이라 필요 없을듯?
+	// ReceiveUserData();
 	
 	// 추후에 데이터가 도착하는 경우를 대비하여 Delegate에 bind
 	if(AMAPlayerState* playerState = Cast<AMAPlayerState>(GetPlayerState()))

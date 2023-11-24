@@ -6,7 +6,7 @@
 #include "MAGameMode.generated.h"
 
 /**
- * 
+ * Auction Map에서 사용할 게임모드입니다.
  */
 UCLASS()
 class METAAUCTION_API AMAGameMode : public AGameModeBase

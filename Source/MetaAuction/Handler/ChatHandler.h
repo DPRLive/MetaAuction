@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <Components/ActorComponent.h>
+#include <UObject/NoExportTypes.h>
 #include "ChatHandler.generated.h"
 
 /**
@@ -64,21 +64,20 @@ enum class ERequestChatType : uint8
  * 물품에 대한 댓글도 채팅으로 간주하여, (웹 소켓씀) 해당 클래스에서 관리합니다.
  * ChatHandler는 특성상, 로그인 된 상태에서만 사용해야 합니다.
  */
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class METAAUCTION_API UChatHandler : public UActorComponent
+UCLASS()
+class METAAUCTION_API UChatHandler : public UObject
 {
 	GENERATED_BODY()
 
 public:	
 	UChatHandler();
 
-protected:
-	virtual void BeginPlay() override;
+	// ChatHandler를 초기화 합니다.
+	void InitChatHandler();
 
-public:
-	// 로그인 후 stomp에서 처리해야할 로직을 처리합니다.
-	void AfterLogin();
-	
+	// 로그인 이후 로직을 처리합니다.
+	void AfterLogin(bool InbSuccess);
+
 	// Stomp로 item id에 맞는 상품에 댓글을 답니다. 로그인 된 경우만 사용 가능
 	void AddReplyToItem(const uint32 InItemId, const FString& InContent) const;
 

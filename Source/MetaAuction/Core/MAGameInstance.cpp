@@ -15,9 +15,36 @@ UMAGameInstance::UMAGameInstance()
 	LoginData = nullptr;
 	TempUserShareData = FUserShareData();
 	ItemFileHandler = nullptr;
-	ChatHandler = CreateDefaultSubobject<UChatHandler>(TEXT("ChatHandler"));
+	ChatHandler = nullptr;
 	HttpHelper = nullptr;
 	StompHelper = nullptr;
+}
+
+/**
+ * Init() 이후에 호출됨
+ */
+void UMAGameInstance::OnStart()
+{
+	Super::OnStart();
+	
+	if(!IsRunningDedicatedServer())
+	{
+		////// Only Client //////
+		ItemFileHandler = MakeShareable(new FItemFileHandler());
+
+		ChatHandler = NewObject<UChatHandler>(this);
+		ChatHandler->InitChatHandler();
+
+		OnNotifyPreClientTravel().AddUObject(this, &UMAGameInstance::_SaveMyUserShareData);
+
+		// 클라 로그인 테스트 //
+		FTimerHandle handle;
+		GetWorld()->GetTimerManager().SetTimer(handle, [this]()
+		{
+		   LOG_WARN(TEXT("Client Login Test"));
+		   RequestLogin(TEXT("test"), TEXT("test"));
+		}, 10.f, false);
+	}
 }
 
 /**
@@ -29,31 +56,6 @@ void UMAGameInstance::Init()
 
 	HttpHelper = MakeShareable(new FHttpHelper());
 	StompHelper = MakeShareable(new FStompHelper());
-	
-	//if(IsRunningDedicatedServer()) // 테스트, 데디 서버면 자동 로그인
-	//{
-		LOG_WARN(TEXT("Is Running Dedicated Server! Auto Login!"));
-		RequestLogin(TEXT("Sungyun"), TEXT("Sungyun"));
-	//}
-	
-	if(!IsRunningDedicatedServer())
-	{
-		ItemFileHandler = MakeShareable(new FItemFileHandler());
-	}
-	
-	if(IsRunningDedicatedServer())
-		return;
-	
-	// // Chat Handler 테스트 //
-	// TODO : AfterLogin 로직을 어디서 처리할까..
-	FTimerHandle handle;
-	GetWorld()->GetTimerManager().SetTimer(handle, [this]()
-	{
-		ChatHandler->AfterLogin();
-	}, 5.f, false);
-	////////////////////////
-
-	OnNotifyPreClientTravel().AddUObject(this, &UMAGameInstance::_SaveMyUserShareData);
 } 
 
 /**
@@ -66,18 +68,11 @@ void UMAGameInstance::Shutdown()
 
 /**
  *	웹서버에 사용자 로그인을 요청하는 함수
- * TODO : 추후 UI와 연동되며 로그인이 완료 되었는지 알아야하면 Delegate 추가할 예정
  * @param InID : 유저 ID
  * @param InPassword : 유저 패스워드
  */
 void UMAGameInstance::RequestLogin(const FString& InID, const FString& InPassword)
 {
-	if(LoginData.IsValid())
-	{
-		LOG_N(TEXT("이미 로그인 되어있음"));
-		return;
-	}
-
 	// Body를 만든다.
 	TSharedRef<FJsonObject> requestObj = MakeShared<FJsonObject>();
 	requestObj->SetStringField(TEXT("username"), InID);
@@ -108,10 +103,17 @@ void UMAGameInstance::RequestLogin(const FString& InID, const FString& InPasswor
 						playerState->ServerRPC_SendUserData(data);
 					}
 				}
-				
+
+				if(thisPtr->OnLoginDelegate.IsBound())
+					thisPtr->OnLoginDelegate.Broadcast(true);
 				return;
 			}
+			
 			LOG_ERROR(TEXT("로그인 실패 !"));
+			
+			if(thisPtr->OnLoginDelegate.IsBound())
+				thisPtr->OnLoginDelegate.Broadcast(false);
+
 		}, UtilJson::JsonToString(requestObj));
 	}
 }

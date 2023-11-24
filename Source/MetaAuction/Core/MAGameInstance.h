@@ -20,6 +20,10 @@ class METAAUCTION_API UMAGameInstance : public UGameInstance
 public:
 	UMAGameInstance();
 
+protected:
+	// Init() 이후에 호출됨
+	virtual void OnStart() override;
+public:
 	// 게임이 시작될 때 호출됨 ( 에디터의 경우 시작 버튼을 눌렀을 때 )
 	virtual void Init() override;
 
@@ -50,7 +54,13 @@ public:
 private:
 	// OnNotifyPreClientTravel에 등록되어, 레벨 이동이 일어나기 전 나의 UserData를 저장합니다. 
 	void _SaveMyUserShareData(const FString& String, ETravelType Travel, bool Cond);
+
+public:
+	// 로그인이 시도하면, 성공 / 실패 여부를 delegate를 통해 알립니다.
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnLoginDelegate, bool /* bSuccess */)
+	FOnLoginDelegate OnLoginDelegate;
 	
+private:
 	// 로그인 관련 정보를 들고있기 위한 LoginData
 	TSharedPtr<FLoginData> LoginData;
 

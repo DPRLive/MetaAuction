@@ -12,20 +12,29 @@
 
 UChatHandler::UChatHandler()
 {
-	PrimaryComponentTick.bCanEverTick = false;
-}
-
-void UChatHandler::BeginPlay()
-{
-	Super::BeginPlay();
 }
 
 /**
- *  로그인 후 stomp에서 처리해야할 로직을 처리합니다.
- *  TODO: 추후 login 기능 나오면 이후 로직으로 따로 빼면 좋을듯
+ *  ChatHandler를 초기화 합니다.
  */
-void UChatHandler::AfterLogin()
+void UChatHandler::InitChatHandler()
 {
+	if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
+	{
+		gameInstance->OnLoginDelegate.AddUObject(this, &UChatHandler::AfterLogin);
+	}
+}
+
+/**
+ *  로그인 이후 로직을 처리합니다.
+ */
+void UChatHandler::AfterLogin(bool InbSuccess)
+{
+	if(!InbSuccess)
+		return;
+	
+	LOG_N(TEXT("Prepare ChatHandler..."));
+	
 	// 나의 채팅방을 모두 등록
 	RequestMyChatRoom([](const TArray<FChatRoomData>& InChatRoomDatas){});
 	

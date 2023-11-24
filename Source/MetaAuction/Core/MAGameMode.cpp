@@ -2,6 +2,7 @@
 
 
 #include "MAGameMode.h"
+#include "MAGameInstance.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(MAGameMode)
 
@@ -14,7 +15,7 @@ AMAGameMode::AMAGameMode()
  */
 void AMAGameMode::BeginPlay()
 {
-	Super::BeginPlay();
+ Super::BeginPlay();
 }
 
 /**
@@ -23,7 +24,14 @@ void AMAGameMode::BeginPlay()
  */
 void AMAGameMode::StartPlay()
 {
-	Super::StartPlay();
+ Super::StartPlay();
+ 
+ // 준비가 완료되면 데디 서버일 시 자동으로 로그인합니다.
+ if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(GetGameInstance()))
+ {
+  LOG_WARN(TEXT("Is Running Dedicated Server! Auto Login!"));
+  gameInstance->RequestLogin(TEXT("test"), TEXT("test"));
+ }
 }
 
 /**
@@ -31,5 +39,5 @@ void AMAGameMode::StartPlay()
  */
 void AMAGameMode::BeginDestroy()
 {
-	Super::BeginDestroy();
+ Super::BeginDestroy();
 }
