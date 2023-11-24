@@ -281,13 +281,17 @@ void UMAItemInfoWidget::BidButtonClicked()
 void UMAItemInfoWidget::ChatButtonClicked()
 {
 	// 채팅방 요청하기
-	if (UChatHandler* ChatHandler = MAGetChatHandler(MAGetGameInstance()))
+	LOG_WARN(TEXT("ChatButtonClicked"));
+	if (UChatHandler* ChatHandler = MAGetChatHandler(MAGetGameInstance(GetWorld())))
 	{
+		LOG_WARN(TEXT("Valid ChatHandler"));
 		TWeakObjectPtr<ThisClass> ThisPtr(this);
 		auto Func = [ThisPtr](const FChatRoomData& InData)
 			{
+				LOG_WARN(TEXT("RequestNewChatRoom"));
 				if (ThisPtr.IsValid())
 				{
+					LOG_WARN(TEXT("Valid ThisPtr"));
 					if (APlayerController* PC = ThisPtr->GetOwningPlayer())
 					{
 						if (UMAChatInfoWidget* ChatInfoWidget = CreateWidget<UMAChatInfoWidget>(PC, ThisPtr->ChatInfoWidgetClass))
