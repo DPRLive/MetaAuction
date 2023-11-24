@@ -7,6 +7,8 @@
 #include "UI/MANameplateWidget.h"
 #include "UI/Chat/MAChatBubbleWidgetComponent.h"
 #include "Interaction/MAInteractorComponent.h"
+#include "Core/MAPlayerState.h"
+#include "MACharacterDataSet.h"
 
 #include <Camera/CameraComponent.h>
 #include <Components/CapsuleComponent.h>
@@ -19,6 +21,7 @@
 #include <GameFramework/SpringArmComponent.h>
 #include <UObject/ConstructorHelpers.h>
 #include <Kismet/GameplayStatics.h>
+
 
 
 AMACharacterPlayer::AMACharacterPlayer(const FObjectInitializer& ObjectInitializer)
@@ -88,6 +91,8 @@ AMACharacterPlayer::AMACharacterPlayer(const FObjectInitializer& ObjectInitializ
 	InteractorComponent = CreateDefaultSubobject<UMAInteractorComponent>(TEXT("InteractorComponent"));
 	// 1인칭 & 3인칭 적절한 거리 찾으면 좋을듯
 	InteractorComponent->InteractingRange = 1000.f;
+
+	NowPerspectiveIdx = 0;
 }
 
 /**
@@ -115,6 +120,39 @@ void AMACharacterPlayer::PossessedBy(AController* NewController)
 	//}
 }
 
+/**
+* Player State가 On Rep되면 데이터를 받을 준비를 합니다.
+*/
+void AMACharacterPlayer::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	// 이미 데이터가 먼저 들어가 있을 수도 있음
+	ReceiveUserData();
+	
+	// 추후에 데이터가 도착하는 경우를 대비하여 Delegate에 bind
+	if(AMAPlayerState* playerState = Cast<AMAPlayerState>(GetPlayerState()))
+	{
+		ReceiveUserDataHandle = playerState->OnReceiveUserData.AddUObject(this, &AMACharacterPlayer::ReceiveUserData);
+	}
+}
+
+/**
+* 시점을 변경합니다.
+*/
+void AMACharacterPlayer::ChangePerspective()
+{
+	LOG_WARN(TEXT("Change Perspective!"));
+	
+	if(IsValid(CharacterDataSet))
+	{
+		const uint8 nextIdx = ( NowPerspectiveIdx + 1 ) % CharacterDataSet->CameraModeDatas.Num();
+		
+		CameraModeComponent->PushCameraMode(CharacterDataSet->CameraModeDatas[nextIdx]);
+		NowPerspectiveIdx = nextIdx;
+	}
+}
+
 void AMACharacterPlayer::SetupNameplateWidget()
 {
 	// AI나 서버의 PlayerController 사본이 아닌 로컬 소유 플레이어에 대해서만 UI를 설정합니다.
@@ -126,5 +164,34 @@ void AMACharacterPlayer::SetupNameplateWidget()
 			NameplateWidgetComponent->SetWidget(NameplateWidget);
 			NameplateWidget->Update();
 		}
+	}
+}
+
+/**
+* Player State로부터 데이터를 받습니다.
+* 여기에 Player State의 정보를 사용해야 하는 로직을 작성해주세요 !
+*/
+void AMACharacterPlayer::ReceiveUserData()
+{
+	AMAPlayerState* playerState = Cast<AMAPlayerState>(GetPlayerState());
+
+	if(playerState == nullptr)
+		return;
+	
+	// 여기에 로직 작성 //
+	LOG_WARN(TEXT("Receive Data. [%s]"), *playerState->GetUserData().UserName);
+	
+}
+
+/**
+* Player State가 변경되면, 이전에 등록해뒀던 delegate를 해제시킵니다.
+*/
+void AMACharacterPlayer::OnPlayerStateChanged(APlayerState* NewPlayerState, APlayerState* OldPlayerState)
+{
+	Super::OnPlayerStateChanged(NewPlayerState, OldPlayerState);
+
+	if(AMAPlayerState* playerState = Cast<AMAPlayerState>(OldPlayerState))
+	{
+		playerState->OnReceiveUserData.Remove(ReceiveUserDataHandle);
 	}
 }

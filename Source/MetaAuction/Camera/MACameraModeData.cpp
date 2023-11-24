@@ -5,7 +5,9 @@
 #include "Character/MACharacter.h"
 
 #include <GameFramework/SpringArmComponent.h>
+#include <Components/SkeletalMeshComponent.h>
 #include <Camera/CameraComponent.h>
+
 
 UMACameraModeData::UMACameraModeData()
 {
@@ -42,6 +44,7 @@ void UMACameraModeData::GiveToData(AMACharacter* InCharacter)
 		CameraBoom->bInheritPitch = bInheritPitch;
 		CameraBoom->bInheritYaw = bInheritYaw;
 		CameraBoom->bInheritRoll = bInheritRoll;
+		CameraBoom->AttachToComponent(InCharacter->GetMesh(), FAttachmentTransformRules(EAttachmentRule::KeepRelative, true), SocketName);
 	}
 
 	// Camera

@@ -73,6 +73,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera)
 	uint8 bCameraUsePawnControlRotation : 1;
 
+	// spring arm을 소켓에 부착 시, 어떤 이름의 소켓에 붙일지 입니다.
+	// 이름이 설정되지 않으면(None) 부착하지 않습니다.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SpringArm)
+	FName SocketName = NAME_None;
+	
 	// Blending Section
 public:
 

@@ -131,6 +131,14 @@ public:
 	FTimespan WebServerUTCDiff = - FTimespan(9, 0, 0);
 
 	// 현재 데디 서버가 어떤 월드를 담당할지 string입니다.
-	UPROPERTY( EditDefaultsOnly, Category = "Server" )
+	UPROPERTY( EditDefaultsOnly, Category = "World|Server" )
 	FString DediWorld = TEXT("1");
+
+	// 레벨 이동 시 사용할 로비 레벨 대한 정보입니다.
+	UPROPERTY( EditDefaultsOnly, Category = "World" )
+	FString LobbyUrl = TEXT("/Game/MetaAuction/Map/LobbyMap");
+
+	// 레벨 이동 시 사용할 데디 서버 레벨 대한 정보입니다. (포트도 같이 기입할 것)
+	UPROPERTY( EditDefaultsOnly, Category = "World" )
+	FString AuctionUrl = TEXT("127.0.0.1");
 };

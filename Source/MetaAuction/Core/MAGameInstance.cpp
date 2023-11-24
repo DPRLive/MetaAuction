@@ -2,7 +2,9 @@
 
 #include "Core/MAGameInstance.h"
 #include "Data/LoginData.h"
+#include "MAPlayerState.h"
 
+#include <GameFramework/PlayerController.h>
 #include <Serialization/JsonSerializer.h>
 #include <Interfaces/IHttpResponse.h>
 
@@ -10,7 +12,12 @@
 
 UMAGameInstance::UMAGameInstance()
 {
+	LoginData = nullptr;
+	TempUserShareData = FUserShareData();
+	ItemFileHandler = nullptr;
 	ChatHandler = CreateDefaultSubobject<UChatHandler>(TEXT("ChatHandler"));
+	HttpHelper = nullptr;
+	StompHelper = nullptr;
 }
 
 /**
@@ -45,7 +52,9 @@ void UMAGameInstance::Init()
 		ChatHandler->AfterLogin();
 	}, 5.f, false);
 	////////////////////////
-}
+
+	OnNotifyPreClientTravel().AddUObject(this, &UMAGameInstance::_SaveMyUserShareData);
+} 
 
 /**
  * 게임이 종료될 때마다 호출됨 ( 에디터의 경우 종료 버튼을 눌렀을 때 )
@@ -88,11 +97,36 @@ void UMAGameInstance::RequestLogin(const FString& InID, const FString& InPasswor
 				// 로그인 데이터를 저장한다.
 				FString jwtToken = jsonObject->GetStringField(TEXT("accessToken"));
 				thisPtr->LoginData = MakeShareable(new FLoginData(jwtToken));
+
+				// 로컬 유저의 Player State에 이름을 저장한다.
+				if(APlayerController* controller = thisPtr->GetFirstLocalPlayerController())
+				{
+					if(AMAPlayerState* playerState = controller->GetPlayerState<AMAPlayerState>())
+					{
+						FUserShareData data = playerState->GetUserData();
+						data.UserName = thisPtr->LoginData->GetMyUserName();
+						playerState->ServerRPC_SendUserData(data);
+					}
+				}
+				
+				return;
 			}
-			else
-			{
-				LOG_ERROR(TEXT("로그인 실패 !"))
-			}
+			LOG_ERROR(TEXT("로그인 실패 !"));
 		}, UtilJson::JsonToString(requestObj));
+	}
+}
+
+/**
+ * OnNotifyPreClientTravel에 등록되어, 레벨 이동이 일어나기 전 나의 UserData를 저장합니다. 
+ */
+void UMAGameInstance::_SaveMyUserShareData(const FString& String, ETravelType Travel, bool Cond)
+{
+	LOG_WARN(TEXT("Pre travel! save user data."));
+	if (APlayerController* controller = GetFirstLocalPlayerController(GetWorld()))
+	{
+		if (AMAPlayerState* playerState = controller->GetPlayerState<AMAPlayerState>())
+		{
+			TempUserShareData = playerState->GetUserData();
+		}
 	}
 }

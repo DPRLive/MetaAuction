@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "../Data/UserShareData.h"
+
 #include <Engine/GameInstance.h>
 #include "MAGameInstance.generated.h"
 
@@ -29,6 +31,9 @@ public:
 	
 	// LoginData Getter
 	FORCEINLINE const TSharedPtr<FLoginData>& GetLoginData() const { return LoginData; }
+
+	// Temp User Share Data Getter, PlayerState에서 레벨 이동시 데이터 유지용으로만 사용하세요!
+	FORCEINLINE const FUserShareData& GetTempUserShareData() const { return TempUserShareData; }
 	
 	// ModelHandler Getter
 	FORCEINLINE const TSharedPtr<FItemFileHandler>& GetItemFileHandler() const { return ItemFileHandler; }
@@ -43,8 +48,15 @@ public:
 	FORCEINLINE const TSharedPtr<FStompHelper>& GetStompHelper() const { return StompHelper; }
 
 private:
+	// OnNotifyPreClientTravel에 등록되어, 레벨 이동이 일어나기 전 나의 UserData를 저장합니다. 
+	void _SaveMyUserShareData(const FString& String, ETravelType Travel, bool Cond);
+	
 	// 로그인 관련 정보를 들고있기 위한 LoginData
 	TSharedPtr<FLoginData> LoginData;
+
+	// Client Travel시 유지할 사용할 임시 UserData 입니다. PlayerState에서 레벨 이동시 데이터 유지용으로만 사용하세요!
+	UPROPERTY(Transient)
+	FUserShareData TempUserShareData;
 	
 	// 아이템 관련 파일 처리를 위한 ItemFileHandler, 클라이언트에서만 생성됩니다.
 	TSharedPtr<FItemFileHandler> ItemFileHandler;

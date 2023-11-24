@@ -5,6 +5,7 @@
 #include "Character/MACharacter.h"
 #include "Input/MAInputConfig.h"
 #include "Interaction/MAInteractorComponent.h"
+#include "Interface/MAPerspectiveInterface.h"
 
 #include <GameFramework/Character.h>
 #include <GameFramework/PlayerController.h>
@@ -12,6 +13,7 @@
 #include <InputMappingContext.h>
 #include <EnhancedInputComponent.h>
 #include <EnhancedInputSubsystems.h>
+
 
 
 UMAInputInitializeComponent::UMAInputInitializeComponent()
@@ -61,6 +63,9 @@ void UMAInputInitializeComponent::InitializePlayerInput(UInputComponent* PlayerI
 
 			// Interaction
 			EnhancedInputComponent->BindAction(InputConfig->InteractAction, ETriggerEvent::Started, this, &UMAInputInitializeComponent::Input_Interact);
+
+			// Perspective
+			EnhancedInputComponent->BindAction(InputConfig->ChangePerspectiveAction, ETriggerEvent::Started, this, &UMAInputInitializeComponent::Input_ChangePerspective);
 			
 			bReadyToBindInputs = true;
 		}
@@ -211,4 +216,18 @@ void UMAInputInitializeComponent::Input_Interact(const FInputActionValue& Value)
 	}
 
 	LOG_WARN(TEXT("interComp is not exist."));
+}
+
+/**
+ * 시점 변경을 명령합니다.
+ */
+void UMAInputInitializeComponent::Input_ChangePerspective(const FInputActionValue& Value)
+{
+	if(IMAPerspectiveInterface* cameraInter = Cast<IMAPerspectiveInterface>(GetOwner()))
+	{
+		cameraInter->ChangePerspective();
+		return;
+	}
+
+	LOG_WARN(TEXT("IMAPerspectiveInterface is not exist."));
 }

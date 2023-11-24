@@ -8,19 +8,18 @@ FLoginData::FLoginData(const FString& InJwtToken)
 {
 	// Jwt 토큰을 저장 후 파싱한다
 	JwtToken = InJwtToken;
-	UserName = _ParseUserNameInToken(JwtToken);
 
-	LOG_N(TEXT("Welcome [%s]! Login Success!"), *UserName);
+	LOG_N(TEXT("Welcome [%s]! Login Success!"), *GetMyUserName());
 }
 
 /**
- * Jwt Token을 파싱하여 username을 뽑아낸다.
- */
-FString FLoginData::_ParseUserNameInToken(const FString& InJwtToken) const
+* UserName Getter, Jwt Token을 파싱하여 username을 뽑아낸다.
+*/
+FString FLoginData::GetMyUserName() const
 {
 	// jwt token에는 '.' 이 두개 있다. 그걸 기준으로 3등분
 	TArray<FString> parseArr;
-	InJwtToken.ParseIntoArray(parseArr, TEXT("."), true);
+	JwtToken.ParseIntoArray(parseArr, TEXT("."), true);
 
 	if(parseArr.Num() < 3)
 	{

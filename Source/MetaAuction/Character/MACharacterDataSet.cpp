@@ -27,9 +27,9 @@ void UMACharacterDataSet::GiveToData(AMACharacter* InCharacter)
         CharacterMeshData->GiveToData(InCharacter);
     }
 
-    if (CameraModeData != nullptr)
+    if (CameraModeDatas.IsValidIndex(0) && IsValid(CameraModeDatas[0]))
     {
-        CameraModeData->GiveToData(InCharacter);
+        CameraModeDatas[0]->GiveToData(InCharacter);
     }
 
     UMAInputInitializeComponent* InputInitializeComponent = UMAInputInitializeComponent::FindInputInitializeComponent(InCharacter);

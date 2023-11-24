@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "GameFramework/PlayerController.h"
 #include "UI/Chat/MAChatLogEntry.h"
+
+#include <GameFramework/PlayerController.h>
 #include "MAPlayerController.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FChatLogEventSignature, const FMAChatLogEntryData&, InData);
@@ -46,7 +46,11 @@ public:
 	
 	// Server RPC로 item actor에 배치된 모델의 상대적 transform을 변경을 요청합니다.
 	UFUNCTION( Server, Unreliable )
-	void ServerRPC_SetModelRelativeTrans(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InReleativeTrans);
+	void ServerRPC_SetModelRelativeTrans(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InRelativeTrans);
+
+	// Client를 레벨 이동 시킵니다. 경매장으로 이동 시 로그인이 되어있지 않으면 이동시키지 않습니다.
+	UFUNCTION( BlueprintCallable, Category = "Travel")
+	void ClientLevelTravel(const ELevelType InType);
 private:
 
 	UFUNCTION(Server, Reliable, Category = "UI|ChatLog")

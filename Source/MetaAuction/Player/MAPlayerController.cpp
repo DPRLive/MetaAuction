@@ -14,7 +14,7 @@
 
 #include <EngineUtils.h>
 
-
+#include UE_INLINE_GENERATED_CPP_BY_NAME(MAPlayerController)
 
 AMAPlayerController::AMAPlayerController()
 {
@@ -145,19 +145,38 @@ void AMAPlayerController::CreateItemInfoWidget(const int64 InItemId)
 }
 
 /**
+ *  Client를 레벨 이동 시킵니다. 경매장으로 이동 시 로그인이 되어있지 않으면 이동시키지 않습니다.
+ *  @param InType : 이동할 레벨의 타입
+ */
+void AMAPlayerController::ClientLevelTravel(const ELevelType InType)
+{
+	FString Url = TEXT("");
+
+	if(InType == ELevelType::Lobby)
+		Url = DA_NETWORK(LobbyUrl);
+	else if(InType == ELevelType::Auction && (MAGetMyJwtToken(GetGameInstance()) != TEXT("")))
+		Url = DA_NETWORK(AuctionUrl);
+	
+	if(Url == TEXT(""))
+		return;
+	
+	ClientTravel(Url, TRAVEL_Absolute, false);
+}
+
+/**
  *  Server RPC로 item actor에 배치된 모델의 상대적 transform을 변경을 요청합니다.
  *  @param InJwtToken : 요청한 사람의 토큰
  *  @param InItemLoc : 아이템의 위치
- *  @param InReleativeTrans : 변경할 transform
+ *  @param InRelativeTrans : 변경할 transform
  */
-void AMAPlayerController::ServerRPC_SetModelRelativeTrans_Implementation(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InReleativeTrans)
+void AMAPlayerController::ServerRPC_SetModelRelativeTrans_Implementation(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InRelativeTrans)
 {
 	LOG_WARN(TEXT("Server RPC"));
 	if(const AMAGameState* gameState = Cast<AMAGameState>(GetWorld()->GetGameState()))
 	{
 		if(UItemManager* itemManager = gameState->GetItemManager())
 		{
-			itemManager->Server_SetModelTransform(InJwtToken, InItemLoc, InReleativeTrans);
+			itemManager->Server_SetModelTransform(InJwtToken, InItemLoc, InRelativeTrans);
 		}
 	}
 }

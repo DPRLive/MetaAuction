@@ -13,16 +13,10 @@ public:
 	// JWT Token Getter
 	FORCEINLINE const FString& GetJwtToken() const { return JwtToken; }
 
-	// UserName Getter
-	FORCEINLINE const FString& GetUserName() const { return UserName; }
+	// UserName Getter, Jwt Token을 파싱하여 username을 뽑아낸다.
+	FString GetMyUserName() const;
 	
 private:
-	// Jwt Token을 파싱하여 username을 뽑아낸다.
-	FString _ParseUserNameInToken(const FString& InJwtToken) const;
-	
 	// 저장할 JwtToken
 	FString JwtToken;
-
-	// JwtToken에서 파싱한 UserName
-	FString UserName;
 };

@@ -5,6 +5,8 @@
 
 #include <HAL/FileManager.h>
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(ModelTransData)
+
 /**
  * 파일에서 TMap에 정보를 로드한다.
  */
