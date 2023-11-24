@@ -30,17 +30,14 @@ void UMAItemTileWidget::UpdateSearchItems(const FItemSearchOption& InItemOption)
 	}
 
 	TWeakObjectPtr<ThisClass> ThisPtr(this);
-	if (ThisPtr.IsValid())
-	{
-		auto Func = [ThisPtr](const TArray<FItemData>& InData)
+	auto Func = [ThisPtr](const TArray<FItemData>& InData)
+		{
+			if (ThisPtr.IsValid())
 			{
-				if (ThisPtr.IsValid())
-				{
-					ThisPtr->UpdateItems(InData);
-				}
-			};
-		ItemDataHandler->RequestItemDataByOption(Func, InItemOption);
-	}
+				ThisPtr->UpdateItems(InData);
+			}
+		};
+	ItemDataHandler->RequestItemDataByOption(Func, InItemOption);
 }
 
 void UMAItemTileWidget::UpdateMyItems(EMyItemReqType InType)

@@ -38,19 +38,69 @@ void UMAItemEntryWidget::NativeConstruct()
 	}
 }
 
+void UMAItemEntryWidget::NativeDestruct()
+{
+	Super::NativeDestruct();
+
+	UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld()));
+	if (IsValid(ItemDataHandler))
+	{
+		ItemDataHandler->OnChangeItemData.Remove(OnChangeItemDataHandle);
+	}
+}
+
 void UMAItemEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
 	IUserObjectListEntry::NativeOnListItemObjectSet(ListItemObject);
 
-	UMAItemEntry* ItemEntry = Cast<UMAItemEntry>(ListItemObject);
-	if (IsValid(ItemEntry))
+	if (UMAItemEntry* ItemEntry = Cast<UMAItemEntry>(ListItemObject))
 	{
 		UpdateAll(ItemEntry->ItemData);
+
+		UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld()));
+		if (!IsValid(ItemDataHandler))
+		{
+			return;
+		}
+
+		TWeakObjectPtr<ThisClass> ThisPtr(this);
+		auto OnChangeItemData = [ThisPtr](const uint32& InItemId, const FString& InWorld, const FString& InChangedData)
+			{
+				if (ThisPtr.IsValid())
+				{
+					UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(ThisPtr->GetWorld()));
+					if (!IsValid(ItemDataHandler))
+					{
+						return;
+					}
+
+					auto RequestItemDataByIdFunc = [ThisPtr](const FItemData& InData)
+						{
+							if (ThisPtr.IsValid())
+							{
+								if (UMAItemEntry* ItemEntry = Cast<UMAItemEntry>(ThisPtr->GetListItem()))
+								{
+									ItemEntry->ItemData = InData;
+									ThisPtr->UpdateAll(InData);
+								}
+							}
+						};
+					ItemDataHandler->RequestItemDataById(RequestItemDataByIdFunc, InItemId);
+				}
+			};
+		ItemDataHandler->OnChangeItemData.Remove(OnChangeItemDataHandle);
+		OnChangeItemDataHandle = ItemDataHandler->OnChangeItemData.AddLambda(OnChangeItemData);
 	}
+}
+
+void UMAItemEntryWidget::NativeOnEntryReleased()
+{
 }
 
 void UMAItemEntryWidget::UpdateAll(const FItemData& InItemData)
 {
+	CachedItemData = InItemData;
+
 	UpdateText(InItemData);
 	UpdateImage(InItemData);
 }
