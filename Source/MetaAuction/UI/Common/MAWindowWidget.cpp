@@ -52,6 +52,22 @@ void UMAWindowWidget::CloseButtonClicked()
 		{
 			MAAuctionWidget->SetFocus();
 		}
+
+		// InputMode GameOnly로 변경
+		if (!IsValid(MAAuctionWidget) || MAAuctionWidget->GetVisibility() != ESlateVisibility::Visible)
+		{
+			EMouseLockMode InMouseLockMode = EMouseLockMode::DoNotLock;
+			UWidget* InWidgetToFocus = this;
+			if (GetVisibility() == ESlateVisibility::Visible)
+			{
+				SetVisibility(ESlateVisibility::Hidden);
+
+				FInputModeGameOnly InputMode;
+				MAPC->SetInputMode(InputMode);
+				MAPC->FlushPressedKeys();
+				MAPC->SetShowMouseCursor(false);
+			}
+		}
 	}
 
 	UWidget* ParentWidget = Cast<UWidget>(GetParent()->GetOuter()->GetOuter());
