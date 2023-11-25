@@ -17,7 +17,8 @@ void AMAPlayerState::BeginPlay()
 	{
 		if(const UMAGameInstance* gameInstance = Cast<UMAGameInstance>(GetGameInstance()))
 		{
-			ServerRPC_SendUserData(gameInstance->GetTempUserShareData());
+			ServerRPC_SendUserName(gameInstance->GetTempUserShareData().UserName);
+			ServerRPC_SelectCharacter(gameInstance->GetTempUserShareData().SelectedCharacter);
 		}
 	}
 }
@@ -29,13 +30,24 @@ void AMAPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 }
 
 /**
-* UserData를 Client가 보내준대로 설정합니다.
-* @param InUserData : Client가 보낸 UserData
+* UserName을 서버로 보냅니다.
+* @param InName : Client가 보낸 이름
 */
-void AMAPlayerState::ServerRPC_SendUserData_Implementation(const FUserShareData& InUserData)
+void AMAPlayerState::ServerRPC_SendUserName_Implementation(const FString& InName)
 {
-	LOG_N(TEXT("Receive [%s]User Data."), *InUserData.UserName);
-	UserData = InUserData;
+	LOG_N(TEXT("Receive User Name [%s]."), *InName);
+	UserData.UserName = InName;
+}
+
+/**
+* 선택한 캐릭터 Index를 서버로 보냅니다.
+* Index는 DA_MeshInfo에 담기는 그 Index를 그대로 담아주세요.
+* @param InIndex : Client가 선택한 캐릭터 Index
+*/
+void AMAPlayerState::ServerRPC_SelectCharacter_Implementation(const int16 InIndex)
+{
+	LOG_N(TEXT("Receive User Charcter Index [%d]."), InIndex);
+	UserData.SelectedCharacter = InIndex;
 }
 
 /**

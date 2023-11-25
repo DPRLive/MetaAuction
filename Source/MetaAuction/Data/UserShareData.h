@@ -10,8 +10,13 @@ struct FUserShareData
 {
 	GENERATED_BODY()
 
-	FUserShareData() : UserName(TEXT("")) { }
-	
+	FUserShareData() : UserName(TEXT("")), SelectedCharacter(-1) { }
+
+	// 사용자 아이디 (이름)
 	UPROPERTY()
 	FString UserName;
+
+	// 선택한 캐릭터
+	UPROPERTY()
+	int16 SelectedCharacter;
 };

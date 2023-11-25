@@ -8,6 +8,7 @@
 
 #include "MACharacterPlayer.generated.h"
 
+struct FStreamableHandle;
 class UMAInteractorComponent;
 /**
  * 
@@ -30,16 +31,19 @@ public:
 
 	// 시점을 변경합니다.
 	virtual void ChangePerspective() override;
-private:
 
+	// 메시가 로드되면 캐릭터의 메시를 설정합니다.
+	virtual void OnPlayerStateChanged(APlayerState* NewPlayerState, APlayerState* OldPlayerState) override;
+
+private:
 	void SetupNameplateWidget();
 
 	// PlayerState에 데이터가 도착했을때, 데이터를 받아내야 할 때 호출합니다.
-	void ReceiveUserData();
+	void _ReceiveUserData();
 
-protected:
-	virtual void OnPlayerStateChanged(APlayerState* NewPlayerState, APlayerState* OldPlayerState) override;
-	
+	// 메시가 로드되면 캐릭터의 메시를 설정합니다.
+	void _MeshLoadCompleted();
+
 public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
@@ -73,4 +77,7 @@ private:
 	// 시점 변경을 위한 idx입니다.
 	UPROPERTY(Transient)
 	uint8 NowPerspectiveIdx;
+
+	// 캐릭터 메시 비동기 로드를 위한 handle 입니다.
+	TSharedPtr<FStreamableHandle> MeshHandle;
 };

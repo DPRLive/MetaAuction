@@ -21,6 +21,10 @@
 #include <GameFramework/SpringArmComponent.h>
 #include <UObject/ConstructorHelpers.h>
 #include <Kismet/GameplayStatics.h>
+#include <Engine/StreamableManager.h>
+#include <Engine/AssetManager.h>
+#include <Engine/SkeletalMesh.h>
+#include <PhysicsEngine/PhysicsAsset.h>
 
 
 
@@ -133,7 +137,7 @@ void AMACharacterPlayer::OnRep_PlayerState()
 	// 추후에 데이터가 도착하는 경우를 대비하여 Delegate에 bind
 	if(AMAPlayerState* playerState = Cast<AMAPlayerState>(GetPlayerState()))
 	{
-		ReceiveUserDataHandle = playerState->OnReceiveUserData.AddUObject(this, &AMACharacterPlayer::ReceiveUserData);
+		ReceiveUserDataHandle = playerState->OnReceiveUserData.AddUObject(this, &AMACharacterPlayer::_ReceiveUserData);
 	}
 }
 
@@ -171,7 +175,7 @@ void AMACharacterPlayer::SetupNameplateWidget()
 * Player State로부터 데이터를 받습니다.
 * 여기에 Player State의 정보를 사용해야 하는 로직을 작성해주세요 !
 */
-void AMACharacterPlayer::ReceiveUserData()
+void AMACharacterPlayer::_ReceiveUserData()
 {
 	AMAPlayerState* playerState = Cast<AMAPlayerState>(GetPlayerState());
 
@@ -181,6 +185,28 @@ void AMACharacterPlayer::ReceiveUserData()
 	// 여기에 로직 작성 //
 	LOG_WARN(TEXT("Receive Data. [%s]"), *playerState->GetUserData().UserName);
 	
+	// 메시를 설정합니다.
+	if(DA_MESH_INFO().IsValidIndex(playerState->GetUserData().SelectedCharacter))
+	{
+		MeshHandle = UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(DA_MESH_INFO()[playerState->GetUserData().SelectedCharacter].MeshPath,
+			FStreamableDelegate::CreateUObject(this, &AMACharacterPlayer::_MeshLoadCompleted));
+	}
+}
+
+/**
+* 메시가 로드되면 캐릭터의 메시를 설정합니다.
+*/
+void AMACharacterPlayer::_MeshLoadCompleted()
+{
+	if (MeshHandle.IsValid())
+	{
+		if (USkeletalMesh* mesh = Cast<USkeletalMesh>(MeshHandle->GetLoadedAsset()))
+		{
+			GetMesh()->SetSkeletalMesh(mesh);
+		}
+	}
+
+	MeshHandle->ReleaseHandle();
 }
 
 /**

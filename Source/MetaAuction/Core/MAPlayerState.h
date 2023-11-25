@@ -20,10 +20,15 @@ class METAAUCTION_API AMAPlayerState : public APlayerState
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 public:
-	// UserData를 서버로 보냅니다.
+	// UserName을 서버로 보냅니다.
 	UFUNCTION(Server, Reliable)
-	void ServerRPC_SendUserData(const FUserShareData& InUserData);
+	void ServerRPC_SendUserName(const FString& InName);
 
+	// 선택한 캐릭터 Index를 서버로 보냅니다.
+	// Index는 DA_MeshInfo에 담기는 그 Index를 그대로 담아주세요.
+	UFUNCTION(Server, Reliable)
+	void ServerRPC_SelectCharacter(const int16 InIndex);
+	
 	// User Data Getter
 	FORCEINLINE const FUserShareData& GetUserData() const { return UserData; }
 	
