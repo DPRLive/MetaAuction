@@ -281,26 +281,31 @@ void UMAItemInfoWidget::BidButtonClicked()
 void UMAItemInfoWidget::ChatButtonClicked()
 {
 	// 채팅방 요청하기
-	LOG_WARN(TEXT("ChatButtonClicked"));
 	if (UChatHandler* ChatHandler = MAGetChatHandler(MAGetGameInstance(GetWorld())))
 	{
-		LOG_WARN(TEXT("Valid ChatHandler"));
 		TWeakObjectPtr<ThisClass> ThisPtr(this);
 		auto Func = [ThisPtr](const FChatRoomData& InData)
 			{
-				LOG_WARN(TEXT("RequestNewChatRoom"));
+				LOG_WARN(TEXT("Recived RequestNewChatRoom"));
+
 				if (ThisPtr.IsValid())
 				{
-					LOG_WARN(TEXT("Valid ThisPtr"));
-					if (APlayerController* PC = ThisPtr->GetOwningPlayer())
+					// 채팅방 위젯 열기
+					if (UMAChatInfoWidget* ChatInfoWidget = CreateWidget<UMAChatInfoWidget>(ThisPtr->GetOwningPlayer(), ThisPtr->ChatInfoWidgetClass))
 					{
-						if (UMAChatInfoWidget* ChatInfoWidget = CreateWidget<UMAChatInfoWidget>(PC, ThisPtr->ChatInfoWidgetClass))
-						{
-							ChatInfoWidget->AddToViewport();
-							ChatInfoWidget->Update();
-							ChatInfoWidget->SelectListItem(InData);
-						}
+						ChatInfoWidget->AddToViewport();
+						ChatInfoWidget->Update();
+
+						LOG_WARN(TEXT("채팅방 생성 성공"));
 					}
+					else
+					{
+						LOG_WARN(TEXT("채팅방 생성 실패"));
+					}
+				}
+				else
+				{
+					LOG_WARN(TEXT("ThisPtr is invalid!"));
 				}
 			};
 		ChatHandler->RequestNewChatRoom(CachedItemData.ItemID, CachedItemData.SellerName, Func);
@@ -314,13 +319,10 @@ void UMAItemInfoWidget::DeleteButtonClicked()
 
 void UMAItemInfoWidget::DetailsButtonClicked()
 {
-	if (APlayerController* PC = GetOwningPlayer())
+	if (UMAItemAdditionalInfoWidget* ItemAdditionalInfoWidget = CreateWidget<UMAItemAdditionalInfoWidget>(GetOwningPlayer(), ItemAdditionalInfoWidgetClass))
 	{
-		if (UMAItemAdditionalInfoWidget* ItemAdditionalInfoWidget = CreateWidget<UMAItemAdditionalInfoWidget>(PC, ItemAdditionalInfoWidgetClass))
-		{
-			ItemAdditionalInfoWidget->AddToViewport();
-			ItemAdditionalInfoWidget->Update(CachedItemData);
-		}
+		ItemAdditionalInfoWidget->AddToViewport();
+		ItemAdditionalInfoWidget->Update(CachedItemData);
 	}
 }
 

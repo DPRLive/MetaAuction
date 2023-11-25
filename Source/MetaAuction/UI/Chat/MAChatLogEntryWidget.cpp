@@ -8,7 +8,7 @@
 #include <Components/Border.h>
 #include <Components/Image.h>
 #include <Components/TextBlock.h>
-#include <Components/ScrollBoxSlot.h>
+#include <Components/OverlaySlot.h>
 
 UMAChatLogEntryWidget::UMAChatLogEntryWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -19,12 +19,6 @@ UMAChatLogEntryWidget::UMAChatLogEntryWidget(const FObjectInitializer& ObjectIni
 void UMAChatLogEntryWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-	ensure(Box);
-	ensure(Border);
-	ensure(NameText);
-	ensure(LogText);
-	ensure(TimeText);
 
 	OtherChatColor = Border->GetBrushColor();
 }
@@ -40,9 +34,10 @@ void UMAChatLogEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 		{
 			NameText->SetText(FText::Format(FTextFormat(FText::FromString(TEXT("%s : "))), Entry->Data.ChatName));
 			NameText->SetVisibility(ESlateVisibility::Visible);
-			if (UScrollBoxSlot* ScrollBoxSlot = Cast<UScrollBoxSlot>(Box->Slot))
+
+			if (UOverlaySlot* BoxSlot = Cast<UOverlaySlot>(Box->Slot))
 			{
-				ScrollBoxSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Left);
+				BoxSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Left);
 			}
 
 			Border->SetBrushColor(OtherChatColor);
@@ -51,9 +46,10 @@ void UMAChatLogEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 		else
 		{
 			NameText->SetVisibility(ESlateVisibility::Collapsed);
-			if (UScrollBoxSlot* ScrollBoxSlot = Cast<UScrollBoxSlot>(Box->Slot))
+
+			if (UOverlaySlot* BoxSlot = Cast<UOverlaySlot>(Box->Slot))
 			{
-				ScrollBoxSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Right);
+				BoxSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Right);
 			}
 
 			Border->SetBrushColor(MyChatColor);

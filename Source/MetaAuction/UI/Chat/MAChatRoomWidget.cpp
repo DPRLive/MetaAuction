@@ -85,7 +85,7 @@ void UMAChatRoomWidget::Update(const FChatRoomData& InChatRoomData)
 					}
 				}
 			};
-		ChatHandler->RequestChatsById(ERequestChatType::Chatroom, InChatRoomData.ItemId, Func);
+		ChatHandler->RequestChatsById(ERequestChatType::Chatroom, InChatRoomData.ChatRoomId, Func);
 
 		// 채팅 기록이 변동될 때 델리게이트 바인딩
 		OnChatDelegateHandle = ChatHandler->OnChatDelegate.AddLambda([ThisPtr](const uint32 InChatroomId, const FChatData& InChatData)
