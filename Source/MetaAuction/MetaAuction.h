@@ -20,6 +20,7 @@
 #include "Handler/ItemFileHandler.h"
 #include "Handler/ItemDataHandler.h"
 #include "Handler/ChatHandler.h"
+#include "Manager/NotificationManager.h"
 
 #define CHECK_DEDI_FUNC									\
 	if(!IsRunningDedicatedServer())						\
@@ -51,6 +52,9 @@ TObjectPtr<UChatHandler> MAGetChatHandler(UGameInstance* InGameInstance);
 
 // StompHelper 반환
 FStompHelper* MAGetStompHelper(UGameInstance* InGameInstance);
+
+// NotificationManager 반환
+FNotificationManager* MAGetNotificationManager(UGameInstance* InGameInstance);
 
 // 현재 로그인된 UserName반환
 FString MAGetMyUserName(UGameInstance* InGameInstance);

@@ -124,6 +124,21 @@ FStompHelper* MAGetStompHelper(UGameInstance* InGameInstance)
 }
 
 /**
+ * Notification Manager 반환
+ */
+FNotificationManager* MAGetNotificationManager(UGameInstance* InGameInstance)
+{
+	if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(InGameInstance))
+	{
+		if(gameInstance->GetNotificationManager().IsValid())
+		{
+			return gameInstance->GetNotificationManager().Get();
+		}
+	}
+	return nullptr;
+}
+
+/**
  * 현재 로그인된 UserName반환
  */
 FString MAGetMyUserName(UGameInstance* InGameInstance)

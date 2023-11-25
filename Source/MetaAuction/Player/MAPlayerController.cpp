@@ -22,6 +22,8 @@ AMAPlayerController::AMAPlayerController()
 
 void AMAPlayerController::BeginPlay()
 {
+	Super::BeginPlay();
+
 	CreateHUDWidget();
 	CreateAuctionWidget();
 	if (AuctionWidget)

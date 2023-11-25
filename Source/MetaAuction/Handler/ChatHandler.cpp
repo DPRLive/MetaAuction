@@ -349,14 +349,26 @@ void UChatHandler::_TrySubscribe1On1Chat(const uint32 InChatRoomId)
 		TWeakObjectPtr<const UChatHandler> thisPtr = this;
 		chatEvent.BindLambda([InChatRoomId, thisPtr](const IStompMessage& StompMessage)
 		{
-			if(thisPtr.IsValid() && thisPtr->OnChatDelegate.IsBound())
+			if(thisPtr.IsValid())
 			{
 				FChatData chatData;
 				TSharedPtr<FJsonObject> chatDataStr = UtilJson::StringToJson(StompMessage.GetBodyAsString());
 				thisPtr->_JsonToData(chatDataStr, chatData);
 				
 				// 파싱해서 chatroomid와 data를 broadcast
-				thisPtr->OnChatDelegate.Broadcast(InChatRoomId, chatData);
+				if(thisPtr->OnChatDelegate.IsBound())
+					thisPtr->OnChatDelegate.Broadcast(InChatRoomId, chatData);
+
+				// 내가 보냈던 채팅이 아니라면 Noti를 보내지 않음
+				if(chatData.Sender == MAGetMyUserName(MAGetGameInstance()))
+					return;
+				
+				const FNotificationManager* notiManager = MAGetNotificationManager(MAGetGameInstance());
+				if(notiManager == nullptr)
+					return;
+
+				// Noti를 보낸다.
+				notiManager->PushNotification(chatData.Sender, chatData.Content);
 			}
 		});
 		

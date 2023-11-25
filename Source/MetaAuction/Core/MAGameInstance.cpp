@@ -3,6 +3,7 @@
 #include "Core/MAGameInstance.h"
 #include "Data/LoginData.h"
 #include "MAPlayerState.h"
+#include "Manager/NotificationManager.h"
 
 #include <GameFramework/PlayerController.h>
 #include <Serialization/JsonSerializer.h>
@@ -42,8 +43,8 @@ void UMAGameInstance::OnStart()
 		GetWorld()->GetTimerManager().SetTimer(handle, [this]()
 		{
 		   LOG_WARN(TEXT("Client Login Test"));
-		   RequestLogin(TEXT("test"), TEXT("test"));
-		}, 5.f, false);
+		   RequestLogin(TEXT("Sungyun"), TEXT("Sungyun"));
+		}, 3.f, false);
 	}
 }
 
@@ -56,6 +57,7 @@ void UMAGameInstance::Init()
 
 	HttpHelper = MakeShareable(new FHttpHelper());
 	StompHelper = MakeShareable(new FStompHelper());
+	NotificationManager = MakeShareable(new FNotificationManager());
 } 
 
 /**
@@ -94,17 +96,24 @@ void UMAGameInstance::RequestLogin(const FString& InID, const FString& InPasswor
 			                    FString jwtToken = jsonObject->GetStringField(TEXT("accessToken"));
 			                    thisPtr->LoginData = MakeShareable(new FLoginData(jwtToken));
 
-			                    // 로컬 유저의 Player State에 이름을 저장한다.
+		                    	if (thisPtr->OnLoginDelegate.IsBound())
+		                    		thisPtr->OnLoginDelegate.Broadcast(true);
+		                    	
+			                    // 로컬 유저의 Player State에 이름을 저장한다. (Dedi Server는 Controller, PlayerState 둘다 없는듯)
+		                    	AMAPlayerState* playerState = nullptr;
 			                    if (APlayerController* controller = thisPtr->GetFirstLocalPlayerController())
 			                    {
-				                    if (AMAPlayerState* playerState = controller->GetPlayerState<AMAPlayerState>())
-				                    {
-					                    playerState->ServerRPC_SendUserName(thisPtr->LoginData->GetMyUserName());
-				                    }
+				                    playerState = controller->GetPlayerState<AMAPlayerState>();
 			                    }
 
-			                    if (thisPtr->OnLoginDelegate.IsBound())
-				                    thisPtr->OnLoginDelegate.Broadcast(true);
+		                    	if(playerState != nullptr)
+		                    	{
+		                    		playerState->ServerRPC_SendUserName(thisPtr->LoginData->GetMyUserName());
+		                    		return;
+		                    	}
+		                    	
+			                    // playerState가 nullptr이면 나중에 PlayerState가 가져갈 수 있도록 닉네임 임시저장
+		                    	thisPtr->TempUserShareData.UserName =  thisPtr->LoginData->GetMyUserName();
 			                    return;
 		                    }
 

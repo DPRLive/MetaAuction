@@ -7,6 +7,7 @@
 #include <Engine/GameInstance.h>
 #include "MAGameInstance.generated.h"
 
+class FNotificationManager;
 class FLoginData;
 
 /**
@@ -51,6 +52,9 @@ public:
 	// StompHelper Getter
 	FORCEINLINE const TSharedPtr<FStompHelper>& GetStompHelper() const { return StompHelper; }
 
+	// NotificationManager Getter
+	FORCEINLINE const TSharedPtr<FNotificationManager>& GetNotificationManager() const { return NotificationManager; }
+
 private:
 	// OnNotifyPreClientTravel에 등록되어, 레벨 이동이 일어나기 전 나의 UserData를 저장합니다. 
 	void _SaveMyUserShareData(const FString& String, ETravelType Travel, bool Cond);
@@ -80,4 +84,7 @@ private:
 
 	// WebSocket 통신을 위한 StompHelper
 	TSharedPtr<FStompHelper> StompHelper;
+
+	// 알림을 관리해주는 NotificationManager
+	TSharedPtr<FNotificationManager> NotificationManager;
 };
