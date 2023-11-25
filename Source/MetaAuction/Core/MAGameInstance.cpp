@@ -43,7 +43,7 @@ void UMAGameInstance::OnStart()
 		{
 		   LOG_WARN(TEXT("Client Login Test"));
 		   RequestLogin(TEXT("test"), TEXT("test"));
-		}, 10.f, false);
+		}, 5.f, false);
 	}
 }
 
@@ -78,44 +78,42 @@ void UMAGameInstance::RequestLogin(const FString& InID, const FString& InPasswor
 	requestObj->SetStringField(TEXT("username"), InID);
 	requestObj->SetStringField(TEXT("password"), InPassword);
 	
-	if(HttpHelper.IsValid())
-	{
-		// 로그인을 요청한다.
-		TWeakObjectPtr<UMAGameInstance> thisPtr = this;
-		HttpHelper->Request(DA_NETWORK(LoginAddURL), EHttpRequestType::POST, [thisPtr](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
-		{
-			if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
-			{
-				// 로그인 요청 성공
-				const TSharedPtr<FJsonObject> jsonObject = UtilJson::StringToJson(InResponse->GetContentAsString());
-				
-				// 로그인 데이터를 저장한다.
-				FString jwtToken = jsonObject->GetStringField(TEXT("accessToken"));
-				thisPtr->LoginData = MakeShareable(new FLoginData(jwtToken));
+	if(!HttpHelper.IsValid())
+		return;
+	
+	TWeakObjectPtr<UMAGameInstance> thisPtr = this;
+	HttpHelper->Request(DA_NETWORK(LoginAddURL), EHttpRequestType::POST,
+	                    [thisPtr](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
+	                    {
+		                    if (thisPtr.IsValid() && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+		                    {
+			                    // 로그인 요청 성공
+			                    const TSharedPtr<FJsonObject> jsonObject = UtilJson::StringToJson(InResponse->GetContentAsString());
 
-				// 로컬 유저의 Player State에 이름을 저장한다.
-				if(APlayerController* controller = thisPtr->GetFirstLocalPlayerController())
-				{
-					if(AMAPlayerState* playerState = controller->GetPlayerState<AMAPlayerState>())
-					{
-						FUserShareData data = playerState->GetUserData();
-						data.UserName = thisPtr->LoginData->GetMyUserName();
-						playerState->ServerRPC_SendUserData(data);
-					}
-				}
+			                    // 로그인 데이터를 저장한다.
+			                    FString jwtToken = jsonObject->GetStringField(TEXT("accessToken"));
+			                    thisPtr->LoginData = MakeShareable(new FLoginData(jwtToken));
 
-				if(thisPtr->OnLoginDelegate.IsBound())
-					thisPtr->OnLoginDelegate.Broadcast(true);
-				return;
-			}
-			
-			LOG_ERROR(TEXT("로그인 실패 !"));
-			
-			if(thisPtr->OnLoginDelegate.IsBound())
-				thisPtr->OnLoginDelegate.Broadcast(false);
+			                    // 로컬 유저의 Player State에 이름을 저장한다.
+			                    if (APlayerController* controller = thisPtr->GetFirstLocalPlayerController())
+			                    {
+				                    if (AMAPlayerState* playerState = controller->GetPlayerState<AMAPlayerState>())
+				                    {
+					                    playerState->ServerRPC_SendUserName(thisPtr->LoginData->GetMyUserName());
+				                    }
+			                    }
 
-		}, UtilJson::JsonToString(requestObj));
-	}
+			                    if (thisPtr->OnLoginDelegate.IsBound())
+				                    thisPtr->OnLoginDelegate.Broadcast(true);
+			                    return;
+		                    }
+
+		                    LOG_ERROR(TEXT("로그인 실패 !"));
+
+		                    if (thisPtr->OnLoginDelegate.IsBound())
+			                    thisPtr->OnLoginDelegate.Broadcast(false);
+	                    }, UtilJson::JsonToString(requestObj));
+	
 }
 
 /**
