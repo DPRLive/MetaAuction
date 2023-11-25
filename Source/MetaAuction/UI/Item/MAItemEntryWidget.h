@@ -27,7 +27,6 @@ protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
-	virtual void NativeOnEntryReleased() override;
 
 public:
 

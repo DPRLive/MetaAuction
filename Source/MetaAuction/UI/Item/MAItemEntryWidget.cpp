@@ -93,10 +93,6 @@ void UMAItemEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 	}
 }
 
-void UMAItemEntryWidget::NativeOnEntryReleased()
-{
-}
-
 void UMAItemEntryWidget::UpdateAll(const FItemData& InItemData)
 {
 	CachedItemData = InItemData;

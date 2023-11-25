@@ -16,9 +16,8 @@ class METAAUCTION_API UMACharacterPickerEntry : public UObject
 	
 public:
 
-	UPROPERTY()
-	TObjectPtr<class USkeletalMesh> SkeletalMeshAsset;
+	int32 Index;
 
 	UPROPERTY()
-	TObjectPtr<class UTexture2D> Image;
+	FCharacterMeshInfo Data;
 };

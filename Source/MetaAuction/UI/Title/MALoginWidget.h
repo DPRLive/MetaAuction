@@ -21,6 +21,7 @@ public:
 protected:
 
 	virtual void NativeConstruct() override;
+	virtual void NativeDestruct() override;
 
 private:
 
@@ -43,4 +44,9 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UButton> RegisterButton;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class UMACharacterPickerWidget> CharacterPickerWidgetClass;
+
+	FDelegateHandle OnLoginDelegateHandle;
 };
