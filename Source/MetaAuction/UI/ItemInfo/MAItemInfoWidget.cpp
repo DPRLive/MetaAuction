@@ -13,6 +13,7 @@
 #include "UI/MAAuctionWidget.h"
 #include "Player/MAPlayerController.h"
 #include "Common/MALog.h"
+#include "Core/MAPlayerState.h"
 
 #include <Components/TextBlock.h>
 #include <Components/Image.h>
@@ -171,27 +172,30 @@ void UMAItemInfoWidget::Update(const FItemData& InItemData)
 
 	if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(GetOwningPlayer()))
 	{
-		if (UMAAuctionWidget* AuctionWidget = MAPC->GetAuctionWidget())
+		if (AMAPlayerState* MAPS = Cast<AMAPlayerState>(GetOwningPlayerState()))
 		{
-			EItemCanDeal ItemCanDeal = AuctionWidget->GetCachedItemCanDeal();
-			if (ItemCanDeal == EItemCanDeal::Possible)
+			if (UMAAuctionWidget* AuctionWidget = MAPC->GetAuctionWidget())
 			{
-				// 입찰 박스 보이기 (판매중 && 경매 && 판매자가 내가 아닌경우) 
-				if (CachedItemData.Type == EItemDealType::Auction && MAGetMyUserName(MAGetGameInstance()) != CachedItemData.SellerName)
+				EItemCanDeal ItemCanDeal = AuctionWidget->GetCachedItemCanDeal();
+				if (ItemCanDeal == EItemCanDeal::Possible)
 				{
-					BidButton->SetVisibility(ESlateVisibility::Visible);
-				}
+					// 입찰 박스 보이기 (판매중 && 경매 && 판매자가 내가 아닌경우) 
+					if (CachedItemData.Type == EItemDealType::Auction && MAPS->GetUserData().UserName != CachedItemData.SellerName)
+					{
+						BidButton->SetVisibility(ESlateVisibility::Visible);
+					}
 
-				// 채팅하기 버튼 보이기 (판매중 && 일반 판매 && 판매자가 내가 아닌경우)
-				if (CachedItemData.Type == EItemDealType::Normal && MAGetMyUserName(MAGetGameInstance()) != CachedItemData.SellerName)
-				{
-					ChatButton->SetVisibility(ESlateVisibility::Visible);
-				}
+					// 채팅하기 버튼 보이기 (판매중 && 일반 판매 && 판매자가 내가 아닌경우)
+					if (CachedItemData.Type == EItemDealType::Normal && MAPS->GetUserData().UserName != CachedItemData.SellerName)
+					{
+						ChatButton->SetVisibility(ESlateVisibility::Visible);
+					}
 
-				// 삭제하기 버튼 보이기 (판매중 && 내 물품인 경우)
-				if (MAGetMyUserName(MAGetGameInstance()) == CachedItemData.SellerName)
-				{
-					DeleteButton->SetVisibility(ESlateVisibility::Visible);
+					// 삭제하기 버튼 보이기 (판매중 && 내 물품인 경우)
+					if (MAPS->GetUserData().UserName == CachedItemData.SellerName)
+					{
+						DeleteButton->SetVisibility(ESlateVisibility::Visible);
+					}
 				}
 			}
 		}
