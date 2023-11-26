@@ -12,6 +12,7 @@ UMAWindowWidget::UMAWindowWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	OverrideCloseButtonVisibility = ESlateVisibility::Visible;
+	bUseGameInputModeThenClose = true;
 }
 
 void UMAWindowWidget::NativePreConstruct()
@@ -54,19 +55,12 @@ void UMAWindowWidget::CloseButtonClicked()
 		}
 
 		// InputMode GameOnly로 변경
-		if (!IsValid(MAAuctionWidget) || MAAuctionWidget->GetVisibility() != ESlateVisibility::Visible)
+		if (bUseGameInputModeThenClose && (!IsValid(MAAuctionWidget) || MAAuctionWidget->GetVisibility() != ESlateVisibility::Visible))
 		{
-			EMouseLockMode InMouseLockMode = EMouseLockMode::DoNotLock;
-			UWidget* InWidgetToFocus = this;
-			if (GetVisibility() == ESlateVisibility::Visible)
-			{
-				SetVisibility(ESlateVisibility::Hidden);
-
-				FInputModeGameOnly InputMode;
-				MAPC->SetInputMode(InputMode);
-				MAPC->FlushPressedKeys();
-				MAPC->SetShowMouseCursor(false);
-			}
+			FInputModeGameOnly InputMode;
+			MAPC->SetInputMode(InputMode);
+			MAPC->FlushPressedKeys();
+			MAPC->SetShowMouseCursor(false);
 		}
 	}
 

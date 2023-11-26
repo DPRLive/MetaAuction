@@ -41,4 +41,7 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CloseButton", meta = (BindWidget, AllowPrivateAccess = "true"))
 	ESlateVisibility OverrideCloseButtonVisibility;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CloseButton", meta = (BindWidget, AllowPrivateAccess = "true"))
+	uint8 bUseGameInputModeThenClose : 1;
 };

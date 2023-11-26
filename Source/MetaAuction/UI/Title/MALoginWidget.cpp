@@ -28,7 +28,7 @@ void UMALoginWidget::NativeConstruct()
 	LoginButton->OnClicked.AddDynamic(this, &ThisClass::LoginButtonClicked);
 	RegisterButton->OnClicked.AddDynamic(this, &ThisClass::RegisterButtonClicked);
 
-	// 로그인 성공 시 UI 닫기 및 캐릭터 선택창 띄우기
+	// 로그인 성공 시 위젯 파괴
 	if (UMAGameInstance* MAGameInstance = Cast<UMAGameInstance>(MAGetGameInstance(GetWorld())))
 	{
 		TWeakObjectPtr<ThisClass> ThisPtr;
@@ -37,11 +37,7 @@ void UMALoginWidget::NativeConstruct()
 			{
 				if (ThisPtr.IsValid() && bIsSuccessed)
 				{
-					if (UMACharacterPickerWidget* CharacterPickerWidget = CreateWidget<UMACharacterPickerWidget>(ThisPtr->GetOwningPlayer(), ThisPtr->CharacterPickerWidgetClass))
-					{
-						CharacterPickerWidget->AddToViewport();
-						ThisPtr->RemoveFromParent();
-					}
+					ThisPtr->RemoveFromParent();
 				}
 			});
 	}
@@ -52,6 +48,12 @@ void UMALoginWidget::NativeDestruct()
 	if (UMAGameInstance* MAGameInstance = Cast<UMAGameInstance>(MAGetGameInstance(GetWorld())))
 	{
 		MAGameInstance->OnLoginDelegate.Remove(OnLoginDelegateHandle);
+	}
+
+	// 위젯 파괴 시 캐릭터 선택 창 띄우기
+	if (UMACharacterPickerWidget* CharacterPickerWidget = CreateWidget<UMACharacterPickerWidget>(GetOwningPlayer(), CharacterPickerWidgetClass))
+	{
+		CharacterPickerWidget->AddToViewport();
 	}
 	
 	Super::NativeDestruct();
