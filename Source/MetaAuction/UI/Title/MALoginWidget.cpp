@@ -9,6 +9,8 @@
 #include <Components/Button.h>
 #include <GenericPlatform/GenericPlatformProcess.h>
 
+#include UE_INLINE_GENERATED_CPP_BY_NAME(MALoginWidget)
+
 UMALoginWidget::UMALoginWidget(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
 {
@@ -31,7 +33,7 @@ void UMALoginWidget::NativeConstruct()
 	// 로그인 성공 시 위젯 파괴
 	if (UMAGameInstance* MAGameInstance = Cast<UMAGameInstance>(MAGetGameInstance(GetWorld())))
 	{
-		TWeakObjectPtr<ThisClass> ThisPtr;
+		TWeakObjectPtr<ThisClass> ThisPtr = this;
 		MAGameInstance->OnLoginDelegate.Remove(OnLoginDelegateHandle);
 		OnLoginDelegateHandle = MAGameInstance->OnLoginDelegate.AddLambda([ThisPtr](bool bIsSuccessed)
 			{
@@ -69,6 +71,5 @@ void UMALoginWidget::LoginButtonClicked()
 
 void UMALoginWidget::RegisterButtonClicked()
 {
-	// TODO : 회원 가입 주소 필요
-	FPlatformProcess::LaunchURL(TEXT("http://google.com/"), NULL, NULL);
+	FPlatformProcess::LaunchURL(*DA_NETWORK(SignUpUrl), nullptr, nullptr);
 }

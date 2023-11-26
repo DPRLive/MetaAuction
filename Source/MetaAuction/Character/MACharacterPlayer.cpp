@@ -131,8 +131,8 @@ void AMACharacterPlayer::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
 
-	// 이미 데이터가 먼저 들어가 있을 수도 있음 -> TODO : 어차피 OnRep 호출이라 필요 없을듯?
-	// ReceiveUserData();
+	// 이미 데이터가 먼저 들어가 있을 수도 있음
+	_ReceiveUserData();
 	
 	// 추후에 데이터가 도착하는 경우를 대비하여 Delegate에 bind
 	if(AMAPlayerState* playerState = Cast<AMAPlayerState>(GetPlayerState()))
@@ -166,7 +166,6 @@ void AMACharacterPlayer::SetupNameplateWidget()
 		if (UMANameplateWidget* NameplateWidget = CreateWidget<UMANameplateWidget>(PC, NameplateWidgetClass))
 		{
 			NameplateWidgetComponent->SetWidget(NameplateWidget);
-			NameplateWidget->Update();
 		}
 	}
 }
@@ -190,6 +189,15 @@ void AMACharacterPlayer::_ReceiveUserData()
 	{
 		MeshHandle = UAssetManager::Get().GetStreamableManager().RequestAsyncLoad(DA_MESH_INFO()[playerState->GetUserData().SelectedCharacter].MeshPath,
 			FStreamableDelegate::CreateUObject(this, &AMACharacterPlayer::_MeshLoadCompleted));
+	}
+
+	// 이름을 설정합니다.
+	if(IsValid(NameplateWidgetComponent))
+	{
+		if (UMANameplateWidget* nameplateWidget = Cast<UMANameplateWidget>(NameplateWidgetComponent->GetWidget()))
+		{
+			nameplateWidget->Update(playerState->GetUserData().UserName);
+		}
 	}
 }
 

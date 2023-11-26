@@ -37,14 +37,6 @@ void UMAGameInstance::OnStart()
 		ChatHandler->InitChatHandler();
 
 		OnNotifyPreClientTravel().AddUObject(this, &UMAGameInstance::_SaveMyUserShareData);
-
-		// 클라 로그인 테스트 //
-		FTimerHandle handle;
-		GetWorld()->GetTimerManager().SetTimer(handle, [this]()
-		{
-		   LOG_WARN(TEXT("Client Login Test"));
-		   RequestLogin(TEXT("Sungyun"), TEXT("Sungyun"));
-		}, 3.f, false);
 	}
 }
 

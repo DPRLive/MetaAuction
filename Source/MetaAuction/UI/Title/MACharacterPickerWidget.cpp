@@ -5,9 +5,11 @@
 #include "UI/Title/MACharacterPickerTileWidget.h"
 #include "UI/Title/MACharacterPickerEntry.h"
 #include "Core/MAPlayerState.h"
+#include "Player/MAPlayerControllerBase.h"
 
 #include <Components/Button.h>
 #include <Components/TileView.h>
+
 
 UMACharacterPickerWidget::UMACharacterPickerWidget(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
@@ -35,12 +37,13 @@ void UMACharacterPickerWidget::ConfirmButtonClicked()
 			GetOwningPlayer()->SetInputMode(InputModeGameOnly);
 			GetOwningPlayer()->SetShowMouseCursor(false);
 			GetOwningPlayer()->FlushPressedKeys();
-
-			LOG_WARN(TEXT("ClientTravelToSession을 호출해 주세요."));
-			// TODO : ClientTravelToSession 호출하기
-			// MAGetGameInstance(GetWorld())->ClientTravelToSession();
-
 			RemoveFromParent();
+
+			// 컨트롤러를 Travel 시킵니다.
+			if(AMAPlayerControllerBase* localController = Cast<AMAPlayerControllerBase>(GetOwningPlayer()))
+			{
+				localController->ClientLevelTravel(ELevelType::Auction);
+			}
 		}
 	}
 }

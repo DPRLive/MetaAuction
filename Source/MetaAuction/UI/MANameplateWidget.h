@@ -24,7 +24,7 @@ protected:
 
 public:
 
-	void Update();
+	void Update(const FString& InName);
 
 private:
 

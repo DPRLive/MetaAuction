@@ -18,14 +18,14 @@ void UMANameplateWidget::NativeConstruct()
 	ensure(NameText);
 }
 
-void UMANameplateWidget::Update()
+void UMANameplateWidget::Update(const FString& InName)
 {
 	if (IsValid(NameText))
 	{
 		UMAGameInstance* MAGameInstance = Cast<UMAGameInstance>(MAGetGameInstance());
 		if (IsValid(MAGameInstance) && MAGameInstance->GetLoginData().IsValid())
 		{
-			// NameText->SetText(FText::FromString(MAGameInstance->GetLoginData()->GetUserName()));
+			NameText->SetText(FText::FromString(InName));
 		}
 	}
 }

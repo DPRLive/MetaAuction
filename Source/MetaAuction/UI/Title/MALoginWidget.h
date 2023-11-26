@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
+#include <Blueprint/UserWidget.h>
 #include "MALoginWidget.generated.h"
 
 /**
@@ -15,7 +14,6 @@ class METAAUCTION_API UMALoginWidget : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-
 	UMALoginWidget(const FObjectInitializer& ObjectInitializer);
 
 protected:

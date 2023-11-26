@@ -141,4 +141,8 @@ public:
 	// 레벨 이동 시 사용할 데디 서버 레벨 대한 정보입니다. (포트도 같이 기입할 것)
 	UPROPERTY( EditDefaultsOnly, Category = "World" )
 	FString AuctionUrl = TEXT("127.0.0.1");
+
+	// 웹페이지의 회원가입 하는 url입니다.
+	UPROPERTY( EditDefaultsOnly, Category = "Web" )
+	FString SignUpUrl = TEXT("http://google.com/");
 };
