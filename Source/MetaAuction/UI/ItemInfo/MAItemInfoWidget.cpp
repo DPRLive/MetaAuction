@@ -290,8 +290,6 @@ void UMAItemInfoWidget::ChatButtonClicked()
 		TWeakObjectPtr<ThisClass> ThisPtr(this);
 		auto Func = [ThisPtr](const FChatRoomData& InData)
 			{
-				LOG_WARN(TEXT("Recived RequestNewChatRoom"));
-
 				if (ThisPtr.IsValid())
 				{
 					// 채팅방 위젯 열기
@@ -299,17 +297,7 @@ void UMAItemInfoWidget::ChatButtonClicked()
 					{
 						ChatInfoWidget->AddToViewport();
 						ChatInfoWidget->Update();
-
-						LOG_WARN(TEXT("채팅방 생성 성공"));
 					}
-					else
-					{
-						LOG_WARN(TEXT("채팅방 생성 실패"));
-					}
-				}
-				else
-				{
-					LOG_WARN(TEXT("ThisPtr is invalid!"));
 				}
 			};
 		ChatHandler->RequestNewChatRoom(CachedItemData.ItemID, CachedItemData.SellerName, Func);
@@ -318,7 +306,26 @@ void UMAItemInfoWidget::ChatButtonClicked()
 
 void UMAItemInfoWidget::DeleteButtonClicked()
 {
-	// TODO : 아이템 삭제하기 구현
+	// 아이템 삭제하기
+	if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld())))
+	{
+		TWeakObjectPtr<ThisClass> ThisPtr(this);
+		auto Func = [ThisPtr](const FString& Message)
+			{
+				if (ThisPtr.IsValid())
+				{
+					if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(ThisPtr->GetOwningPlayer()))
+					{
+						UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget();
+						if (IsValid(PopupWidget))
+						{
+							PopupWidget->SetText(Message);
+						}
+					}
+				}
+			};
+		ItemDataHandler->RequestRemoveItem(CachedItemData.ItemID, Func);
+	}
 }
 
 void UMAItemInfoWidget::DetailsButtonClicked()
