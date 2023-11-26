@@ -24,6 +24,8 @@ protected:
 
 public:
 
+	FORCEINLINE class UTileView* GetTileView() { return ItemTileView; }
+
 	void Update();
 
 private:

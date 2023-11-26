@@ -5,6 +5,7 @@
 #include "UI/ItemInfo/MAItemDisplayer.h"
 #include "UI/Bidrecord/MABidRecordListWidget.h"
 #include "UI/MAModelTransEditWidget.h"
+#include "Core/MAPlayerState.h"
 #include "MetaAuction.h"
 
 #include <Components/TextBlock.h>
@@ -105,9 +106,12 @@ void UMAItemAdditionalInfoWidget::Update(const FItemData& InItemData)
 		SpawnedItemDisplayer = nullptr;
 	}
 
-	if (InItemData.SellerName == MAGetMyUserName(MAGetGameInstance()))
+	if (AMAPlayerState* MAPS = Cast<AMAPlayerState>(GetOwningPlayerState()))
 	{
-		ModelTransEditButton->SetVisibility(ESlateVisibility::Visible);
+		if (InItemData.SellerName == MAPS->GetUserData().UserName)
+		{
+			ModelTransEditButton->SetVisibility(ESlateVisibility::Visible);
+		}
 	}
 
 	FActorSpawnParameters SpawnParams;

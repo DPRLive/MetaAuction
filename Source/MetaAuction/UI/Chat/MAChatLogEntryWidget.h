@@ -29,6 +29,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget, AllowPrivateAccess = "true"))
 	FLinearColor MyChatColor;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget, AllowPrivateAccess = "true"))
+	uint8 bUseOtherChat : 1;
+
 	UPROPERTY(Transient)
 	FLinearColor OtherChatColor;
 

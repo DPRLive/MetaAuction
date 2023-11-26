@@ -24,6 +24,14 @@ protected:
 
 private:
 
+	UFUNCTION()
+	void ConfirmButtonClicked();
+
+private:
+
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<class UImage> CharacterImage;
+	TObjectPtr<class UButton> ConfirmButton;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<class UMACharacterPickerTileWidget> WBP_CharacterPickerTile;
 };

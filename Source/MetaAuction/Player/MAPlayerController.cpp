@@ -34,13 +34,11 @@ void AMAPlayerController::BeginPlay()
 
 void AMAPlayerController::CreateHUDWidget()
 {
-	// �ϳ��� ������ �����ϵ��� �մϴ�.
 	if (HUDWidget)
 	{
 		return;
 	}
 
-	// Ŭ������ ��ȿ���� Ȯ���մϴ�.
 	if (!HUDWidgetClass)
 	{
 		ensure(HUDWidgetClass);

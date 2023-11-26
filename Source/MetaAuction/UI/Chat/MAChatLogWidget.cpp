@@ -5,6 +5,7 @@
 #include "UI/Chat/MAChatLogListWidget.h"
 #include "Player/MAPlayerController.h"
 #include "Common/MALog.h"
+#include "Core/MAPlayerState.h"
 #include "Data/LoginData.h"
 
 #include <Components/ScrollBox.h>
@@ -112,7 +113,10 @@ void UMAChatLogWidget::SendInputText()
 	{
 		FMAChatLogEntryData ChatLog;
 
-		ChatLog.ChatName = FText::FromString(MAGetMyUserName(MAGetGameInstance()));
+		if (AMAPlayerState* MAPS = Cast<AMAPlayerState>(GetOwningPlayerState()))
+		{
+			ChatLog.ChatName = FText::FromString(MAPS->GetUserData().UserName);
+		}
 		ChatLog.ChatLog = InputText->GetText();
 		InputText->SetText(FText());
 
