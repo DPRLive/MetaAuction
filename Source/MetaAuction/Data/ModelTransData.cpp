@@ -7,6 +7,22 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ModelTransData)
 
+UModelTransData::UModelTransData()
+{
+	SaveTermCount = 10;
+	NowChangeCount = 0;
+}
+
+/**
+ * 서버가 종료 전 저장을 합니다.
+ */
+void UModelTransData::BeginDestroy()
+{
+	_SaveDataToFile();
+	
+	Super::BeginDestroy();
+}
+
 /**
  * 파일에서 TMap에 정보를 로드한다.
  */
@@ -35,7 +51,7 @@ void UModelTransData::TryEmplaceTrans(const uint8 InItemLoc, const uint32 InItem
 	else
 		ItemModelTrans.Emplace(InItemLoc, {InItemId, InTransform});
 	
-	_SaveChanged();
+	_OnChanged();
 }
 
 /**
@@ -44,14 +60,24 @@ void UModelTransData::TryEmplaceTrans(const uint8 InItemLoc, const uint32 InItem
 void UModelTransData::RemoveTrans(const uint8 InItemLoc)
 {
 	ItemModelTrans.Remove(InItemLoc);
-	_SaveChanged();
+	_OnChanged();
+}
+
+/**
+ * 변경이 일어나면 Count를 확인해보고 파일을 저장하던지 합니다.
+ */
+void UModelTransData::_OnChanged()
+{
+	NowChangeCount++;
+
+	if(NowChangeCount >= SaveTermCount)
+		_SaveDataToFile();
 }
 
 /**
  * TMap의 내용을 저장한다.
- * TODO : 수정이나 삭제 잘 되는지 확인 필요
  */
-void UModelTransData::_SaveChanged()
+void UModelTransData::_SaveDataToFile()
 {
 	UE_SCOPED_TIMER(TEXT("Save Transform to bin..."), LogTemp, Warning);
 	

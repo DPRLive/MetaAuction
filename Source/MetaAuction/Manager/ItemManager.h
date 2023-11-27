@@ -40,6 +40,9 @@ public:
 
 	// 배치된 물품 모델링의 상대적 Transform을 변경합니다. (서버에서만 사용 가능)
 	void Server_SetModelTransform(const FString& InJwtToken, const uint8 InItemLoc, const FTransform& InRelativeTrans);
+
+	// ItemActor가 소유한 모델의 Relative trans를 리턴합니다.
+	const FTransform& GetModelTransform(const uint8 InLoc) const;
 private:
 	// 웹서버에 등록된 현재 월드에 배치되어 판매되고 있는 아이템들의 ID를 가져와 배치한다.
 	// 데디 서버에서만 실행 가능합니다.
@@ -61,7 +64,6 @@ private:
 	
 	// 물품을 배치할 수 있는 ItemActor에 대한 포인터들. 사용자에게 표시는 1부터 할거지만 접근은 인덱스 0부터 해주세요.
 	// 클라이언트들에서도 읽을 수 있습니다.
-	// TODO : 근데 클라이언트에서 접근할 일이 있을까?
 	UPROPERTY( Replicated )
 	TArray<TWeakObjectPtr<AItemActor>> ItemActors;
 

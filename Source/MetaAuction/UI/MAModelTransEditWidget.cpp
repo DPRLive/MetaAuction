@@ -7,6 +7,11 @@
 #include <Components/EditableTextBox.h>
 #include <Components/Button.h>
 
+UMAModelTransEditWidget::UMAModelTransEditWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+{
+	ItemLoc = 0;
+}
+
 void UMAModelTransEditWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -23,8 +28,6 @@ void UMAModelTransEditWidget::NativeConstruct()
 
 	CancelBtn->OnClicked.AddDynamic(this, &UMAModelTransEditWidget::_OnClickCancelBtn);
 	VerifyBtn->OnClicked.AddDynamic(this, &UMAModelTransEditWidget::_OnClickVerifyBtn);
-
-	ItemLoc = 0;
 }
 
 /**

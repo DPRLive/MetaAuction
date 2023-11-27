@@ -34,6 +34,9 @@ public:
 	
 	// 모델의 상대적 Transform을 설정한다.
 	FORCEINLINE void SetModelRelativeTrans(const FTransform& InTransform) { ModelRelativeTrans = InTransform; }
+
+	// 모델의 상대적 Transform을 가져온다.
+	FORCEINLINE const FTransform& GetModelRelativeTrans() const { return ModelRelativeTrans; }
 	
 	// 현재 설정된 물품 id를 가져온다.
 	FORCEINLINE uint32 GetItemID() const { return ItemID; }

@@ -6,11 +6,14 @@
 #include "UI/Bidrecord/MABidRecordListWidget.h"
 #include "UI/MAModelTransEditWidget.h"
 #include "Core/MAPlayerState.h"
+#include "Core/MAGameState.h"
+#include "Manager/ItemManager.h"
 #include "MetaAuction.h"
 
 #include <Components/TextBlock.h>
 #include <Components/Image.h>
 #include <Components/Button.h>
+
 
 UMAItemAdditionalInfoWidget::UMAItemAdditionalInfoWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -135,13 +138,25 @@ FEventReply UMAItemAdditionalInfoWidget::ItemModelClicked(FGeometry MyGeometry, 
 
 void UMAItemAdditionalInfoWidget::ModelTransEditButtonClicked()
 {
+	// ModelTrans 위젯을 사용하기 위해 데이터를 item manager로부터 받아옵니다.
+	UItemManager* manager = nullptr;
+	if(AMAGameState* gameState = Cast<AMAGameState>(MAGetGameState(GetWorld())))
+	{
+		manager = gameState->GetItemManager();
+	}
+
+	if(manager == nullptr)
+		return;
+	
 	if (!SpawnedModelTransEditWidget.IsValid())
 	{
 		if (APlayerController* PC = GetOwningPlayer())
 		{
 			SpawnedModelTransEditWidget = CreateWidget<UMAModelTransEditWidget>(PC, ModelTransEditWidgetClass);
+			
 			if (SpawnedModelTransEditWidget.IsValid())
 			{
+				SpawnedModelTransEditWidget->PushData(CachedItemData.Location, manager->GetModelTransform(CachedItemData.Location));
 				SpawnedModelTransEditWidget->AddToViewport();
 			}
 		}

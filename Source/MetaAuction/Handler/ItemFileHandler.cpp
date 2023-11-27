@@ -22,7 +22,7 @@ FItemFileHandler::FItemFileHandler()
 
 /**
  * 캐시 파일들 (Saved/Models/에 저장되는 모델 파일들)을 지웁니다.
- * 아마 프로그램 실행 시 메인 화면에서 로그인 후 레벨 넘어가기 전 unuseable로 한번 호출해주면 좋을듯해요
+ * TODO : 아마 프로그램 실행 시 메인 화면에서 로그인 후 레벨 넘어가기 전 unuseable로 한번 호출해주면 좋을듯해요
  * @param InRemoveCacheType : 파일을 지울때의 옵션, Unuseable일 경우 로그인 된 상태에서 해주세요.
  */
 void FItemFileHandler::RemoveCacheFile(ERemoveCacheType InRemoveCacheType) const

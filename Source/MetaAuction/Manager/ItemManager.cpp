@@ -201,6 +201,25 @@ void UItemManager::Server_SetModelTransform(const FString& InJwtToken, const uin
 }
 
 /**
+ * ItemActor가 소유한 모델의 Relative trans를 리턴합니다.
+ * @param InLoc : 확인할 Item Actor의 위치
+ */
+const FTransform& UItemManager::GetModelTransform(const uint8 InLoc) const
+{
+	if(InLoc == 0)
+		return FTransform::Identity;
+	
+	const uint8 idx = InLoc - 1;
+
+	if(ItemActors.IsValidIndex(idx) && ItemActors[idx].IsValid())
+	{
+		return ItemActors[idx]->GetModelRelativeTrans();
+	}
+
+	return FTransform::Identity;
+}
+
+/**
  * 웹서버에 등록된 현재 월드에 배치되어 판매되고 있는 아이템들의 ID를 가져와 배치한다.
  * 데디 서버에서만 실행 가능합니다.
  */

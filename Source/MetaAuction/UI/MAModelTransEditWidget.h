@@ -16,9 +16,10 @@ class METAAUCTION_API UMAModelTransEditWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+	UMAModelTransEditWidget(const FObjectInitializer& ObjectInitializer);
+	
 protected:
 	virtual void NativeConstruct() override;
-
 	
 public:
 	virtual void RemoveFromParent() override;

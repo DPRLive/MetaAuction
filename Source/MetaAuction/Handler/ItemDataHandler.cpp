@@ -20,6 +20,7 @@ void UItemDataHandler::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// TODO : 로그인시 로직으로 빼기
 	if(IsRunningDedicatedServer())
 	{
 		// 서버에서 WebSocket에 구독할 것들을 구독한다.
