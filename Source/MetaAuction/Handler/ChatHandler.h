@@ -100,7 +100,7 @@ public:
 	void RequestChatsById(const ERequestChatType InChatType, const uint32 InId, const FCallbackRefArray<FChatData>& InFunc) const;
 
 	// 나의 채팅방 목록을 모두 불러옵니다. (로그인 된 상태에서만 사용 가능)
-	void RequestMyChatRoom(const FCallbackRefArray<FChatRoomData>& InFunc);
+	void RequestMyChatRoom(const FCallbackRefArray<TPair<FChatRoomData, FChatData>>& InFunc);
 
 	// 새로운 채팅방을 생성합니다. 경매의 경우는 끝나면 자동으로 채팅방이 생성되니 일반 판매일 때만 사용하면 됩니다.
 	// (특정 유저가 어떤 일반 판매 물품을 사고싶으면 이 api를 호출해서 채팅을 시작하면 됨)

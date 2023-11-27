@@ -43,7 +43,7 @@ void UMAChatRoomListWidget::Update()
 				}
 			}
 		};
-	ChatHandler->RequestMyChatRoom(RequestFunc);
+	// ChatHandler->RequestMyChatRoom(RequestFunc);
 }
 
 UListView* UMAChatRoomListWidget::GetListView() const

@@ -36,7 +36,7 @@ void UChatHandler::_AfterLogin(bool InbSuccess)
 	LOG_N(TEXT("Prepare ChatHandler..."));
 	
 	// 나의 채팅방을 모두 등록
-	RequestMyChatRoom([](const TArray<FChatRoomData>& InChatRoomDatas){});
+	RequestMyChatRoom([](const TArray<TPair<FChatRoomData, FChatData>>& InChatRoomDatas){ });
 	
 	// 나에게 생길 채팅방도 생길때마다 등록 할 수 있도록 함
 	if (const FStompHelper* stompHandler = MAGetStompHelper(MAGetGameInstance()))
@@ -249,9 +249,9 @@ void UChatHandler::RequestChatsById(const ERequestChatType InChatType, const uin
 /**
  * 나의 채팅방 목록을 모두 불러옵니다. (로그인 된 상태에서만 사용 가능)
  * Lambda 작성 시, this를 캡처한다면 weak 캡처 후 is valid 체크 한번 해주세요!
- * @param InFunc : 채팅방들을 수신하면 실행할 람다함수, const TArray<FItemReply>&를 인자로 받아야함
+ * @param InFunc : 채팅방들을 수신하면 실행할 람다함수, const TArray<TPair<FChatRoomData, FChatData>>&를 인자로 받아야함. (채팅방 정보, 해당 채팅방의 마지막 채팅의 정보)
  */
-void UChatHandler::RequestMyChatRoom(const FCallbackRefArray<FChatRoomData>& InFunc)
+void UChatHandler::RequestMyChatRoom(const FCallbackRefArray<TPair<FChatRoomData, FChatData>>& InFunc)
 {
 	if (const FHttpHelper* httpHelper = MAGetHttpHelper(MAGetGameInstance()))
 	{
@@ -267,13 +267,14 @@ void UChatHandler::RequestMyChatRoom(const FCallbackRefArray<FChatRoomData>& InF
 							   TArray<TSharedPtr<FJsonObject>> jsonArray;
 							   UtilJson::StringToJsonValueArray(InResponse->GetContentAsString(), jsonArray);
 
-							   TArray<FChatRoomData> chatRoomArray;
+							   TArray<TPair<FChatRoomData, FChatData>> chatRoomArray;
 							   for (const TSharedPtr<FJsonObject>& jsonObj : jsonArray)
 							   {
-								   chatRoomArray.Emplace(FChatRoomData());
-								   thisPtr->_JsonToData(jsonObj, *chatRoomArray.rbegin());
+								   chatRoomArray.Emplace(FChatRoomData(), FChatData());
+								   thisPtr->_JsonToData(jsonObj, chatRoomArray[chatRoomArray.Num() - 1].Key);
+								   thisPtr->_JsonToData(jsonObj, chatRoomArray[chatRoomArray.Num() - 1].Value);
 								   // 빠진게 있을 수 있으니 모두 구독을 시도해본다.
-								   thisPtr->_TrySubscribe1On1Chat((*chatRoomArray.rbegin()).ChatRoomId);
+								   thisPtr->_TrySubscribe1On1Chat(chatRoomArray[chatRoomArray.Num() - 1].Key.ChatRoomId);
 							   }
 						   	
 							   InFunc(chatRoomArray);

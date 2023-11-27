@@ -80,7 +80,7 @@ public:
 	
 	// 나의 채팅방들을 가져오는 추가 Url
 	UPROPERTY( EditDefaultsOnly, Category = "HTTP|Chat" )
-	FString MyChatRoomAddURL = TEXT("/mychatroom");
+	FString MyChatRoomAddURL = TEXT("/mychatroomAll");
 
 	// 새로운 채팅방을 만드는 추가 Url, /{itemID}를 붙여서 사용
 	UPROPERTY( EditDefaultsOnly, Category = "HTTP|Chat" )
