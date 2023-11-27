@@ -3,7 +3,9 @@
 
 #include "UI/Title/MALoginWidget.h"
 #include "UI/Title/MACharacterPickerWidget.h"
+#include "UI/Common/MAConfirmPopupWidget.h"
 #include "Core/MAGameInstance.h"
+#include "Player/MAPlayerController.h"
 
 #include <Components/EditableTextBox.h>
 #include <Components/Button.h>
@@ -30,16 +32,27 @@ void UMALoginWidget::NativeConstruct()
 	LoginButton->OnClicked.AddDynamic(this, &ThisClass::LoginButtonClicked);
 	RegisterButton->OnClicked.AddDynamic(this, &ThisClass::RegisterButtonClicked);
 
-	// 로그인 성공 시 위젯 파괴
 	if (UMAGameInstance* MAGameInstance = Cast<UMAGameInstance>(MAGetGameInstance(GetWorld())))
 	{
 		TWeakObjectPtr<ThisClass> ThisPtr = this;
 		MAGameInstance->OnLoginDelegate.Remove(OnLoginDelegateHandle);
 		OnLoginDelegateHandle = MAGameInstance->OnLoginDelegate.AddLambda([ThisPtr](bool bIsSuccessed)
 			{
+				// 로그인 성공 시 위젯 파괴
 				if (ThisPtr.IsValid() && bIsSuccessed)
 				{
 					ThisPtr->RemoveFromParent();
+				}
+				// 로그인 실패 시 결과 팝업 창 생성
+				else
+				{
+					if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(ThisPtr->GetOwningPlayer()))
+					{
+						if (UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget())
+						{
+							PopupWidget->SetText(Message);
+						}
+					}
 				}
 			});
 	}

@@ -253,8 +253,7 @@ void UMAItemInfoWidget::BidButtonClicked()
 						// 팝업 창에서 확인을 눌렀으면
 						if (ThisPtr.IsValid() && Type == EMAConfirmCancelPopupType::Confirm)
 						{
-							UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState());
-							if (IsValid(ItemDataHandler))
+							if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState()))
 							{
 								int32 Price = FCString::Atoi(*ThisPtr->BidPriceText->GetText().ToString());
 
@@ -265,8 +264,7 @@ void UMAItemInfoWidget::BidButtonClicked()
 										{
 											if (ThisPtr.IsValid())
 											{
-												UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget();
-												if (IsValid(PopupWidget))
+												if (UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget())
 												{
 													PopupWidget->SetText(Message);
 												}
@@ -329,10 +327,10 @@ void UMAItemInfoWidget::DeleteButtonClicked()
 									{
 										if (ThisPtr.IsValid())
 										{
+											// 아이템 삭제 완료 결과 팝업
 											if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(ThisPtr->GetOwningPlayer()))
 											{
-												UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget();
-												if (IsValid(PopupWidget))
+												if (UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget())
 												{
 													PopupWidget->SetText(Message);
 												}
