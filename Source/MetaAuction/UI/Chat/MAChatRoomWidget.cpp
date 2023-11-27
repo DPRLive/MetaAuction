@@ -21,18 +21,8 @@ void UMAChatRoomWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(ItemImage);
-	ensure(SellerNameText);
-	ensure(PriceText);
-	ensure(InputScrollBox);
-	ensure(InputText);
-	ensure(InputButton);
-	ensure(WBP_ChatLogList);
-
-	if (IsValid(InputButton))
-	{
-		InputButton->OnClicked.AddDynamic(this, &ThisClass::SendInputText);
-	}
+	InputText->OnTextCommitted.AddDynamic(this, &ThisClass::InputTextCommitted);
+	InputButton->OnClicked.AddDynamic(this, &ThisClass::SendInputText);
 }
 
 void UMAChatRoomWidget::NativeDestruct()
@@ -44,6 +34,13 @@ void UMAChatRoomWidget::NativeDestruct()
 	}
 
 	Super::NativeDestruct();
+}
+
+FReply UMAChatRoomWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
+{
+	SendInputText();
+
+	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 }
 
 void UMAChatRoomWidget::Update(const FChatRoomData& InChatRoomData)

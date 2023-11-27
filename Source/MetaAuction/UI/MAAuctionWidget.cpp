@@ -78,6 +78,31 @@ void UMAAuctionWidget::NativeConstruct()
 	ItemSearchButtonClicked();
 }
 
+FReply UMAAuctionWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
+{
+	if (InKeyEvent.GetKey() == EKeys::Enter)
+	{
+		if (CurrentButton == ItemSearchButton)
+		{
+			ItemSearchButtonClicked();
+		}
+		else if (CurrentButton == ItemSellButton)
+		{
+			ItemSellButtonClicked();
+		}
+		else if (CurrentButton == ItemBuyButton)
+		{
+			ItemBuyButtonClicked();
+		}
+		else if (CurrentButton == ItemTryBidButton)
+		{
+			ItemTryBidButtonClicked();
+		}
+	}
+	
+	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
+}
+
 void UMAAuctionWidget::ToggleWidget()
 {
 	APlayerController* PlayerController = GetOwningPlayer();
@@ -187,11 +212,6 @@ void UMAAuctionWidget::ChatInfoButtonClicked()
 
 bool UMAAuctionWidget::MenuButtonClicked(UButton* ClickedButton)
 {
-	if (CurrentButton == ClickedButton)
-	{
-		return false;
-	}
-
 	PreviousButton = CurrentButton;
 	CurrentButton = ClickedButton;
 

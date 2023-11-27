@@ -17,59 +17,40 @@ void UMAItemFilterWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(SearchButton);
-	ensure(SearchButton);
-	ensure(ItemWorldTypeComboBox);
-	ensure(ItemDealTypeComboBox);
-	ensure(ItemCanDealComboBox);
+	SearchText->OnTextCommitted.AddDynamic(this, &ThisClass::SearchTextCommitted);
+	SearchButton->OnClicked.AddDynamic(this, &ThisClass::SearchButtonClicked);
 
-	if (IsValid(SearchButton))
+	ItemWorldTypeComboBox->ClearOptions();
+	ItemWorldTypeComboBox->AddOption(MAGetNowWorldId(MAGetGameState()));
+	ItemWorldTypeComboBox->SetSelectedIndex(0);
+	
+	// EItemDealType의 첫 항목을 제외한 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
+	ItemDealTypeComboBox->ClearOptions();
+	for (uint8 EnumIndex = static_cast<uint8>(EItemDealType::None) + 1; EnumIndex < static_cast<uint8>(EItemDealType::MAX); ++EnumIndex)
 	{
-		SearchButton->OnClicked.AddDynamic(this, &ThisClass::SearchButtonClicked);
-	}
-
-	if (IsValid(ItemWorldTypeComboBox))
-	{
-		ItemWorldTypeComboBox->ClearOptions();
-		ItemWorldTypeComboBox->AddOption(MAGetNowWorldId(MAGetGameState()));
-		ItemWorldTypeComboBox->SetSelectedIndex(0);
-	}
-
-	if (IsValid(ItemDealTypeComboBox))
-	{
-		ItemDealTypeComboBox->ClearOptions();
-
-		// EItemDealType의 첫 항목을 제외한 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
-		for (uint8 EnumIndex = static_cast<uint8>(EItemDealType::None) + 1; EnumIndex < static_cast<uint8>(EItemDealType::MAX); ++EnumIndex)
+		FText DisplayName;
+		const UEnum* EnumPtr = FindFirstObjectSafe<UEnum>(TEXT("EItemDealType"));
+		if (IsValid(EnumPtr))
 		{
-			FText DisplayName;
-			const UEnum* EnumPtr = FindFirstObjectSafe<UEnum>(TEXT("EItemDealType"));
-			if (IsValid(EnumPtr))
-			{
-				DisplayName = EnumPtr->GetDisplayNameTextByValue(EnumIndex);
-			}
-			ItemDealTypeComboBox->AddOption(DisplayName.ToString());
+			DisplayName = EnumPtr->GetDisplayNameTextByValue(EnumIndex);
 		}
-		ItemDealTypeComboBox->SetSelectedIndex(0);
+		ItemDealTypeComboBox->AddOption(DisplayName.ToString());
 	}
+	ItemDealTypeComboBox->SetSelectedIndex(0);
 
-	if (IsValid(ItemCanDealComboBox))
+	// EItemDealType의 첫 항목을 제외한 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
+	ItemCanDealComboBox->ClearOptions();
+	for (uint8 EnumIndex = static_cast<uint8>(EItemCanDeal::None) + 1; EnumIndex < static_cast<uint8>(EItemCanDeal::MAX); ++EnumIndex)
 	{
-		ItemCanDealComboBox->ClearOptions();
-
-		// EItemDealType의 첫 항목을 제외한 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
-		for (uint8 EnumIndex = static_cast<uint8>(EItemCanDeal::None) + 1; EnumIndex < static_cast<uint8>(EItemCanDeal::MAX); ++EnumIndex)
+		FText DisplayName;
+		const UEnum* EnumPtr = FindFirstObjectSafe<UEnum>(TEXT("EItemCanDeal"));
+		if (IsValid(EnumPtr))
 		{
-			FText DisplayName;
-			const UEnum* EnumPtr = FindFirstObjectSafe<UEnum>(TEXT("EItemCanDeal"));
-			if (IsValid(EnumPtr))
-			{
-				DisplayName = EnumPtr->GetDisplayNameTextByValue(EnumIndex);
-			}
-			ItemCanDealComboBox->AddOption(DisplayName.ToString());
+			DisplayName = EnumPtr->GetDisplayNameTextByValue(EnumIndex);
 		}
-		ItemCanDealComboBox->SetSelectedIndex(0);
+		ItemCanDealComboBox->AddOption(DisplayName.ToString());
 	}
+	ItemCanDealComboBox->SetSelectedIndex(0);
 }
 
 

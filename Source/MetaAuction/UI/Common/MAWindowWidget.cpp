@@ -48,8 +48,8 @@ void UMAWindowWidget::NativeDestruct()
 			AllWidgetsNum -= static_cast<int32>(MAAuctionWidget->GetVisibility() != ESlateVisibility::Visible);
 		}
 
-		// 모든 위젯의 개수가 자기자신 포함 2개(자신, HUD)이면 어떠한 위젯도 열려있지 않으므로 InputMode GameOnly로 변경
-		if (bUseGameInputModeThenClose && (!IsValid(MAAuctionWidget) || AllWidgetsNum == 2))
+		// 모든 위젯의 개수가 1개(HUD)이면 어떠한 위젯도 열려있지 않으므로 InputMode GameOnly로 변경
+		if (bUseGameInputModeThenClose && (!IsValid(MAAuctionWidget) || AllWidgetsNum == 1))
 		{
 			FInputModeGameOnly InputMode;
 			MAPC->SetInputMode(InputMode);
