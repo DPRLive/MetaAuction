@@ -50,7 +50,7 @@ void UMALoginWidget::NativeConstruct()
 					{
 						if (UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget())
 						{
-							PopupWidget->SetText(Message);
+							PopupWidget->SetText(TEXT("로그인에 실패하였습니다."));
 						}
 					}
 				}
