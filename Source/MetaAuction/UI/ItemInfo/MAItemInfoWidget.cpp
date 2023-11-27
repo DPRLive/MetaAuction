@@ -239,6 +239,7 @@ void UMAItemInfoWidget::ItemImageNextButtonClicked()
 
 void UMAItemInfoWidget::BidButtonClicked()
 {
+	// 아이템 입찰 팝업 창 띄우기
 	if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(GetOwningPlayer()))
 	{
 		if (UMAConfirmCancelPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmCancelPopupWidget())
@@ -249,6 +250,7 @@ void UMAItemInfoWidget::BidButtonClicked()
 				{
 					if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(ThisPtr->GetOwningPlayer()))
 					{
+						// 팝업 창에서 확인을 눌렀으면
 						if (ThisPtr.IsValid() && Type == EMAConfirmCancelPopupType::Confirm)
 						{
 							UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState());
@@ -306,25 +308,44 @@ void UMAItemInfoWidget::ChatButtonClicked()
 
 void UMAItemInfoWidget::DeleteButtonClicked()
 {
-	// 아이템 삭제하기
-	if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld())))
+	// 아이템 삭제 팝업 창 띄우기
+	if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(GetOwningPlayer()))
 	{
-		TWeakObjectPtr<ThisClass> ThisPtr(this);
-		auto Func = [ThisPtr](const FString& Message)
-			{
-				if (ThisPtr.IsValid())
+		if (UMAConfirmCancelPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmCancelPopupWidget())
+		{
+			PopupWidget->SetText(TEXT("정말로 삭제하시겠습니까?"));
+			TWeakObjectPtr<ThisClass> ThisPtr(this);
+			auto RequestPopupTypeFunc = [ThisPtr](EMAConfirmCancelPopupType Type)
 				{
 					if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(ThisPtr->GetOwningPlayer()))
 					{
-						UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget();
-						if (IsValid(PopupWidget))
+						// 팝업 창에서 확인을 눌렀으면
+						if (ThisPtr.IsValid() && Type == EMAConfirmCancelPopupType::Confirm)
 						{
-							PopupWidget->SetText(Message);
+							// 아이템 삭제 요청하기
+							if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(ThisPtr->GetWorld())))
+							{
+								auto Func = [ThisPtr](const FString& Message)
+									{
+										if (ThisPtr.IsValid())
+										{
+											if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(ThisPtr->GetOwningPlayer()))
+											{
+												UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget();
+												if (IsValid(PopupWidget))
+												{
+													PopupWidget->SetText(Message);
+												}
+											}
+										}
+									};
+								ItemDataHandler->RequestRemoveItem(ThisPtr->CachedItemData.ItemID, Func);
+							}
 						}
 					}
-				}
-			};
-		ItemDataHandler->RequestRemoveItem(CachedItemData.ItemID, Func);
+				};
+			PopupWidget->OnDetermined.AddLambda(RequestPopupTypeFunc);
+		}
 	}
 }
 
