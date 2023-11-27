@@ -18,8 +18,6 @@ UMAItemImageListWidget::UMAItemImageListWidget(const FObjectInitializer& ObjectI
 void UMAItemImageListWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-	ensure(ItemImageListView);
 }
 
 void UMAItemImageListWidget::Update(const FItemData& InItemData)

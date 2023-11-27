@@ -20,49 +20,30 @@ void UMAWindowWidget::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 
-	if (IsValid(TitleText))
-	{
-		TitleText->SetText(OverrideTitleText);
-	}
+	TitleText->SetText(OverrideTitleText);
 
-	if (IsValid(CloseButton))
-	{
-		CloseButton->SetVisibility(OverrideCloseButtonVisibility);
-	}
+	CloseButton->SetVisibility(OverrideCloseButtonVisibility);
 }
 
-void UMAWindowWidget::NativeConstruct()
+void UMAWindowWidget::NativeDestruct()
 {
-	Super::NativeConstruct();
-
-	ensure(TitleText);
-	ensure(CloseButton);
-
-	if (IsValid(CloseButton))
+	if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(GetOwningPlayer()))
 	{
-		CloseButton->OnClicked.AddDynamic(this, &ThisClass::CloseButtonClicked);
-	}
-}
+		TArray<UUserWidget*> AllWidgets;
+		UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), AllWidgets, UUserWidget::StaticClass(), true);
+		int32 AllWidgetsNum = AllWidgets.Num();
 
-void UMAWindowWidget::CloseButtonClicked()
-{
-	AMAPlayerController* MAPC = Cast<AMAPlayerController>(GetOwningPlayer());
-	if (IsValid(MAPC))
-	{
 		UMAAuctionWidget* MAAuctionWidget = MAPC->GetAuctionWidget();
 		if (IsValid(MAAuctionWidget))
 		{
 			MAAuctionWidget->SetFocus();
+
+			// Action Widget의 Visibility를 비교하여 Visible이 아니면 꺼진 상태로 간주
+			AllWidgetsNum -= static_cast<int32>(MAAuctionWidget->GetVisibility() != ESlateVisibility::Visible);
 		}
 
-		TArray<UUserWidget*> AllWidgets;
-		UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), AllWidgets, UUserWidget::StaticClass(), true);
-
-		// Action Widget의 Visibility를 비교하여 Visible이 아니면 꺼진 상태로 간주
-		const int32 AllWidgetsNum = AllWidgets.Num() - static_cast<int32>(MAAuctionWidget->GetVisibility() != ESlateVisibility::Visible);
-
-		// 모든 위젯의 개수가 자기자신 포함 2개(자신, HUD)이면 어떠한 위젯도 열려있지 않으므로 InputMode GameOnly로 변경
-		if (bUseGameInputModeThenClose && (!IsValid(MAAuctionWidget) || AllWidgetsNum == 2))
+		// 모든 위젯의 개수가 1개(HUD)이면 어떠한 위젯도 열려있지 않으므로 InputMode GameOnly로 변경
+		if (bUseGameInputModeThenClose && (!IsValid(MAAuctionWidget) || AllWidgetsNum == 1))
 		{
 			FInputModeGameOnly InputMode;
 			MAPC->SetInputMode(InputMode);
@@ -71,8 +52,19 @@ void UMAWindowWidget::CloseButtonClicked()
 		}
 	}
 
-	UWidget* ParentWidget = Cast<UWidget>(GetParent()->GetOuter()->GetOuter());
-	if (IsValid(ParentWidget))
+	Super::NativeDestruct();
+}
+
+void UMAWindowWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	CloseButton->OnClicked.AddDynamic(this, &ThisClass::CloseButtonClicked);
+}
+
+void UMAWindowWidget::CloseButtonClicked()
+{
+	if (UWidget* ParentWidget = Cast<UWidget>(GetParent()->GetOuter()->GetOuter()))
 	{
 		ParentWidget->RemoveFromParent();
 	}

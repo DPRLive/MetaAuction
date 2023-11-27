@@ -17,13 +17,7 @@ void UMAChatInfoWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(WBP_ChatRoomList);
-	ensure(WBP_ChatRoom);
-
-	if (IsValid(WBP_ChatRoom))
-	{
-		WBP_ChatRoom->SetVisibility(ESlateVisibility::Hidden);
-	}
+	WBP_ChatRoom->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UMAChatInfoWidget::NativeDestruct()

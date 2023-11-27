@@ -15,19 +15,9 @@ void UMAConfirmCancelPopupWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(TitleText);
-	ensure(ConfirmButton);
-	ensure(CancelButton);
+	ConfirmButton->OnClicked.AddDynamic(this, &ThisClass::ConfirmButtonClicked);
 
-	if (IsValid(ConfirmButton))
-	{
-		ConfirmButton->OnClicked.AddDynamic(this, &ThisClass::ConfirmButtonClicked);
-	}
-
-	if (IsValid(CancelButton))
-	{
-		CancelButton->OnClicked.AddDynamic(this, &ThisClass::CancelButtonClicked);
-	}
+	CancelButton->OnClicked.AddDynamic(this, &ThisClass::CancelButtonClicked);
 }
 
 void UMAConfirmCancelPopupWidget::SetText(const FString& InString)

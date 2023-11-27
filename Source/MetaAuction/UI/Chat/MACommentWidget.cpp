@@ -17,15 +17,7 @@ void UMACommentWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(CommentText);
-	ensure(InputText);
-	ensure(InputButton);
-	ensure(WBP_CommentList);
-
-	if (IsValid(InputButton))
-	{
-		InputButton->OnClicked.AddDynamic(this, &ThisClass::InputButtonClicked);
-	}
+	InputButton->OnClicked.AddDynamic(this, &ThisClass::InputButtonClicked);
 }
 
 void UMACommentWidget::NativeDestruct()

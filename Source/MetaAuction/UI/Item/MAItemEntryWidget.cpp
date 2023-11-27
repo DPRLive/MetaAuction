@@ -22,28 +22,14 @@ void UMAItemEntryWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(TitleText);
-	ensure(SellerNameText);
-	ensure(CurrentPriceText);
-	ensure(BuyerNameBox);
-	ensure(BuyerNameText);
-	ensure(EndTimeText);
-	ensure(ItemImage);
-	ensure(DetailsButton);
-	ensure(ItemInfoWidgetClass);
-
-	if (IsValid(DetailsButton))
-	{
-		DetailsButton->OnClicked.AddDynamic(this, &ThisClass::DetailsButtonClicked);
-	}
+	DetailsButton->OnClicked.AddDynamic(this, &ThisClass::DetailsButtonClicked);
 }
 
 void UMAItemEntryWidget::NativeDestruct()
 {
 	Super::NativeDestruct();
 
-	UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld()));
-	if (IsValid(ItemDataHandler))
+	if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld())))
 	{
 		ItemDataHandler->OnChangeItemData.Remove(OnChangeItemDataHandle);
 	}

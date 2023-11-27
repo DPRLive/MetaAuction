@@ -23,59 +23,54 @@ void UMAAuctionWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(MenuBox);
-	ensure(ItemSearchButton);
-	ensure(ItemSellButton);
-	ensure(ItemBuyButton);
-	ensure(ItemTryBidButton);
-	ensure(ChatInfoButton);
-	ensure(WBP_ItemFilter);
-	ensure(WBP_ItemView);
-
-	if (IsValid(MenuBox))
+	TArray<UWidget*> Widgets = MenuBox->GetAllChildren();
+	for (UWidget* Widget : Widgets)
 	{
-		TArray<UWidget*> Widgets = MenuBox->GetAllChildren();
-		for (UWidget* Widget : Widgets)
+		UButton* Button = Cast<UButton>(Widget);
+		if (IsValid(Button))
 		{
-			UButton* Button = Cast<UButton>(Widget);
-			if(IsValid(Button))
-			{
-				AllMenuButtons.Emplace(Button);
-			}
+			AllMenuButtons.Emplace(Button);
 		}
 	}
 
-	if (IsValid(ItemSearchButton))
-	{
-		ItemSearchButton->OnClicked.AddDynamic(this, &ThisClass::ItemSearchButtonClicked);
-	}
+	ItemSearchButton->OnClicked.AddDynamic(this, &ThisClass::ItemSearchButtonClicked);
 
-	if (IsValid(ItemSellButton))
-	{
-		ItemSellButton->OnClicked.AddDynamic(this, &ThisClass::ItemSellButtonClicked);
-	}
+	ItemSellButton->OnClicked.AddDynamic(this, &ThisClass::ItemSellButtonClicked);
 
-	if (IsValid(ItemBuyButton))
-	{
-		ItemBuyButton->OnClicked.AddDynamic(this, &ThisClass::ItemBuyButtonClicked);
-	}
+	ItemBuyButton->OnClicked.AddDynamic(this, &ThisClass::ItemBuyButtonClicked);
 
-	if (IsValid(ItemTryBidButton))
-	{
-		ItemTryBidButton->OnClicked.AddDynamic(this, &ThisClass::ItemTryBidButtonClicked);
-	}
+	ItemTryBidButton->OnClicked.AddDynamic(this, &ThisClass::ItemTryBidButtonClicked);
 
-	if (IsValid(ChatInfoButton))
-	{
-		ChatInfoButton->OnClicked.AddDynamic(this, &ThisClass::ChatInfoButtonClicked);
-	}
+	ChatInfoButton->OnClicked.AddDynamic(this, &ThisClass::ChatInfoButtonClicked);
 
-	if (IsValid(WBP_ItemFilter))
-	{
-		WBP_ItemFilter->OnSearch.AddDynamic(this, &ThisClass::Search);
-	}
+	WBP_ItemFilter->OnSearch.AddDynamic(this, &ThisClass::Search);
 
 	ItemSearchButtonClicked();
+}
+
+FReply UMAAuctionWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
+{
+	if (InKeyEvent.GetKey() == EKeys::Enter)
+	{
+		if (CurrentButton == ItemSearchButton)
+		{
+			ItemSearchButtonClicked();
+		}
+		else if (CurrentButton == ItemSellButton)
+		{
+			ItemSellButtonClicked();
+		}
+		else if (CurrentButton == ItemBuyButton)
+		{
+			ItemBuyButtonClicked();
+		}
+		else if (CurrentButton == ItemTryBidButton)
+		{
+			ItemTryBidButtonClicked();
+		}
+	}
+	
+	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 }
 
 void UMAAuctionWidget::ToggleWidget()
@@ -187,11 +182,6 @@ void UMAAuctionWidget::ChatInfoButtonClicked()
 
 bool UMAAuctionWidget::MenuButtonClicked(UButton* ClickedButton)
 {
-	if (CurrentButton == ClickedButton)
-	{
-		return false;
-	}
-
 	PreviousButton = CurrentButton;
 	CurrentButton = ClickedButton;
 

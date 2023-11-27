@@ -15,13 +15,7 @@ void UMAConfirmPopupWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(TitleText);
-	ensure(ConfirmButton);
-
-	if (IsValid(ConfirmButton))
-	{
-		ConfirmButton->OnClicked.AddDynamic(this, &ThisClass::ConfirmButtonClicked);
-	}
+	ConfirmButton->OnClicked.AddDynamic(this, &ThisClass::ConfirmButtonClicked);
 }
 
 void UMAConfirmPopupWidget::SetText(const FString& InString)

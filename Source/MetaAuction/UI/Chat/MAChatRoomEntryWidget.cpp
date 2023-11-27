@@ -15,11 +15,6 @@ UMAChatRoomEntryWidget::UMAChatRoomEntryWidget(const FObjectInitializer& ObjectI
 void UMAChatRoomEntryWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-	ensure(SellerNameText);
-	ensure(LastTimeText);
-	ensure(LastMessageText);
-	ensure(ItemImage);
 }
 
 void UMAChatRoomEntryWidget::NativeDestruct()

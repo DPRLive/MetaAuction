@@ -31,88 +31,40 @@ void UMAItemInfoWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(ItemImage);
-	ensure(TitleText);
-	ensure(EndTimeText);
-	ensure(StartPriceText);
-	ensure(CurrentPriceText);
-	ensure(BuyerNameText);
-	ensure(SellerNameText);
-	ensure(ItemDealTypeText);
-	ensure(WorldText);
-	ensure(LocationText);
-	ensure(InformationText);
-	ensure(ItemImagePrevButton);
-	ensure(ItemImageNextButton);
-	ensure(WBP_ItemImageList);
-	ensure(BidPriceText);
-	ensure(BidButton);
-	ensure(ChatButton);
-	ensure(DeleteButton);
-	ensure(DetailsButton);
-	ensure(WBP_Comment);
+	ItemImagePrevButton->OnClicked.AddDynamic(this, &ThisClass::ItemImagePrevButtonClicked);
 
-	if (IsValid(ItemImagePrevButton))
-	{
-		ItemImagePrevButton->OnClicked.AddDynamic(this, &ThisClass::ItemImagePrevButtonClicked);
-	}
+	ItemImageNextButton->OnClicked.AddDynamic(this, &ThisClass::ItemImageNextButtonClicked);
 
-	if (IsValid(ItemImageNextButton))
+	TWeakObjectPtr<ThisClass> ThisPtr(this);
+	if (ThisPtr.IsValid())
 	{
-		ItemImageNextButton->OnClicked.AddDynamic(this, &ThisClass::ItemImageNextButtonClicked);
-	}
-
-	if (IsValid(WBP_ItemImageList) && IsValid(ItemImage))
-	{
-		TWeakObjectPtr<ThisClass> ThisPtr(this);
-		if (ThisPtr.IsValid())
-		{
-			auto Func = [ThisPtr](UObject* Object)
+		auto Func = [ThisPtr](UObject* Object)
+			{
+				UMAItemImageEntry* Entry = Cast<UMAItemImageEntry>(Object);
+				if (ThisPtr.IsValid() && IsValid(Entry))
 				{
-					UMAItemImageEntry* Entry = Cast<UMAItemImageEntry>(Object);
-					if (ThisPtr.IsValid() && IsValid(Entry))
-					{
-						ThisPtr->ItemImage->SetBrushFromTextureDynamic(Entry->Data.Image);
-					}
-				};
-			WBP_ItemImageList->GetListView()->OnItemSelectionChanged().Remove(ItemImageListViewSelectionChangedHandle);
-			ItemImageListViewSelectionChangedHandle = WBP_ItemImageList->GetListView()->OnItemSelectionChanged().AddLambda(Func);
-		}
+					ThisPtr->ItemImage->SetBrushFromTextureDynamic(Entry->Data.Image);
+				}
+			};
+		WBP_ItemImageList->GetListView()->OnItemSelectionChanged().Remove(ItemImageListViewSelectionChangedHandle);
+		ItemImageListViewSelectionChangedHandle = WBP_ItemImageList->GetListView()->OnItemSelectionChanged().AddLambda(Func);
 	}
 
-	if (IsValid(BidButton))
-	{
-		BidButton->SetVisibility(ESlateVisibility::Collapsed);
-	}
+	BidButton->SetVisibility(ESlateVisibility::Collapsed);
 
-	if (IsValid(BidPriceText))
-	{
-		BidPriceText->OnTextChanged.AddDynamic(this, &ThisClass::BidPriceTextChanged);
-		BidPriceText->OnTextCommitted.AddDynamic(this, &ThisClass::BidPriceTextCommited);
-	}
+	BidPriceText->OnTextChanged.AddDynamic(this, &ThisClass::BidPriceTextChanged);
+	BidPriceText->OnTextCommitted.AddDynamic(this, &ThisClass::BidPriceTextCommited);
 
-	if (IsValid(BidButton))
-	{
-		BidButton->SetVisibility(ESlateVisibility::Collapsed);
-		BidButton->OnClicked.AddDynamic(this, &ThisClass::BidButtonClicked);
-	}
+	BidButton->SetVisibility(ESlateVisibility::Collapsed);
+	BidButton->OnClicked.AddDynamic(this, &ThisClass::BidButtonClicked);
 
-	if (IsValid(ChatButton))
-	{
-		ChatButton->SetVisibility(ESlateVisibility::Collapsed);
-		ChatButton->OnClicked.AddDynamic(this, &ThisClass::ChatButtonClicked);
-	}
+	ChatButton->SetVisibility(ESlateVisibility::Collapsed);
+	ChatButton->OnClicked.AddDynamic(this, &ThisClass::ChatButtonClicked);
 
-	if (IsValid(DeleteButton))
-	{
-		DeleteButton->SetVisibility(ESlateVisibility::Collapsed);
-		DeleteButton->OnClicked.AddDynamic(this, &ThisClass::DeleteButtonClicked);
-	}
+	DeleteButton->SetVisibility(ESlateVisibility::Collapsed);
+	DeleteButton->OnClicked.AddDynamic(this, &ThisClass::DeleteButtonClicked);
 
-	if (IsValid(DetailsButton))
-	{
-		DetailsButton->OnClicked.AddDynamic(this, &ThisClass::DetailsButtonClicked);
-	}
+	DetailsButton->OnClicked.AddDynamic(this, &ThisClass::DetailsButtonClicked);
 }
 
 void UMAItemInfoWidget::NativeDestruct()
@@ -204,7 +156,6 @@ void UMAItemInfoWidget::Update(const FItemData& InItemData)
 	TWeakObjectPtr<ThisClass> ThisPtr(this);
 	if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState()))
 	{
-		// TODO: 현재 OnChangePrice가 작동하지 않습니다!
 		ItemDataHandler->OnChangePrice.Remove(OnChangePriceHandle);
 		OnChangePriceHandle = ItemDataHandler->OnChangePrice.AddLambda([ThisPtr](const uint32 ItemID, const uint64 Price, const FString& Name)
 			{
@@ -215,7 +166,7 @@ void UMAItemInfoWidget::Update(const FItemData& InItemData)
 					ThisPtr->CachedItemData.CurrentPrice = Price;
 					ThisPtr->CurrentPriceText->SetText(FText::AsNumber(Price, &NumberFormatOptions));
 					NumberFormatOptions.SetUseGrouping(false);
-					ThisPtr->BidPriceText->SetText(FText::AsNumber(Price + ThisPtr->BidMinimum));
+					ThisPtr->BidPriceText->SetText(FText::AsNumber(Price + ThisPtr->BidMinimum, &NumberFormatOptions));
 				}
 			});
 	}
@@ -239,6 +190,7 @@ void UMAItemInfoWidget::ItemImageNextButtonClicked()
 
 void UMAItemInfoWidget::BidButtonClicked()
 {
+	// 아이템 입찰 팝업 창 띄우기
 	if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(GetOwningPlayer()))
 	{
 		if (UMAConfirmCancelPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmCancelPopupWidget())
@@ -249,10 +201,10 @@ void UMAItemInfoWidget::BidButtonClicked()
 				{
 					if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(ThisPtr->GetOwningPlayer()))
 					{
+						// 팝업 창에서 확인을 눌렀으면
 						if (ThisPtr.IsValid() && Type == EMAConfirmCancelPopupType::Confirm)
 						{
-							UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState());
-							if (IsValid(ItemDataHandler))
+							if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState()))
 							{
 								int32 Price = FCString::Atoi(*ThisPtr->BidPriceText->GetText().ToString());
 
@@ -263,8 +215,7 @@ void UMAItemInfoWidget::BidButtonClicked()
 										{
 											if (ThisPtr.IsValid())
 											{
-												UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget();
-												if (IsValid(PopupWidget))
+												if (UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget())
 												{
 													PopupWidget->SetText(Message);
 												}
@@ -306,25 +257,44 @@ void UMAItemInfoWidget::ChatButtonClicked()
 
 void UMAItemInfoWidget::DeleteButtonClicked()
 {
-	// 아이템 삭제하기
-	if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld())))
+	// 아이템 삭제 팝업 창 띄우기
+	if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(GetOwningPlayer()))
 	{
-		TWeakObjectPtr<ThisClass> ThisPtr(this);
-		auto Func = [ThisPtr](const FString& Message)
-			{
-				if (ThisPtr.IsValid())
+		if (UMAConfirmCancelPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmCancelPopupWidget())
+		{
+			PopupWidget->SetText(TEXT("정말로 삭제하시겠습니까?"));
+			TWeakObjectPtr<ThisClass> ThisPtr(this);
+			auto RequestPopupTypeFunc = [ThisPtr](EMAConfirmCancelPopupType Type)
 				{
 					if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(ThisPtr->GetOwningPlayer()))
 					{
-						UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget();
-						if (IsValid(PopupWidget))
+						// 팝업 창에서 확인을 눌렀으면
+						if (ThisPtr.IsValid() && Type == EMAConfirmCancelPopupType::Confirm)
 						{
-							PopupWidget->SetText(Message);
+							// 아이템 삭제 요청하기
+							if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(ThisPtr->GetWorld())))
+							{
+								auto Func = [ThisPtr](const FString& Message)
+									{
+										if (ThisPtr.IsValid())
+										{
+											// 아이템 삭제 완료 결과 팝업
+											if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(ThisPtr->GetOwningPlayer()))
+											{
+												if (UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget())
+												{
+													PopupWidget->SetText(Message);
+												}
+											}
+										}
+									};
+								ItemDataHandler->RequestRemoveItem(ThisPtr->CachedItemData.ItemID, Func);
+							}
 						}
 					}
-				}
-			};
-		ItemDataHandler->RequestRemoveItem(CachedItemData.ItemID, Func);
+				};
+			PopupWidget->OnDetermined.AddLambda(RequestPopupTypeFunc);
+		}
 	}
 }
 

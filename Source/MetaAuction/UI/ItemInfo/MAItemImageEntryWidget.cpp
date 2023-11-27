@@ -17,12 +17,7 @@ void UMAItemImageEntryWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(ItemImage);
-
-	if (IsValid(ItemImage))
-	{
-		NormalColor = ItemImage->GetColorAndOpacity();
-	}
+	NormalColor = ItemImage->GetColorAndOpacity();
 }
 
 void UMAItemImageEntryWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)

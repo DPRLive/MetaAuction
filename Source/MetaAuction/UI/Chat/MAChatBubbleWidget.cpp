@@ -16,8 +16,6 @@ void UMAChatBubbleWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(LogText);
-
 	OnBubbleAnimFinished.BindDynamic(this, &ThisClass::BubbleAnimFinished);
 	BindToAnimationFinished(BubbleAnim, OnBubbleAnimFinished);
 

@@ -15,8 +15,6 @@ UMAItemListWidget::UMAItemListWidget(const FObjectInitializer& ObjectInitializer
 void UMAItemListWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-	ensure(ItemListView);
 }
 
 void UMAItemListWidget::UpdateSearchItems(const FItemSearchOption& InItemOption)
