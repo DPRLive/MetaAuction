@@ -12,10 +12,10 @@ public:
 	FItemFileHandler();
 	
 	// 캐시 파일들 (Saved/Models/에 저장되는 모델 파일들)을 지웁니다.
-	void RemoveCacheFile(ERemoveCacheType InRemoveCacheType) const;
+	void RemoveCacheFile(const ERemoveCacheType InRemoveCacheType) const;
 	
 	// 해당 item ID의 파일들을 지웁니다.
-	void RemoveGlbFile(uint32 InItemId) const;
+	void RemoveGlbFile(const uint32 InItemId) const;
 
 	// 해당 item ID의 모델링 파일(glb)를 요청합니다. 로컬에 있을경우 그 파일을 사용하며, 없을 경우 웹으로 새로 요청합니다. 
 	void RequestGlb(const FCallbackRefOneParam<FString>& InFunc, uint32 InItemId) const;

@@ -22,11 +22,13 @@ FItemFileHandler::FItemFileHandler()
 
 /**
  * 캐시 파일들 (Saved/Models/에 저장되는 모델 파일들)을 지웁니다.
- * TODO : 아마 프로그램 실행 시 메인 화면에서 로그인 후 레벨 넘어가기 전 unuseable로 한번 호출해주면 좋을듯해요
+ * TODO : ALL 캐시파일 지우기 버튼 만들까?
  * @param InRemoveCacheType : 파일을 지울때의 옵션, Unuseable일 경우 로그인 된 상태에서 해주세요.
  */
-void FItemFileHandler::RemoveCacheFile(ERemoveCacheType InRemoveCacheType) const
+void FItemFileHandler::RemoveCacheFile(const ERemoveCacheType InRemoveCacheType) const
 {
+	LOG_N(TEXT("Remove [%s] Cache files ..."), *ENUM_TO_STRING(ERemoveCacheType, InRemoveCacheType));
+	
 	FString basePath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + TEXT("Models/");
 	
 	if(InRemoveCacheType == ERemoveCacheType::All) // 다 지워버리렴!
@@ -86,7 +88,7 @@ void FItemFileHandler::RemoveCacheFile(ERemoveCacheType InRemoveCacheType) const
  * 해당 item ID의 모델링 파일을 지웁니다.
  * @param InItemId : 지울 item의 id
  */
-void FItemFileHandler::RemoveGlbFile(uint32 InItemId) const
+void FItemFileHandler::RemoveGlbFile(const uint32 InItemId) const
 {
 	// 모델링 파일 경로에 접근한다.
 	FString glbPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()) + FString::Printf(TEXT("Models/%d.glb"), InItemId);
