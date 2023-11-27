@@ -26,6 +26,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+private:
+	// 로그인 이후 로직을 처리합니다.
+	void _AfterLogin(bool InbSuccess);
+	
 public:
 	// 상품이 삭제 되었을 때, 내 월드에 있었던 상품이면 지웁니다.
 	// 데디 서버에서만 실행 가능합니다.

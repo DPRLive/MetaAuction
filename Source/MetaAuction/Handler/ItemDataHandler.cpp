@@ -2,10 +2,12 @@
 
 
 #include "Handler/ItemDataHandler.h"
+#include "Core/MAGameInstance.h"
 
 #include <Interfaces/IHttpResponse.h>
 #include <Serialization/JsonSerializer.h>
 #include <IStompMessage.h>
+
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ItemDataHandler)
 
@@ -20,22 +22,36 @@ void UItemDataHandler::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// TODO : 로그인시 로직으로 빼기
 	if(IsRunningDedicatedServer())
 	{
-		// 서버에서 WebSocket에 구독할 것들을 구독한다.
-		if(const FStompHelper* stompHandler = MAGetStompHelper(GetOwner()->GetGameInstance()))
+		// 로그인 이후 로직 처리
+		if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
 		{
-			// 아이템 가격 변동 구독, 이건 구독 해제할 일이 없음
-			FStompSubscriptionEvent Server_EventChangePrice;
-			Server_EventChangePrice.BindUObject(this, &UItemDataHandler::_Server_OnChangePrice);
-			stompHandler->Subscribe(DA_NETWORK(WSChangePriceAddURL), Server_EventChangePrice);
-
-			// 아이템 정보 변동 구독, 이건 구독 해제할 일이 없음
-			FStompSubscriptionEvent Server_EventChangeItemData;
-			Server_EventChangeItemData.BindUObject(this, &UItemDataHandler::_Server_OnChangeItemData);
-			stompHandler->Subscribe(DA_NETWORK(WSChangeDataAddURL), Server_EventChangeItemData);
+			gameInstance->OnLoginDelegate.AddUObject(this, &UItemDataHandler::_AfterLogin);
 		}
+	}
+}
+
+/**
+ * 로그인 이후 로직을 처리합니다. 서버에서 WebSocket에 구독할 것들을 구독한다.
+ */
+void UItemDataHandler::_AfterLogin(bool InbSuccess)
+{
+	if(!InbSuccess)
+		return;
+	
+	// 서버에서 WebSocket에 구독할 것들을 구독한다.
+	if(const FStompHelper* stompHandler = MAGetStompHelper(GetOwner()->GetGameInstance()))
+	{
+		// 아이템 가격 변동 구독, 이건 구독 해제할 일이 없음
+		FStompSubscriptionEvent Server_EventChangePrice;
+		Server_EventChangePrice.BindUObject(this, &UItemDataHandler::_Server_OnChangePrice);
+		stompHandler->Subscribe(DA_NETWORK(WSChangePriceAddURL), Server_EventChangePrice);
+
+		// 아이템 정보 변동 구독, 이건 구독 해제할 일이 없음
+		FStompSubscriptionEvent Server_EventChangeItemData;
+		Server_EventChangeItemData.BindUObject(this, &UItemDataHandler::_Server_OnChangeItemData);
+		stompHandler->Subscribe(DA_NETWORK(WSChangeDataAddURL), Server_EventChangeItemData);
 	}
 }
 

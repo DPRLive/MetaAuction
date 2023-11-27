@@ -134,6 +134,10 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+private:
+	// 로그인 이후 로직을 처리합니다.
+	void _AfterLogin(bool InbSuccess);
 	
 public:
 	// ItemID로 물품 정보를 요청합니다. 
@@ -163,6 +167,7 @@ public:
 
 	// 물품의 판매자가 맞는지 JwtToken을 통해 검증하는 함수입니다.
 	void Server_ValidateItem(const uint32 InItemId, const FString& InJwtToken, const FCallbackOneParam<const bool>& InFunc) const;
+
 private:
 	// Stomp 메세지로 온 아이템 가격 변동 알림을 받는다.
 	void _Server_OnChangePrice(const IStompMessage& InMessage) const;

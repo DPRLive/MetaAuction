@@ -75,9 +75,11 @@ public:
 	// ChatHandler를 초기화 합니다.
 	void InitChatHandler();
 
+private:
 	// 로그인 이후 로직을 처리합니다.
-	void AfterLogin(bool InbSuccess);
+	void _AfterLogin(bool InbSuccess);
 
+public:
 	// Stomp로 item id에 맞는 상품에 댓글을 답니다. 로그인 된 경우만 사용 가능
 	void AddReplyToItem(const uint32 InItemId, const FString& InContent) const;
 

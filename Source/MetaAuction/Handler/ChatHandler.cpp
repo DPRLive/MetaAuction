@@ -21,14 +21,14 @@ void UChatHandler::InitChatHandler()
 {
 	if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
 	{
-		gameInstance->OnLoginDelegate.AddUObject(this, &UChatHandler::AfterLogin);
+		gameInstance->OnLoginDelegate.AddUObject(this, &UChatHandler::_AfterLogin);
 	}
 }
 
 /**
  *  로그인 이후 로직을 처리합니다.
  */
-void UChatHandler::AfterLogin(bool InbSuccess)
+void UChatHandler::_AfterLogin(bool InbSuccess)
 {
 	if(!InbSuccess)
 		return;

@@ -50,20 +50,10 @@ void UItemManager::BeginPlay()
 		Server_ModelTransData = NewObject<UModelTransData>(this);
 		Server_ModelTransData->LoadData();
 		
-		// TODO: 추후 login 기능 나오면 이후 로직으로 따로 빼면 좋을듯
-
-		// 서버에서 WebSocket에 구독할 것들을 구독한다.
-		if(const FStompHelper* stompHandler = MAGetStompHelper(GetOwner()->GetGameInstance()))
+		// 로그인 이후 로직 처리
+		if(UMAGameInstance* gameInstance = Cast<UMAGameInstance>(MAGetGameInstance()))
 		{
-			// 새 아이템 등록 알림 구독
-			FStompSubscriptionEvent Server_EventNewItem;
-			Server_EventNewItem.BindUObject(this, &UItemManager::_Server_OnNewItem);
-			stompHandler->Subscribe(DA_NETWORK(WSNewItemAddURL), Server_EventNewItem);
-
-			// 아이템의 삭제 / 종료 알림 구독
-			FStompSubscriptionEvent Server_EventRemoveItem;
-			Server_EventRemoveItem.BindUObject(this, &UItemManager::_Server_OnRemoveItem);
-			stompHandler->Subscribe(DA_NETWORK(WSRemoveItemAddURL), Server_EventRemoveItem);
+			gameInstance->OnLoginDelegate.AddUObject(this, &UItemManager::_AfterLogin);
 		}
 
 		// 서버에서 ItemDataHandler에 아이템 정보 변경을 구독한다
@@ -74,6 +64,28 @@ void UItemManager::BeginPlay()
 
 		// 데디 서버를 키기 전 웹서버에 등록되어 있던 아이템들의 정보를 모두 가져온다.
 		_Server_RegisterAllWorldItemID();
+	}
+}
+
+/**
+ * 로그인 이후 로직을 처리합니다.
+ */
+void UItemManager::_AfterLogin(bool InbSuccess)
+{
+	if(!InbSuccess)
+		return;
+	
+	if(const FStompHelper* stompHandler = MAGetStompHelper(GetOwner()->GetGameInstance()))
+	{
+		// 새 아이템 등록 알림 구독
+		FStompSubscriptionEvent Server_EventNewItem;
+		Server_EventNewItem.BindUObject(this, &UItemManager::_Server_OnNewItem);
+		stompHandler->Subscribe(DA_NETWORK(WSNewItemAddURL), Server_EventNewItem);
+
+		// 아이템의 삭제 / 종료 알림 구독
+		FStompSubscriptionEvent Server_EventRemoveItem;
+		Server_EventRemoveItem.BindUObject(this, &UItemManager::_Server_OnRemoveItem);
+		stompHandler->Subscribe(DA_NETWORK(WSRemoveItemAddURL), Server_EventRemoveItem);
 	}
 }
 
