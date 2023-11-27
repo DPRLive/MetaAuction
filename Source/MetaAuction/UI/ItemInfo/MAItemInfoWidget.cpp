@@ -156,7 +156,6 @@ void UMAItemInfoWidget::Update(const FItemData& InItemData)
 	TWeakObjectPtr<ThisClass> ThisPtr(this);
 	if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState()))
 	{
-		// TODO: 현재 OnChangePrice가 작동하지 않습니다!
 		ItemDataHandler->OnChangePrice.Remove(OnChangePriceHandle);
 		OnChangePriceHandle = ItemDataHandler->OnChangePrice.AddLambda([ThisPtr](const uint32 ItemID, const uint64 Price, const FString& Name)
 			{
@@ -167,7 +166,7 @@ void UMAItemInfoWidget::Update(const FItemData& InItemData)
 					ThisPtr->CachedItemData.CurrentPrice = Price;
 					ThisPtr->CurrentPriceText->SetText(FText::AsNumber(Price, &NumberFormatOptions));
 					NumberFormatOptions.SetUseGrouping(false);
-					ThisPtr->BidPriceText->SetText(FText::AsNumber(Price + ThisPtr->BidMinimum));
+					ThisPtr->BidPriceText->SetText(FText::AsNumber(Price + ThisPtr->BidMinimum, &NumberFormatOptions));
 				}
 			});
 	}
