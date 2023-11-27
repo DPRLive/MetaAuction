@@ -14,11 +14,6 @@ UMABidRecordEntryWidget::UMABidRecordEntryWidget(const FObjectInitializer& Objec
 void UMABidRecordEntryWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-	ensure(OrderText);
-	ensure(BidPriceText);
-	ensure(BidTimeText);
-	ensure(BidUserText);
 }
 
 void UMABidRecordEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)

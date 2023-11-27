@@ -20,15 +20,9 @@ void UMAWindowWidget::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 
-	if (IsValid(TitleText))
-	{
-		TitleText->SetText(OverrideTitleText);
-	}
+	TitleText->SetText(OverrideTitleText);
 
-	if (IsValid(CloseButton))
-	{
-		CloseButton->SetVisibility(OverrideCloseButtonVisibility);
-	}
+	CloseButton->SetVisibility(OverrideCloseButtonVisibility);
 }
 
 void UMAWindowWidget::NativeDestruct()

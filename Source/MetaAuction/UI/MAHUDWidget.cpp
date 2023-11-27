@@ -34,9 +34,5 @@ void UMAHUDWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(CanvasPanel);
-	ensure(InteractUI);
-	ensure(InteractInfo);
-
 	InteractUI->SetVisibility(ESlateVisibility::Hidden);
 }

@@ -27,29 +27,17 @@ void UMAChatLogWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(WBP_ChatLogList);
-	ensure(InputScrollBox);
-	ensure(InputText);
-	ensure(InputShade);
+	InputText->OnTextCommitted.AddDynamic(this, &ThisClass::InputTextCommitted);
+	InputText->OnTextChanged.AddDynamic(this, &ThisClass::InputTextChanged);
 
-	if (IsValid(InputText))
-	{
-		InputText->OnTextCommitted.AddDynamic(this, &ThisClass::InputTextCommitted);
-		InputText->OnTextChanged.AddDynamic(this, &ThisClass::InputTextChanged);
-	}
+	EnableColor = InputShade->GetColorAndOpacity();
+	DisableColor = EnableColor;
+	DisableColor.A = EnableColor.A * 0.5f;
+	InputShade->SetColorAndOpacity(DisableColor);
 
-	AMAPlayerController* MAPC = Cast<AMAPlayerController>(GetOwningPlayer());
-	if (IsValid(MAPC))
+	if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(GetOwningPlayer()))
 	{
 		MAPC->OnReceivedChatLog.AddDynamic(this, &ThisClass::ReceivedChatLog);
-	}
-
-	if (IsValid(InputShade))
-	{
-		EnableColor = InputShade->GetColorAndOpacity();
-		DisableColor = EnableColor;
-		DisableColor.A = EnableColor.A * 0.5f;
-		InputShade->SetColorAndOpacity(DisableColor);
 	}
 }
 

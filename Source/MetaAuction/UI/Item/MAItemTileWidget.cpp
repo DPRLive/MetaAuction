@@ -15,8 +15,6 @@ UMAItemTileWidget::UMAItemTileWidget(const FObjectInitializer& ObjectInitializer
 void UMAItemTileWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-	ensure(ItemTileView);
 }
 
 void UMAItemTileWidget::UpdateSearchItems(const FItemSearchOption& InItemOption)

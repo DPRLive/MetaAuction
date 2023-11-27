@@ -16,8 +16,6 @@ UMABidRecordListWidget::UMABidRecordListWidget(const FObjectInitializer& ObjectI
 void UMABidRecordListWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-	ensure(BidRecordListView);
 }
 
 void UMABidRecordListWidget::Update(const FItemData& InItemData)

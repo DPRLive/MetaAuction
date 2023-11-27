@@ -31,88 +31,40 @@ void UMAItemInfoWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(ItemImage);
-	ensure(TitleText);
-	ensure(EndTimeText);
-	ensure(StartPriceText);
-	ensure(CurrentPriceText);
-	ensure(BuyerNameText);
-	ensure(SellerNameText);
-	ensure(ItemDealTypeText);
-	ensure(WorldText);
-	ensure(LocationText);
-	ensure(InformationText);
-	ensure(ItemImagePrevButton);
-	ensure(ItemImageNextButton);
-	ensure(WBP_ItemImageList);
-	ensure(BidPriceText);
-	ensure(BidButton);
-	ensure(ChatButton);
-	ensure(DeleteButton);
-	ensure(DetailsButton);
-	ensure(WBP_Comment);
+	ItemImagePrevButton->OnClicked.AddDynamic(this, &ThisClass::ItemImagePrevButtonClicked);
 
-	if (IsValid(ItemImagePrevButton))
-	{
-		ItemImagePrevButton->OnClicked.AddDynamic(this, &ThisClass::ItemImagePrevButtonClicked);
-	}
+	ItemImageNextButton->OnClicked.AddDynamic(this, &ThisClass::ItemImageNextButtonClicked);
 
-	if (IsValid(ItemImageNextButton))
+	TWeakObjectPtr<ThisClass> ThisPtr(this);
+	if (ThisPtr.IsValid())
 	{
-		ItemImageNextButton->OnClicked.AddDynamic(this, &ThisClass::ItemImageNextButtonClicked);
-	}
-
-	if (IsValid(WBP_ItemImageList) && IsValid(ItemImage))
-	{
-		TWeakObjectPtr<ThisClass> ThisPtr(this);
-		if (ThisPtr.IsValid())
-		{
-			auto Func = [ThisPtr](UObject* Object)
+		auto Func = [ThisPtr](UObject* Object)
+			{
+				UMAItemImageEntry* Entry = Cast<UMAItemImageEntry>(Object);
+				if (ThisPtr.IsValid() && IsValid(Entry))
 				{
-					UMAItemImageEntry* Entry = Cast<UMAItemImageEntry>(Object);
-					if (ThisPtr.IsValid() && IsValid(Entry))
-					{
-						ThisPtr->ItemImage->SetBrushFromTextureDynamic(Entry->Data.Image);
-					}
-				};
-			WBP_ItemImageList->GetListView()->OnItemSelectionChanged().Remove(ItemImageListViewSelectionChangedHandle);
-			ItemImageListViewSelectionChangedHandle = WBP_ItemImageList->GetListView()->OnItemSelectionChanged().AddLambda(Func);
-		}
+					ThisPtr->ItemImage->SetBrushFromTextureDynamic(Entry->Data.Image);
+				}
+			};
+		WBP_ItemImageList->GetListView()->OnItemSelectionChanged().Remove(ItemImageListViewSelectionChangedHandle);
+		ItemImageListViewSelectionChangedHandle = WBP_ItemImageList->GetListView()->OnItemSelectionChanged().AddLambda(Func);
 	}
 
-	if (IsValid(BidButton))
-	{
-		BidButton->SetVisibility(ESlateVisibility::Collapsed);
-	}
+	BidButton->SetVisibility(ESlateVisibility::Collapsed);
 
-	if (IsValid(BidPriceText))
-	{
-		BidPriceText->OnTextChanged.AddDynamic(this, &ThisClass::BidPriceTextChanged);
-		BidPriceText->OnTextCommitted.AddDynamic(this, &ThisClass::BidPriceTextCommited);
-	}
+	BidPriceText->OnTextChanged.AddDynamic(this, &ThisClass::BidPriceTextChanged);
+	BidPriceText->OnTextCommitted.AddDynamic(this, &ThisClass::BidPriceTextCommited);
 
-	if (IsValid(BidButton))
-	{
-		BidButton->SetVisibility(ESlateVisibility::Collapsed);
-		BidButton->OnClicked.AddDynamic(this, &ThisClass::BidButtonClicked);
-	}
+	BidButton->SetVisibility(ESlateVisibility::Collapsed);
+	BidButton->OnClicked.AddDynamic(this, &ThisClass::BidButtonClicked);
 
-	if (IsValid(ChatButton))
-	{
-		ChatButton->SetVisibility(ESlateVisibility::Collapsed);
-		ChatButton->OnClicked.AddDynamic(this, &ThisClass::ChatButtonClicked);
-	}
+	ChatButton->SetVisibility(ESlateVisibility::Collapsed);
+	ChatButton->OnClicked.AddDynamic(this, &ThisClass::ChatButtonClicked);
 
-	if (IsValid(DeleteButton))
-	{
-		DeleteButton->SetVisibility(ESlateVisibility::Collapsed);
-		DeleteButton->OnClicked.AddDynamic(this, &ThisClass::DeleteButtonClicked);
-	}
+	DeleteButton->SetVisibility(ESlateVisibility::Collapsed);
+	DeleteButton->OnClicked.AddDynamic(this, &ThisClass::DeleteButtonClicked);
 
-	if (IsValid(DetailsButton))
-	{
-		DetailsButton->OnClicked.AddDynamic(this, &ThisClass::DetailsButtonClicked);
-	}
+	DetailsButton->OnClicked.AddDynamic(this, &ThisClass::DetailsButtonClicked);
 }
 
 void UMAItemInfoWidget::NativeDestruct()

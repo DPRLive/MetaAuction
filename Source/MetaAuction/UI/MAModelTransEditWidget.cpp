@@ -16,16 +16,6 @@ void UMAModelTransEditWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(CancelBtn);
-	ensure(VerifyBtn);
-	ensure(TransXInput);
-	ensure(TransYInput);
-	ensure(TransZInput);
-	ensure(RotateRollInput);
-	ensure(RotatePitchInput);
-	ensure(RotateYawInput);
-	ensure(ScaleInput);
-
 	CancelBtn->OnClicked.AddDynamic(this, &UMAModelTransEditWidget::_OnClickCancelBtn);
 	VerifyBtn->OnClicked.AddDynamic(this, &UMAModelTransEditWidget::_OnClickVerifyBtn);
 }

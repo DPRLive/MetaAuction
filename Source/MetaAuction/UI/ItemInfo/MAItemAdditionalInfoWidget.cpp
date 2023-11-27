@@ -28,20 +28,10 @@ void UMAItemAdditionalInfoWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ensure(ItemModelImage);
-	ensure(ModelTransEditButton);
-	ensure(WBP_BidRecordList);
+	ItemModelImage->OnMouseButtonDownEvent.BindUFunction(this, TEXT("ItemModelClicked"));
 
-	if (IsValid(ItemModelImage))
-	{
-		ItemModelImage->OnMouseButtonDownEvent.BindUFunction(this, TEXT("ItemModelClicked"));
-	}
-
-	if (IsValid(ModelTransEditButton))
-	{
-		ModelTransEditButton->OnClicked.AddDynamic(this, &ThisClass::ModelTransEditButtonClicked);
-		ModelTransEditButton->SetVisibility(ESlateVisibility::Collapsed);
-	}
+	ModelTransEditButton->OnClicked.AddDynamic(this, &ThisClass::ModelTransEditButtonClicked);
+	ModelTransEditButton->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void UMAItemAdditionalInfoWidget::NativeDestruct()
