@@ -42,11 +42,6 @@ void UMAItemAdditionalInfoWidget::NativeDestruct()
 		SpawnedItemDisplayer = nullptr;
 	}
 
-	if (SpawnedModelTransEditWidget.IsValid())
-	{
-		SpawnedModelTransEditWidget->RemoveFromParent();
-	}
-
 	Super::NativeDestruct();
 }
 
@@ -138,17 +133,12 @@ void UMAItemAdditionalInfoWidget::ModelTransEditButtonClicked()
 	if(manager == nullptr)
 		return;
 	
-	if (!SpawnedModelTransEditWidget.IsValid())
+	if (APlayerController* PC = GetOwningPlayer())
 	{
-		if (APlayerController* PC = GetOwningPlayer())
+		if (UMAModelTransEditWidget* SpawnedModelTransEditWidget = CreateWidget<UMAModelTransEditWidget>(PC, ModelTransEditWidgetClass))
 		{
-			SpawnedModelTransEditWidget = CreateWidget<UMAModelTransEditWidget>(PC, ModelTransEditWidgetClass);
-			
-			if (SpawnedModelTransEditWidget.IsValid())
-			{
-				SpawnedModelTransEditWidget->PushData(CachedItemData.Location, manager->GetModelTransform(CachedItemData.Location));
-				SpawnedModelTransEditWidget->AddToViewport();
-			}
+			SpawnedModelTransEditWidget->PushData(CachedItemData.Location, manager->GetModelTransform(CachedItemData.Location));
+			SpawnedModelTransEditWidget->AddToViewport();
 		}
 	}
 }

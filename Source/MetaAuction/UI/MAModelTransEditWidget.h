@@ -22,8 +22,6 @@ protected:
 	virtual void NativeConstruct() override;
 	
 public:
-	virtual void RemoveFromParent() override;
-
 	// UI에서 변경을 위해 사용할 Data를 넣습니다.
 	void PushData(const uint8 InItemLoc, const FTransform& InNowTransform);
 	
