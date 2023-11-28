@@ -64,9 +64,6 @@ private:
 	UPROPERTY(Transient)
 	TWeakObjectPtr<class AMAItemDisplayer> SpawnedItemDisplayer;
 
-	UPROPERTY(Transient)
-	TWeakObjectPtr<UMAModelTransEditWidget> SpawnedModelTransEditWidget;
-
 	FDelegateHandle ItemReplyHandle;
 	int32 CommentCount;
 

@@ -3,6 +3,8 @@
 
 #include "MAPlayerControllerBase.h"
 #include "UI/MAQuitWidget.h"
+#include "UI/Common/MAConfirmCancelPopupWidget.h"
+#include "UI/Common/MAConfirmPopupWidget.h"
 
 #include <Blueprint/UserWidget.h>
 
@@ -43,4 +45,24 @@ void AMAPlayerControllerBase::OpenQuitWidget()
 		SetInputMode(InputMode);
 		SetShowMouseCursor(true);
 	}
+}
+
+UMAConfirmCancelPopupWidget* AMAPlayerControllerBase::CreateAndAddConfirmCancelPopupWidget()
+{
+	UMAConfirmCancelPopupWidget* PopupWidget = CreateWidget<UMAConfirmCancelPopupWidget>(this, ConfirmCancelPopupWidgetClass);
+	if (IsValid(PopupWidget))
+	{
+		PopupWidget->AddToViewport(2);
+	}
+	return PopupWidget;
+}
+
+UMAConfirmPopupWidget* AMAPlayerControllerBase::CreateAndAddConfirmPopupWidget()
+{
+	UMAConfirmPopupWidget* PopupWidget = CreateWidget<UMAConfirmPopupWidget>(this, ConfirmPopupWidgetClass);
+	if (IsValid(PopupWidget))
+	{
+		PopupWidget->AddToViewport(2);
+	}
+	return PopupWidget;
 }
