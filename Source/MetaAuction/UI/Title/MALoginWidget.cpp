@@ -38,19 +38,22 @@ void UMALoginWidget::NativeConstruct()
 		MAGameInstance->OnLoginDelegate.Remove(OnLoginDelegateHandle);
 		OnLoginDelegateHandle = MAGameInstance->OnLoginDelegate.AddLambda([ThisPtr](bool bIsSuccessed)
 			{
-				// 로그인 성공 시 위젯 파괴
-				if (ThisPtr.IsValid() && bIsSuccessed)
+				if (ThisPtr.IsValid())
 				{
-					ThisPtr->RemoveFromParent();
-				}
-				// 로그인 실패 시 결과 팝업 창 생성
-				else
-				{
-					if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(ThisPtr->GetOwningPlayer()))
+					// 로그인 성공 시 위젯 파괴
+					if (bIsSuccessed)
 					{
-						if (UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget())
+						ThisPtr->RemoveFromParent();
+					}
+					// 로그인 실패 시 결과 팝업 창 생성
+					else
+					{
+						if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(ThisPtr->GetOwningPlayer()))
 						{
-							PopupWidget->SetText(TEXT("로그인에 실패하였습니다."));
+							if (UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget())
+							{
+								PopupWidget->SetText(TEXT("로그인에 실패하였습니다."));
+							}
 						}
 					}
 				}
