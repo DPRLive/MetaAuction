@@ -414,7 +414,10 @@ void UItemDataHandler::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FIt
 	OutItemData.Location = FCString::Atoi(*location);
 
 	InJsonObj->TryGetStringField(TEXT("world"), OutItemData.World);
-
+	// world 값이 0이면 웹으로 판단합니다.
+	if(OutItemData.World == TEXT("0"))
+		OutItemData.World = TEXT("Web Only");
+	
 	FString type;
 	InJsonObj->TryGetStringField(TEXT("type"), type);
 	if(type == TEXT("auction")) OutItemData.Type = EItemDealType::Auction;
