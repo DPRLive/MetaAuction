@@ -29,21 +29,21 @@ void UMAChatRoomListWidget::Update()
 	TWeakObjectPtr<ThisClass> ThisPtr(this);
 
 	// 채팅방 모두 요청하기
-	auto RequestFunc = [ThisPtr](const TArray<FChatRoomData>& Data)
+	auto RequestFunc = [ThisPtr](const TArray<TPair<FChatRoomData, FChatData>>& Data)
 		{
 			if (ThisPtr.IsValid())
 			{
-				for (const FChatRoomData& ChatRoomData : Data)
+				for (const TPair<FChatRoomData, FChatData>& Pair : Data)
 				{
 					if (UMAChatRoomEntry* Entry = NewObject<UMAChatRoomEntry>())
 					{
-						Entry->Data = ChatRoomData;
+						Entry->Data = Pair.Key;
 						ThisPtr->ChatRoomListView->AddItem(Entry);
 					}
 				}
 			}
 		};
-	// ChatHandler->RequestMyChatRoom(RequestFunc);
+	ChatHandler->RequestMyChatRoom(RequestFunc);
 }
 
 UListView* UMAChatRoomListWidget::GetListView() const
