@@ -89,6 +89,7 @@ void UMAChatRoomWidget::Update(const FChatRoomData& InChatRoomData)
 			{
 				if (ThisPtr.IsValid() && ThisPtr->CachedChatRoomData.ChatRoomId == InChatroomId)
 				{
+					LOG_WARN(TEXT("Receive Chat : %s -> %s"), *ThisPtr->CachedChatRoomData.Buyer, *ThisPtr->CachedChatRoomData.Seller);
 					ThisPtr->ReceivedChatLog(InChatData);
 				}
 			});
@@ -104,6 +105,7 @@ void UMAChatRoomWidget::SendInputText()
 
 		if (UChatHandler* ChatHandler = MAGetChatHandler(MAGetGameInstance()))
 		{
+			LOG_WARN(TEXT("Send Chat : %s -> %s : %s"), *CachedChatRoomData.Buyer, *CachedChatRoomData.Seller, *ChatLog);
 			ChatHandler->Send1On1Chat(CachedChatRoomData, ChatLog);
 		}
 	}
