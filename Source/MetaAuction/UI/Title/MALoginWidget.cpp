@@ -5,7 +5,7 @@
 #include "UI/Title/MACharacterPickerWidget.h"
 #include "UI/Common/MAConfirmPopupWidget.h"
 #include "Core/MAGameInstance.h"
-#include "Player/MAPlayerController.h"
+#include "Player/MAPlayerControllerBase.h"
 
 #include <Components/EditableTextBox.h>
 #include <Components/Button.h>
@@ -48,7 +48,7 @@ void UMALoginWidget::NativeConstruct()
 					// 로그인 실패 시 결과 팝업 창 생성
 					else
 					{
-						if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(ThisPtr->GetOwningPlayer()))
+						if (AMAPlayerControllerBase* MAPC = Cast<AMAPlayerControllerBase>(ThisPtr->GetOwningPlayer()))
 						{
 							if (UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget())
 							{
