@@ -3,7 +3,7 @@
 
 #include "UI/ItemInfo/MAItemAdditionalInfoWidget.h"
 #include "UI/ItemInfo/MAItemDisplayer.h"
-#include "UI/Bidrecord/MABidRecordListWidget.h"
+#include "UI/BidRecord/MABidRecordListWidget.h"
 #include "UI/MAModelTransEditWidget.h"
 #include "Core/MAPlayerState.h"
 #include "Core/MAGameState.h"
