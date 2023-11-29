@@ -8,16 +8,12 @@
 /**
  * HTTP, STOMP WebSocket 통신시 사용할 데이터들
  */
-UCLASS()
+UCLASS(config = MetaAuction)
 class METAAUCTION_API UNetworkDataAsset : public UDataAsset
 {
 	GENERATED_BODY()
 
 public:
-	// 기본 WebServerURL
-	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
-	FString ServerURL = TEXT("localhost:8080");
-
 	// 로그인 요청을 보낼 추가 Url
 	UPROPERTY( EditDefaultsOnly, Category = "HTTP" )
 	FString LoginAddURL = TEXT("/auth/login");
@@ -90,10 +86,6 @@ public:
 	UPROPERTY( EditDefaultsOnly, Category = "HTTP|Item" )
 	FString ValidateItemAddURL = TEXT("/item/isitmine");
 	
-	// STOMP WebSocket 기본 연결 URL
-	UPROPERTY( EditDefaultsOnly, Category = "WebSocket" )
-	FString WSServerURL = TEXT("ws://localhost:8080/ws");
-	
 	// STOMP WebSocket 새 상품 알림 구독용 추가 url
 	UPROPERTY( EditDefaultsOnly, Category = "WebSocket|Item" )
 	FString WSNewItemAddURL = TEXT("/sub/newItem");
@@ -138,11 +130,19 @@ public:
 	UPROPERTY( EditDefaultsOnly, Category = "World" )
 	FString LobbyUrl = TEXT("/Game/MetaAuction/Map/LobbyMap");
 
-	// 레벨 이동 시 사용할 데디 서버 레벨 대한 정보입니다. (포트도 같이 기입할 것)
-	UPROPERTY( EditDefaultsOnly, Category = "World" )
-	FString AuctionUrl = TEXT("127.0.0.1");
-
-	// 웹페이지의 회원가입 하는 url입니다.
-	UPROPERTY( EditDefaultsOnly, Category = "Web" )
-	FString SignUpUrl = TEXT("http://google.com/");
+	// 기본 WebServerURL. (config 파일 사용)
+	UPROPERTY( Config )
+	FString ServerURL = TEXT("");
+	
+	// STOMP WebSocket 기본 연결 URL. (config 파일 사용)
+	UPROPERTY( Config )
+	FString WSServerURL = TEXT("");
+	
+	// 레벨 이동 시 사용할 데디 서버 레벨 대한 정보입니다. (config 파일 사용)
+	UPROPERTY( Config )
+	FString AuctionUrl = TEXT("");
+	
+	// 웹페이지의 회원가입 하는 url입니다. (config 파일 사용)
+	UPROPERTY( Config )
+	FString SignUpUrl = TEXT("");
 };

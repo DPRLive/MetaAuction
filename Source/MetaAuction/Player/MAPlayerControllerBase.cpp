@@ -10,6 +10,11 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(MAPlayerControllerBase)
 
+AMAPlayerControllerBase::AMAPlayerControllerBase()
+{
+	QuitWidgetPtr = nullptr;
+}
+
 /**
  *  Client를 레벨 이동 시킵니다. 경매장으로 이동 시 로그인이 되어있지 않으면 이동시키지 않습니다.
  *  @param InType : 이동할 레벨의 타입
