@@ -291,7 +291,7 @@ void UChatHandler::RequestMyChatRoom(const FCallbackRefArray<TPair<FChatRoomData
  * Lambda 작성 시, this를 캡처한다면 weak 캡처 후 is valid 체크 한번 해주세요!
  * @param InItemId : 구매 채팅을 시작할 아이템의 id
  * @param InSellerName : 구매 채팅을 시작할 아이템을 파는 사람
- * @param InFunc : 채팅방이 성공적으로 만들어지면 호출할 함수
+ * @param InFunc : 채팅방 요청 후 호출할 함수, ChatroomId가 0이면 오류, -1이면 채팅방 중복, 1 ~ N이면 만들기 성공입니다.
  */
 void UChatHandler::RequestNewChatRoom(const uint32 InItemId, const FString& InSellerName, const FCallbackRefOneParam<FChatRoomData>& InFunc)
 {
