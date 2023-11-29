@@ -71,7 +71,7 @@ void UMAChatRoomWidget::Update(const FChatRoomData& InChatRoomData)
 
 		// 채팅 기록이 변동될 때 델리게이트 바인딩
 		ChatHandler->OnChatDelegate.Remove(OnChatDelegateHandle);
-		OnChatDelegateHandle = ChatHandler->OnChatDelegate.AddLambda([ThisPtr](const uint32 InChatroomId, const FChatData& InChatData)
+		OnChatDelegateHandle = ChatHandler->OnChatDelegate.AddLambda([ThisPtr](const int32 InChatroomId, const FChatData& InChatData)
 			{
 				if (ThisPtr.IsValid() && ThisPtr->CachedChatRoomData.ChatRoomId == InChatroomId)
 				{
