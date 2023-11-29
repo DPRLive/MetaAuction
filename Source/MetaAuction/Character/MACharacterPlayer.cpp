@@ -79,13 +79,6 @@ AMACharacterPlayer::AMACharacterPlayer(const FObjectInitializer& ObjectInitializ
 	NameplateWidgetComponent->SetDrawSize(FVector2D(100.0f, 20.0f));
 	NameplateWidgetComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	// NameplateWidgetClass
-	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetClassRef(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/MetaAuction/UI/WBP_Nameplate.WBP_Nameplate_C'"));
-	if (WidgetClassRef.Succeeded())
-	{
-		NameplateWidgetClass = WidgetClassRef.Class;
-	}
-
 	// ChatBubbleWidgetComponent
 	ChatBubbleWidgetComponent = CreateDefaultSubobject<UMAChatBubbleWidgetComponent>(TEXT("ChatBubbleWidgetComponent"));
 	ChatBubbleWidgetComponent->SetupAttachment(RootComponent);
