@@ -21,12 +21,15 @@ void UMAItemFilterWidget::NativeConstruct()
 	SearchButton->OnClicked.AddDynamic(this, &ThisClass::SearchButtonClicked);
 
 	ItemWorldTypeComboBox->ClearOptions();
-	ItemWorldTypeComboBox->AddOption(MAGetNowWorldId(MAGetGameState()));
+	//MAGetNowWorldId(MAGetGameState())
+	ItemWorldTypeComboBox->AddOption(TEXT("상관 없음"));
+	ItemWorldTypeComboBox->AddOption(TEXT("웹에서만"));
+	ItemWorldTypeComboBox->AddOption(TEXT("메타버스에서만"));
 	ItemWorldTypeComboBox->SetSelectedIndex(0);
 	
-	// EItemDealType의 첫 항목을 제외한 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
+	// EItemDealType의 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
 	ItemDealTypeComboBox->ClearOptions();
-	for (uint8 EnumIndex = static_cast<uint8>(EItemDealType::None) + 1; EnumIndex < static_cast<uint8>(EItemDealType::MAX); ++EnumIndex)
+	for (uint8 EnumIndex = static_cast<uint8>(EItemDealType::None); EnumIndex < static_cast<uint8>(EItemDealType::MAX); ++EnumIndex)
 	{
 		FText DisplayName;
 		const UEnum* EnumPtr = FindFirstObjectSafe<UEnum>(TEXT("EItemDealType"));
@@ -38,9 +41,9 @@ void UMAItemFilterWidget::NativeConstruct()
 	}
 	ItemDealTypeComboBox->SetSelectedIndex(0);
 
-	// EItemDealType의 첫 항목을 제외한 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
+	// EItemDealType의 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
 	ItemCanDealComboBox->ClearOptions();
-	for (uint8 EnumIndex = static_cast<uint8>(EItemCanDeal::None) + 1; EnumIndex < static_cast<uint8>(EItemCanDeal::MAX); ++EnumIndex)
+	for (uint8 EnumIndex = static_cast<uint8>(EItemCanDeal::None); EnumIndex < static_cast<uint8>(EItemCanDeal::MAX); ++EnumIndex)
 	{
 		FText DisplayName;
 		const UEnum* EnumPtr = FindFirstObjectSafe<UEnum>(TEXT("EItemCanDeal"));
@@ -63,7 +66,22 @@ FItemSearchOption UMAItemFilterWidget::GetCurrentOption()
 {
 	FItemSearchOption NewOption;
 	NewOption.SearchString = SearchText->GetText().ToString();
-	NewOption.World = MAGetNowWorldId(MAGetGameState());
+
+	// 상관 없음
+	if (ItemWorldTypeComboBox->GetSelectedIndex() == 0)
+	{
+		// NewOption.World를 설정하지 않음.
+	}
+	// 웹에서만
+	else if (ItemWorldTypeComboBox->GetSelectedIndex() == 1)
+	{
+		NewOption.World = 0;
+	}
+	// 메타버스에서만
+	else if (ItemWorldTypeComboBox->GetSelectedIndex() == 2)
+	{
+		NewOption.World = MAGetNowWorldId(MAGetGameState());
+	}
 
 	// enum의 0번째 옵션은 제거되었으므로 +1
 	NewOption.ItemType = static_cast<EItemDealType>(ItemDealTypeComboBox->GetSelectedIndex() + 1);

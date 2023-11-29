@@ -432,8 +432,7 @@ void UItemDataHandler::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FIt
 	OutItemData.HaveGlb = haveGlb;
 
 	const TArray<TSharedPtr<FJsonValue>>* out; // 년 월 일 시간 분
-	InJsonObj->TryGetArrayField(TEXT("endTime"), out);
-	if(out->Num() >= 5) // 년 월 일 시간 분 을 모두 파싱할 수 있을지
+	if(InJsonObj->TryGetArrayField(TEXT("endTime"), out)&& (out->Num() >= 5)) // 년 월 일 시간 분 을 모두 파싱할 수 있을지
 	{
 		OutItemData.EndTime = FDateTime((*out)[0]->AsNumber(),
 										(*out)[1]->AsNumber(),
@@ -443,8 +442,7 @@ void UItemDataHandler::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FIt
 	}
 
 	const TArray<TSharedPtr<FJsonValue>>* out2; // 년 월 일 시간 분 초
-	InJsonObj->TryGetArrayField(TEXT("lastModifiedTime"), out2);
-	if (out2->Num() >= 6) // 년 월 일 시간 분 초를  모두 파싱할 수 있을지
+	if (InJsonObj->TryGetArrayField(TEXT("lastModifiedTime"), out2) && out2->Num() >= 6) // 년 월 일 시간 분 초를  모두 파싱할 수 있을지
 	{
 		OutItemData.LastModifyTime = FDateTime((*out2)[0]->AsNumber(),
 		                                       (*out2)[1]->AsNumber(),
@@ -467,8 +465,7 @@ void UItemDataHandler::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FBi
 	InJsonObj->TryGetStringField(TEXT("bidUser"), OutBidRecord.BidUser);
 
 	const TArray<TSharedPtr<FJsonValue>>* out; // 년 월 일 시간 분
-	InJsonObj->TryGetArrayField(TEXT("bidTime"), out);
-	if(out->Num() >= 6) // 년 월 일 시간 분 초를 모두 파싱할 수 있을지
+	if(InJsonObj->TryGetArrayField(TEXT("bidTime"), out) && out->Num() >= 6) // 년 월 일 시간 분 초를 모두 파싱할 수 있을지
 	{
 		OutBidRecord.BidTime = FDateTime((*out)[0]->AsNumber(),
 		                                 (*out)[1]->AsNumber(),

@@ -23,6 +23,12 @@ public:
 	// QuitWidget을 띄웁니다.
 	UFUNCTION( BlueprintCallable )
 	void OpenQuitWidget();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Popup")
+	class UMAConfirmCancelPopupWidget* CreateAndAddConfirmCancelPopupWidget();
+
+	UFUNCTION(BlueprintCallable, Category = "UI|Popup")
+	class UMAConfirmPopupWidget* CreateAndAddConfirmPopupWidget();
 	
 private:
 	// Quit Widget입니다.
@@ -31,4 +37,10 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UMAQuitWidget> QuitWidgetPtr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Popup", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class UMAConfirmCancelPopupWidget> ConfirmCancelPopupWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI|Popup", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<class UMAConfirmPopupWidget> ConfirmPopupWidgetClass;
 };

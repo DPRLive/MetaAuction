@@ -5,8 +5,6 @@
 #include "UI/MAHUDWidget.h"
 #include "UI/MAAuctionWidget.h"
 #include "UI/Chat/MAChatBubbleWidgetComponent.h"
-#include "UI/Common/MAConfirmCancelPopupWidget.h"
-#include "UI/Common/MAConfirmPopupWidget.h"
 #include "UI/ItemInfo/MAItemInfoWidget.h"
 #include "Character/MACharacter.h"
 #include "Core/MAGameState.h"
@@ -74,26 +72,6 @@ void AMAPlayerController::CreateAuctionWidget()
 
 	AuctionWidget = CreateWidget<UMAAuctionWidget>(this, AuctionWidgetClass);
 	AuctionWidget->AddToViewport();
-}
-
-UMAConfirmCancelPopupWidget* AMAPlayerController::CreateAndAddConfirmCancelPopupWidget()
-{
-	UMAConfirmCancelPopupWidget* PopupWidget = CreateWidget<UMAConfirmCancelPopupWidget>(this, ConfirmCancelPopupWidgetClass);
-	if (IsValid(PopupWidget))
-	{
-		PopupWidget->AddToViewport();
-	}
-	return PopupWidget;
-}
-
-UMAConfirmPopupWidget* AMAPlayerController::CreateAndAddConfirmPopupWidget()
-{
-	UMAConfirmPopupWidget* PopupWidget = CreateWidget<UMAConfirmPopupWidget>(this, ConfirmPopupWidgetClass);
-	if (IsValid(PopupWidget))
-	{
-		PopupWidget->AddToViewport();
-	}
-	return PopupWidget;
 }
 
 void AMAPlayerController::SendChatLog(const FMAChatLogEntryData& InData)

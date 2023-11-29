@@ -21,21 +21,6 @@ void UMAModelTransEditWidget::NativeConstruct()
 }
 
 /**
- *	InputMode를 게임으로 설정하고 닫습니다.
- */
-void UMAModelTransEditWidget::RemoveFromParent()
-{
-	if(APlayerController* playerController = GetOwningPlayer())
-	{
-		FInputModeGameOnly gameInput;
-		playerController->SetInputMode(gameInput);
-		playerController->SetShowMouseCursor(false);
-	}
-	
-	Super::RemoveFromParent();
-}
-
-/**
  *	UI에서 변경을 위해 사용할 Data를 넣습니다.
  *	@param InItemLoc : 변경을 시도할 물품의 레벨 상 위치
  *	@param InNowTransform : 현재 설정되어 있는 Transform

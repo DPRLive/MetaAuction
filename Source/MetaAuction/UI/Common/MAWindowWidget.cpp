@@ -33,17 +33,16 @@ void UMAWindowWidget::NativeDestruct()
 		UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), AllWidgets, UUserWidget::StaticClass(), true);
 		int32 AllWidgetsNum = AllWidgets.Num();
 
-		UMAAuctionWidget* MAAuctionWidget = MAPC->GetAuctionWidget();
-		if (IsValid(MAAuctionWidget))
+		if (UMAAuctionWidget* MAAuctionWidget = MAPC->GetAuctionWidget())
 		{
-			MAAuctionWidget->SetFocus();
-
 			// Action Widget의 Visibility를 비교하여 Visible이 아니면 꺼진 상태로 간주
 			AllWidgetsNum -= static_cast<int32>(MAAuctionWidget->GetVisibility() != ESlateVisibility::Visible);
 		}
 
 		// 모든 위젯의 개수가 1개(HUD)이면 어떠한 위젯도 열려있지 않으므로 InputMode GameOnly로 변경
-		if (bUseGameInputModeThenClose && (!IsValid(MAAuctionWidget) || AllWidgetsNum == 1))
+		LOG_WARN(TEXT("AllWidgetsNum : %d"), AllWidgetsNum);
+
+		if (bUseGameInputModeThenClose && AllWidgetsNum == 1)
 		{
 			FInputModeGameOnly InputMode;
 			MAPC->SetInputMode(InputMode);

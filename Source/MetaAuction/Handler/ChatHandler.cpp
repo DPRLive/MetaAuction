@@ -388,10 +388,18 @@ void UChatHandler::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FChatDa
 {
 	InJsonObj->TryGetStringField(TEXT("sender"), OutItemReply.Sender);
 	InJsonObj->TryGetStringField(TEXT("text"), OutItemReply.Content);
+
 	// 시간을 파씽
-	FString timeString;
-	InJsonObj->TryGetStringField(TEXT("messageTime"), timeString);
-	FDateTime::ParseIso8601(*timeString, OutItemReply.Time);
+	const TArray<TSharedPtr<FJsonValue>>* out; // 년 월 일 시간 분
+	if (InJsonObj->TryGetArrayField(TEXT("messageTime"), out) && (out->Num() >= 6)) // 년 월 일 시간 분 초를 모두 파싱할 수 있을지
+	{
+		OutItemReply.Time = FDateTime((*out)[0]->AsNumber(),
+		                              (*out)[1]->AsNumber(),
+										 (*out)[2]->AsNumber(),
+										 (*out)[3]->AsNumber(),
+										 (*out)[4]->AsNumber(),
+										 (*out)[5]->AsNumber());
+	}
 }
 
 /**

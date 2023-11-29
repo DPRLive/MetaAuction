@@ -211,12 +211,13 @@ void UMAItemInfoWidget::BidButtonClicked()
 								// 결과 팝업 띄우기
 								auto ResultFunc = [ThisPtr](const FString& Message)
 									{
-										if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(ThisPtr->GetOwningPlayer()))
+										if (ThisPtr.IsValid())
 										{
-											if (ThisPtr.IsValid())
+											if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(ThisPtr->GetOwningPlayer()))
 											{
 												if (UMAConfirmPopupWidget* PopupWidget = MAPC->CreateAndAddConfirmPopupWidget())
 												{
+													LOG_WARN(TEXT("%s"), *Message);
 													PopupWidget->SetText(Message);
 												}
 											}
