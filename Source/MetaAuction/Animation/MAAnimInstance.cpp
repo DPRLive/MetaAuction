@@ -34,8 +34,8 @@ void UMAAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if(Owner.IsValid() && IsValid(Owner->GetCharacterMovement()))
 	{
-		RSpeed = FVector::DotProduct(Owner->GetVelocity(), Owner->GetActorRightVector());
-		FSpeed = FVector::DotProduct(Owner->GetVelocity(), Owner->GetActorForwardVector());
+		RSpeed = FMath::FInterpTo(RSpeed, FVector::DotProduct(Owner->GetVelocity(), Owner->GetActorRightVector()), DeltaSeconds, 5);
+		FSpeed = FMath::FInterpTo(FSpeed, FVector::DotProduct(Owner->GetVelocity(), Owner->GetActorForwardVector()), DeltaSeconds, 5);
 
 		bIsIdle = Owner->GetVelocity().Size() < MovingThreshold;
 		bIsFalling = Owner->GetCharacterMovement()->IsFalling();
