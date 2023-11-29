@@ -6,7 +6,7 @@
 
 #include <Components/Image.h>
 
-void UMAWidgetHelperLibrary::RequestImageByItemID(UImage* ImageWidget, uint8 ItemID, uint8 InImageNumber)
+void UMAWidgetHelperLibrary::RequestImageByItemID(UImage* ImageWidget, uint32 ItemID, uint8 InImageNumber)
 {
 	TWeakObjectPtr<UImage> ImagePtr = MakeWeakObjectPtr(ImageWidget);
 	if (ImagePtr.IsValid())
