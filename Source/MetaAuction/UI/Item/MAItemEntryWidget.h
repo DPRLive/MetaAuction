@@ -73,5 +73,6 @@ private:
 	UPROPERTY(Transient)
 	FItemData CachedItemData;
 
+	FDelegateHandle OnChangePriceHandle;
 	FDelegateHandle OnChangeItemDataHandle;
 };

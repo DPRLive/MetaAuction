@@ -31,6 +31,7 @@ void UMAItemEntryWidget::NativeDestruct()
 
 	if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld())))
 	{
+		ItemDataHandler->OnChangePrice.Remove(OnChangePriceHandle);
 		ItemDataHandler->OnChangeItemData.Remove(OnChangeItemDataHandle);
 	}
 }
@@ -43,8 +44,36 @@ void UMAItemEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 	{
 		UpdateAll(ItemEntry->ItemData);
 
+		// 가격 변동 시 업데이트 델리게이트
 		TWeakObjectPtr<ThisClass> ThisPtr(this);
+		if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState()))
+		{
+			ItemDataHandler->OnChangePrice.Remove(OnChangePriceHandle);
+			OnChangePriceHandle = ItemDataHandler->OnChangePrice.AddLambda([ThisPtr](const uint32 ItemID, const uint64 Price, const FString& Name)
+				{
+					if (ThisPtr.IsValid() && ThisPtr->CachedItemData.ItemID == ItemID)
+					{
+						if (UMAItemEntry* ItemEntry = Cast<UMAItemEntry>(ThisPtr->GetListItem()))
+						{
+							ItemEntry->ItemData.CurrentPrice = Price;
+							ItemEntry->ItemData.BuyerName = Name;
+						}
+						ThisPtr->CachedItemData.CurrentPrice = Price;
+						ThisPtr->CachedItemData.BuyerName = Name;
 
+						// 가격 변동
+						FNumberFormattingOptions NumberFormatOptions;
+						NumberFormatOptions.SetUseGrouping(true);
+						
+						ThisPtr->CurrentPriceText->SetText(FText::AsNumber(Price, &NumberFormatOptions));
+
+						// 최고 입찰자 변동
+						ThisPtr->BuyerNameText->SetText(FText::FromString(Name));
+					}
+				});
+		}
+
+		// 아이템 변동 시 업데이트 델리게이트
 		if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld())))
 		{
 			auto OnChangeItemData = [ThisPtr](const uint32& InItemId, const FString& InWorld, const FString& InChangedData)

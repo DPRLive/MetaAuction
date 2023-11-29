@@ -58,9 +58,6 @@ private:
 	UFUNCTION()
 	void BidPriceTextCommited(const FText& InText, ETextCommit::Type InCommitMethod);
 
-	FDelegateHandle ItemImageListViewSelectionChangedHandle;
-	FDelegateHandle OnChangePriceHandle;
-
 private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
@@ -134,4 +131,8 @@ private:
 
 	UPROPERTY(Transient)
 	FItemData CachedItemData;
+
+	FDelegateHandle ItemImageListViewSelectionChangedHandle;
+	FDelegateHandle OnChangePriceHandle;
+	FDelegateHandle OnChangeItemDataHandle;
 };
