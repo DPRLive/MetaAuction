@@ -173,8 +173,8 @@ void UMAItemInfoWidget::Update(const FItemData& InItemData)
 					ThisPtr->BidPriceText->SetText(FText::AsNumber(Price + ThisPtr->BidMinimum, &NumberFormatOptions));
 
 					// 최고 입찰자 변동
-					ThisPtr->CachedItemData.SellerName = Name;
-					ThisPtr->SellerNameText->SetText(FText::FromString(Name));
+					ThisPtr->CachedItemData.BuyerName = Name;
+					ThisPtr->BuyerNameText->SetText(FText::FromString(Name));
 				}
 			});
 	}

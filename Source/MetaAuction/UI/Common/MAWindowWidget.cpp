@@ -37,15 +37,20 @@ void UMAWindowWidget::NativeDestruct()
 		{
 			// Action Widget의 Visibility를 비교하여 Visible이 아니면 꺼진 상태로 간주
 			AllWidgetsNum -= static_cast<int32>(MAAuctionWidget->GetVisibility() != ESlateVisibility::Visible);
-		}
 
-		// 모든 위젯의 개수가 1개(HUD)이면 어떠한 위젯도 열려있지 않으므로 InputMode GameOnly로 변경
-		if (bUseGameInputModeThenClose && AllWidgetsNum == 1)
-		{
-			FInputModeGameOnly InputMode;
-			MAPC->SetInputMode(InputMode);
-			MAPC->FlushPressedKeys();
-			MAPC->SetShowMouseCursor(false);
+			// 모든 위젯의 개수가 1개(HUD)이면 어떠한 위젯도 열려있지 않으므로 InputMode GameOnly로 변경
+			if (bUseGameInputModeThenClose && AllWidgetsNum == 1)
+			{
+				FInputModeGameOnly InputMode;
+				MAPC->SetInputMode(InputMode);
+				MAPC->FlushPressedKeys();
+				MAPC->SetShowMouseCursor(false);
+			}
+			// 모든 위젯의 개수가 2개이고 AuctionWidget이 보이면 포커스 설정
+			else if (AllWidgetsNum == 2 && MAAuctionWidget->GetVisibility() == ESlateVisibility::Visible)
+			{
+				MAAuctionWidget->SetFocus();
+			}
 		}
 	}
 
