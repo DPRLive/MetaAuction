@@ -22,7 +22,7 @@ namespace MADataAssetHelper
 
 // Network Data Asset 내부의 data를 편하게 가져오기 위한 매크로
 #define DA_NETWORK( Value ) \
-	MADataAssetHelper::GetDataAsset<UNetworkDataAsset>(TEXT("DA_Network"))->##Value
+	MADataAssetHelper::GetDataAsset<UNetworkDataAsset>(TEXT("DA_Network"))->Value
 
 // Mesh Info Data Asset의 Array를 편하게 가져오기 위한 매크로
 #define DA_MESH_INFO()	\

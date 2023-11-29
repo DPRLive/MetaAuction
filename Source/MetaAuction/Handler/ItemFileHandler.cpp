@@ -268,6 +268,7 @@ FString FItemFileHandler::_OnGlbRequestCompleted(const FHttpResponsePtr& InRespo
 UTexture2DDynamic* FItemFileHandler::_OnImgRequestCompleted(const FHttpResponsePtr& InResponse) const
 {
 	// ASyncTaskDownloadImage 긁어왔답니다 호호
+#if !UE_SERVER
 	if ( InResponse.IsValid() && InResponse->GetContentLength() > 0 && InResponse->GetContent().Num() > 0 )
 	{
 		IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
@@ -306,10 +307,9 @@ UTexture2DDynamic* FItemFileHandler::_OnImgRequestCompleted(const FHttpResponseP
 			}
 		}
 	}
-
+#endif
 	return nullptr;
 }
-
 
 /**
  * 헤더에서 ""을 기준으로 컨텐츠를 뽑아내주는 함수
