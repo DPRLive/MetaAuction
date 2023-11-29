@@ -12,6 +12,7 @@
 #include <Serialization/JsonReader.h>
 #include <Serialization/JsonSerializer.h>
 #include <HAL/FileManagerGeneric.h>
+#include <Misc/Paths.h>
 
 /**
  * 생성자
