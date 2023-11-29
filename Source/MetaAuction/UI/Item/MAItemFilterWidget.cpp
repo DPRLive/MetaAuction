@@ -75,7 +75,7 @@ FItemSearchOption UMAItemFilterWidget::GetCurrentOption()
 	// 웹에서만
 	else if (ItemWorldTypeComboBox->GetSelectedIndex() == 1)
 	{
-		NewOption.World = 0;
+		NewOption.World = TEXT("0");
 	}
 	// 메타버스에서만
 	else if (ItemWorldTypeComboBox->GetSelectedIndex() == 2)
