@@ -24,7 +24,7 @@ void UMAItemFilterWidget::NativeConstruct()
 	//MAGetNowWorldId(MAGetGameState())
 	ItemWorldTypeComboBox->AddOption(TEXT("상관 없음"));
 	ItemWorldTypeComboBox->AddOption(TEXT("웹에서만"));
-	ItemWorldTypeComboBox->AddOption(TEXT("메타버스에서만"));
+	ItemWorldTypeComboBox->AddOption(TEXT("메타버스 포함"));
 	ItemWorldTypeComboBox->SetSelectedIndex(0);
 	
 	// EItemDealType의 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
@@ -83,9 +83,8 @@ FItemSearchOption UMAItemFilterWidget::GetCurrentOption()
 		NewOption.World = MAGetNowWorldId(MAGetGameState());
 	}
 
-	// enum의 0번째 옵션은 제거되었으므로 +1
-	NewOption.ItemType = static_cast<EItemDealType>(ItemDealTypeComboBox->GetSelectedIndex() + 1);
-	NewOption.CanDeal = static_cast<EItemCanDeal>(ItemCanDealComboBox->GetSelectedIndex() + 1);
+	NewOption.ItemType = static_cast<EItemDealType>(ItemDealTypeComboBox->GetSelectedIndex());
+	NewOption.CanDeal = static_cast<EItemCanDeal>(ItemCanDealComboBox->GetSelectedIndex());
 	return NewOption;
 }
 

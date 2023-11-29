@@ -11,6 +11,7 @@
 UMAChatInfoWidget::UMAChatInfoWidget(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
 {
+	SetIsFocusable(true);
 }
 
 void UMAChatInfoWidget::NativeConstruct()
@@ -25,6 +26,16 @@ void UMAChatInfoWidget::NativeDestruct()
 	GetListView()->OnItemSelectionChanged().Remove(OnItemSelectionChangedHandle);
 
 	Super::NativeDestruct();
+}
+
+FReply UMAChatInfoWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
+{
+	if (InKeyEvent.GetKey() == EKeys::Enter)
+	{
+		WBP_ChatRoom->SetFocusInputText();
+	}
+
+	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 }
 
 void UMAChatInfoWidget::Update()

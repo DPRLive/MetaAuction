@@ -40,8 +40,6 @@ void UMAWindowWidget::NativeDestruct()
 		}
 
 		// 모든 위젯의 개수가 1개(HUD)이면 어떠한 위젯도 열려있지 않으므로 InputMode GameOnly로 변경
-		LOG_WARN(TEXT("AllWidgetsNum : %d"), AllWidgetsNum);
-
 		if (bUseGameInputModeThenClose && AllWidgetsNum == 1)
 		{
 			FInputModeGameOnly InputMode;

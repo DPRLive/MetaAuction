@@ -43,39 +43,34 @@ void UMAItemEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 	{
 		UpdateAll(ItemEntry->ItemData);
 
-		UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld()));
-		if (!IsValid(ItemDataHandler))
-		{
-			return;
-		}
-
 		TWeakObjectPtr<ThisClass> ThisPtr(this);
-		auto OnChangeItemData = [ThisPtr](const uint32& InItemId, const FString& InWorld, const FString& InChangedData)
-			{
-				if (ThisPtr.IsValid())
-				{
-					UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(ThisPtr->GetWorld()));
-					if (!IsValid(ItemDataHandler))
-					{
-						return;
-					}
 
-					auto RequestItemDataByIdFunc = [ThisPtr](const FItemData& InData)
+		if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld())))
+		{
+			auto OnChangeItemData = [ThisPtr](const uint32& InItemId, const FString& InWorld, const FString& InChangedData)
+				{
+					if (ThisPtr.IsValid())
+					{
+						if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(ThisPtr->GetWorld())))
 						{
-							if (ThisPtr.IsValid())
-							{
-								if (UMAItemEntry* ItemEntry = Cast<UMAItemEntry>(ThisPtr->GetListItem()))
+							auto RequestItemDataByIdFunc = [ThisPtr](const FItemData& InData)
 								{
-									ItemEntry->ItemData = InData;
-									ThisPtr->UpdateAll(InData);
-								}
-							}
-						};
-					ItemDataHandler->RequestItemDataById(RequestItemDataByIdFunc, InItemId);
-				}
-			};
-		ItemDataHandler->OnChangeItemData.Remove(OnChangeItemDataHandle);
-		OnChangeItemDataHandle = ItemDataHandler->OnChangeItemData.AddLambda(OnChangeItemData);
+									if (ThisPtr.IsValid())
+									{
+										if (UMAItemEntry* ItemEntry = Cast<UMAItemEntry>(ThisPtr->GetListItem()))
+										{
+											ItemEntry->ItemData = InData;
+											ThisPtr->UpdateAll(InData);
+										}
+									}
+								};
+							ItemDataHandler->RequestItemDataById(RequestItemDataByIdFunc, InItemId);
+						}
+					}
+				};
+			ItemDataHandler->OnChangeItemData.Remove(OnChangeItemDataHandle);
+			OnChangeItemDataHandle = ItemDataHandler->OnChangeItemData.AddLambda(OnChangeItemData);
+		}
 	}
 }
 
