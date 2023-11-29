@@ -19,7 +19,7 @@ public class MetaAuction : ModuleRules
 			"EnhancedInput",
             "UMG",
             "glTFRuntime",  
-            "glTFRuntimeEditor",
+            //"glTFRuntimeEditor",
 			"ProceduralMeshComponent",
 			"Json",
 			//"JsonUtilities",
