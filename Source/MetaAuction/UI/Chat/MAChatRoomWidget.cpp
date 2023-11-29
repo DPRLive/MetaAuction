@@ -47,20 +47,7 @@ void UMAChatRoomWidget::Update(const FChatRoomData& InChatRoomData)
 	bIsInit = true;
 	TitleText->SetText(FText::FromString(InChatRoomData.Title));
 	SellerNameText->SetText(FText::FromString(InChatRoomData.Seller));
-
-	// 아이템 데이터를 요청하여 기본적인 정보 초기화
-	if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld())))
-	{
-		TWeakObjectPtr<ThisClass> ThisPtr(this);
-		auto Func = [ThisPtr](const FItemData& InData)
-			{
-				if (ThisPtr.IsValid())
-				{
-					ThisPtr->PriceText->SetText(FText::AsNumber(InData.CurrentPrice));
-				}
-			};
-		ItemDataHandler->RequestItemDataById(Func, InChatRoomData.ItemId);
-	}
+	PriceText->SetText(FText::AsNumber(InChatRoomData.Price));
 
 	UMAWidgetHelperLibrary::RequestImageByItemID(ItemImage, InChatRoomData.ItemId);
 
