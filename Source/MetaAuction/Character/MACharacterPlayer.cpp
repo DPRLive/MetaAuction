@@ -19,7 +19,6 @@
 #include <GameFramework/CharacterMovementComponent.h>
 #include <GameFramework/PlayerController.h>
 #include <GameFramework/SpringArmComponent.h>
-#include <UObject/ConstructorHelpers.h>
 #include <Kismet/GameplayStatics.h>
 #include <Engine/StreamableManager.h>
 #include <Engine/AssetManager.h>
