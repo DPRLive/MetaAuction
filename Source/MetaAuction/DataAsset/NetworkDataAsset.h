@@ -130,6 +130,14 @@ public:
 	UPROPERTY( EditDefaultsOnly, Category = "World" )
 	FString LobbyUrl = TEXT("/Game/MetaAuction/Map/LobbyMap");
 
+	// 데디 로그인시 사용할 어드민 아이디입니다.
+	UPROPERTY( EditDefaultsOnly, Category = "World|Server" )
+	FString DediID = TEXT("Admin");
+
+	// 데디 로그인시 사용할 어드민 패스워드입니다.
+	UPROPERTY( EditDefaultsOnly, Category = "World|Server" )
+	FString DediPW = TEXT("Admin1234");
+	
 	// 기본 WebServerURL. (config 파일 사용)
 	UPROPERTY( Config )
 	FString ServerURL = TEXT("");

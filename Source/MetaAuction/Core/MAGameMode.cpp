@@ -26,11 +26,11 @@ void AMAGameMode::StartPlay()
 {
 	Super::StartPlay();
 
-	// TODO : 준비가 완료되면 데디 서버일 시 자동으로 로그인합니다.
+	// 준비가 완료되면 데디 서버일 시 자동으로 로그인합니다.
 	if (UMAGameInstance* gameInstance = Cast<UMAGameInstance>(GetGameInstance()))
 	{
 		LOG_WARN(TEXT("Is Running Dedicated Server! Auto Login!"));
-		gameInstance->RequestLogin(TEXT("test"), TEXT("test"));
+		gameInstance->RequestLogin(DA_NETWORK(DediID), DA_NETWORK(DediPW));
 	}
 }
 
