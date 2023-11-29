@@ -38,4 +38,6 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<class UImage> ItemImage;
+
+	FDelegateHandle OnChatDelegateHandle;
 };
