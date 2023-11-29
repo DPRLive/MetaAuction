@@ -423,4 +423,5 @@ void UChatHandler::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FChatRo
 	InJsonObj->TryGetStringField(TEXT("seller"), OutChatRoomData.Seller);
 	InJsonObj->TryGetStringField(TEXT("buyer"), OutChatRoomData.Buyer);
 	InJsonObj->TryGetStringField(TEXT("title"), OutChatRoomData.Title);
+	InJsonObj->TryGetNumberField(TEXT("currentPrice"), OutChatRoomData.Price);
 }
