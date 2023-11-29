@@ -311,25 +311,42 @@ void UChatHandler::RequestNewChatRoom(const uint32 InItemId, const FString& InSe
 		TWeakObjectPtr<UChatHandler> thisPtr = this;
 		httpHelper->Request(DA_NETWORK(CreateChatRoomAddURL) + FString::Printf(TEXT("/%d"), InItemId), EHttpRequestType::POST,
 		[thisPtr, InItemId, InSellerName, userName, InFunc](FHttpRequestPtr InRequest, FHttpResponsePtr InResponse, bool InbWasSuccessful)
-					   {
-						   if (thisPtr.IsValid() && InFunc && InbWasSuccessful && InResponse.IsValid() && EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
-						   {
-							   FChatRoomData chatRoomData;
-							   const uint32 chatRoomId = FCString::Atoi(*InResponse->GetContentAsString());
-							   chatRoomData.ChatRoomId = chatRoomId;
-							   chatRoomData.ItemId = InItemId;
-							   chatRoomData.Seller = InSellerName;
-							   chatRoomData.Buyer = userName;
+		                    {
+			                    FChatRoomData chatroomData;
+								chatroomData.ChatRoomId = 0;
 
-							   // 채팅방을 구독한다
-							   thisPtr->_TrySubscribe1On1Chat(chatRoomId);
+			                    if (!InbWasSuccessful || !InResponse.IsValid())
+			                    {
+				                    // 결과를 뿌려준다.
+				                    if (InFunc)
+					                    InFunc(chatroomData);
 
-							   // 뿌려준다
-							   InFunc(chatRoomData);
-							   return;
-						   }
-						   LOG_ERROR(TEXT("URL : %s, 새로운 채팅 요청 실패"), *InRequest->GetURL());
-					   }, UtilJson::JsonToString(requestObj));
+				                    return;
+			                    }
+
+								// 통신에는 성공 하였으나..
+			                    if (InResponse->GetResponseCode() == EHttpResponseCodes::BadRequest)
+			                    {
+				                    // 채팅이 중복된 경우
+				                    chatroomData.ChatRoomId = -1;
+			                    }
+			                    else if (EHttpResponseCodes::IsOk(InResponse->GetResponseCode()))
+			                    {
+				                    // 만들기 성공한 경우
+				                    const uint32 chatRoomId = FCString::Atoi(*InResponse->GetContentAsString());
+				                    chatroomData.ChatRoomId = chatRoomId;
+				                    chatroomData.ItemId = InItemId;
+				                    chatroomData.Seller = InSellerName;
+				                    chatroomData.Buyer = userName;
+
+				                    // 채팅방을 구독한다
+				                    thisPtr->_TrySubscribe1On1Chat(chatRoomId);
+			                    }
+
+								// 결과를 뿌려준다.
+			                    if (InFunc)
+				                    InFunc(chatroomData);
+		                    }, UtilJson::JsonToString(requestObj));
 	}
 }
 

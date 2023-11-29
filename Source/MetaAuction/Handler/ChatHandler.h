@@ -36,8 +36,9 @@ struct FChatRoomData
 
 	FChatRoomData() : ChatRoomId(0), ItemId(0), Title(TEXT("알 수 없음")), Price(0), Buyer(TEXT("")), Seller(TEXT("")) {}
 
-	// 해당 채팅방에 대한 고유 id, 0이면 invalid
-	uint32 ChatRoomId;
+	// 해당 채팅방에 대한 고유 id, 0이면 invalid 한 값입니다.
+	// 1 ~ N 이어야 올바른 채팅방입니다.
+	int32 ChatRoomId;
 	
 	// 어떤 상품에 대한 채팅방인지
 	uint32 ItemId;
