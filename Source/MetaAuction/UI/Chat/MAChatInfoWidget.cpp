@@ -27,18 +27,6 @@ void UMAChatInfoWidget::NativeDestruct()
 {
 	GetListView()->OnItemSelectionChanged().Remove(OnItemSelectionChangedHandle);
 
-	// MAAuctionWidget이 보이면 포커스 설정
-	if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(GetOwningPlayer()))
-	{
-		if (UMAAuctionWidget* MAAuctionWidget = MAPC->GetAuctionWidget())
-		{
-			if (MAAuctionWidget->GetVisibility() == ESlateVisibility::Visible)
-			{
-				MAAuctionWidget->SetFocus();
-			}
-		}
-	}
-
 	Super::NativeDestruct();
 }
 

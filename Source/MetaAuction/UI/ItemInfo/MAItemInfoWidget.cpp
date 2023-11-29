@@ -5,6 +5,7 @@
 #include "UI/ItemInfo/MAItemImageEntry.h"
 #include "UI/ItemInfo/MAItemImageListWidget.h"
 #include "UI/ItemInfo/MAItemAdditionalInfoWidget.h"
+#include "UI/Item/MAItemEntry.h"
 #include "UI/Item/MAItemFilterWidget.h"
 #include "UI/Chat/MACommentWidget.h"
 #include "UI/Chat/MAChatInfoWidget.h"
@@ -72,6 +73,7 @@ void UMAItemInfoWidget::NativeDestruct()
 	if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState()))
 	{
 		ItemDataHandler->OnChangePrice.Remove(OnChangePriceHandle);
+		ItemDataHandler->OnChangeItemData.Remove(OnChangeItemDataHandle);
 	}
 
 	if (IsValid(WBP_ItemImageList))
@@ -153,6 +155,7 @@ void UMAItemInfoWidget::Update(const FItemData& InItemData)
 		}
 	}
 
+	// 가격 변동 시 업데이트 델리게이트
 	TWeakObjectPtr<ThisClass> ThisPtr(this);
 	if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState()))
 	{
@@ -161,14 +164,44 @@ void UMAItemInfoWidget::Update(const FItemData& InItemData)
 			{
 				if (ThisPtr.IsValid() && ThisPtr->CachedItemData.ItemID == ItemID)
 				{
+					// 가격 변동
 					FNumberFormattingOptions NumberFormatOptions;
 					NumberFormatOptions.SetUseGrouping(true);
 					ThisPtr->CachedItemData.CurrentPrice = Price;
 					ThisPtr->CurrentPriceText->SetText(FText::AsNumber(Price, &NumberFormatOptions));
 					NumberFormatOptions.SetUseGrouping(false);
 					ThisPtr->BidPriceText->SetText(FText::AsNumber(Price + ThisPtr->BidMinimum, &NumberFormatOptions));
+
+					// 최고 입찰자 변동
+					ThisPtr->CachedItemData.BuyerName = Name;
+					ThisPtr->BuyerNameText->SetText(FText::FromString(Name));
 				}
 			});
+	}
+
+	// 아이템 변동 시 업데이트 델리게이트
+	if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(GetWorld())))
+	{
+		auto OnChangeItemData = [ThisPtr](const uint32& InItemId, const FString& InWorld, const FString& InChangedData)
+			{
+				if (ThisPtr.IsValid())
+				{
+					if (UItemDataHandler* ItemDataHandler = MAGetItemDataHandler(MAGetGameState(ThisPtr->GetWorld())))
+					{
+						auto RequestItemDataByIdFunc = [ThisPtr](const FItemData& InData)
+							{
+								if (ThisPtr.IsValid())
+								{
+									ThisPtr->CachedItemData = InData;
+									ThisPtr->Update(InData);
+								}
+							};
+						ItemDataHandler->RequestItemDataById(RequestItemDataByIdFunc, InItemId);
+					}
+				}
+			};
+		ItemDataHandler->OnChangeItemData.Remove(OnChangeItemDataHandle);
+		OnChangeItemDataHandle = ItemDataHandler->OnChangeItemData.AddLambda(OnChangeItemData);
 	}
 }
 
