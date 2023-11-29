@@ -242,7 +242,9 @@ void UMAItemInfoWidget::ChatButtonClicked()
 		TWeakObjectPtr<ThisClass> ThisPtr(this);
 		auto Func = [ThisPtr](const FChatRoomData& InData)
 			{
-				if (ThisPtr.IsValid())
+				// ChatRoomId가 0이면 오류, -1이면 채팅방 중복, 1 ~ N이면 만들기 성공
+				// CharRoomId가 오류가 아니면 채팅방 열기
+				if (ThisPtr.IsValid() && InData.ChatRoomId != 0)
 				{
 					// 채팅방 위젯 열기
 					if (UMAChatInfoWidget* ChatInfoWidget = CreateWidget<UMAChatInfoWidget>(ThisPtr->GetOwningPlayer(), ThisPtr->ChatInfoWidgetClass))

@@ -16,6 +16,5 @@ class METAAUCTION_API UMAWidgetHelperLibrary : public UBlueprintFunctionLibrary
 	
 public:
 
-	UFUNCTION(BlueprintCallable, Category = Widget)
 	static void RequestImageByItemID(class UImage* ImageWidget, uint32 InItemID, uint8 InImageNumber = 1);
 };
