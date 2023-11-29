@@ -5,6 +5,8 @@
 #include "UI/Chat/MAChatRoomEntry.h"
 #include "UI/Chat/MAChatRoomListWidget.h"
 #include "UI/Chat/MAChatRoomWidget.h"
+#include "UI/MAAuctionWidget.h"
+#include "Player/MAPlayerController.h"
 
 #include "Components/ListView.h"
 
@@ -24,6 +26,18 @@ void UMAChatInfoWidget::NativeConstruct()
 void UMAChatInfoWidget::NativeDestruct()
 {
 	GetListView()->OnItemSelectionChanged().Remove(OnItemSelectionChangedHandle);
+
+	// MAAuctionWidget이 보이면 포커스 설정
+	if (AMAPlayerController* MAPC = Cast<AMAPlayerController>(GetOwningPlayer()))
+	{
+		if (UMAAuctionWidget* MAAuctionWidget = MAPC->GetAuctionWidget())
+		{
+			if (MAAuctionWidget->GetVisibility() == ESlateVisibility::Visible)
+			{
+				MAAuctionWidget->SetFocus();
+			}
+		}
+	}
 
 	Super::NativeDestruct();
 }
