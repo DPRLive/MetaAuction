@@ -34,10 +34,13 @@ struct FChatRoomData
 {
 	GENERATED_BODY()
 
-	FChatRoomData() : ChatRoomId(0), ItemId(0), Buyer(TEXT("")), Seller(TEXT("")) {}
+	FChatRoomData() : ChatRoomId(0), ItemId(0), Buyer(TEXT("")), Seller(TEXT("")), Title(TEXT("알 수 없음")) {}
 
 	// 해당 채팅방에 대한 고유 id, 0이면 invalid
 	uint32 ChatRoomId;
+	
+	// 상품 제목, 판매자가 상품을 삭제했다면 "알 수 없음" 입니다.
+	FString Title;
 	
 	// 어떤 상품에 대한 채팅방인지
 	uint32 ItemId;
