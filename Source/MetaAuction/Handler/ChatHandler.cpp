@@ -399,6 +399,15 @@ void UChatHandler::_JsonToData(const TSharedPtr<FJsonObject>& InJsonObj, FChatDa
 										 (*out)[3]->AsNumber(),
 										 (*out)[4]->AsNumber(),
 										 (*out)[5]->AsNumber());
+		
+		return;
+	}
+
+	// 배열 형태가 아니었다면 string 형태로 파싱 시도
+	FString timeString;
+	if(InJsonObj->TryGetStringField(TEXT("messageTime"), timeString))
+	{
+		 FDateTime::ParseIso8601(*timeString, OutItemReply.Time);
 	}
 }
 
