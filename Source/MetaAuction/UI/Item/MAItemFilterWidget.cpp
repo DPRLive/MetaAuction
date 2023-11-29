@@ -24,7 +24,7 @@ void UMAItemFilterWidget::NativeConstruct()
 	//MAGetNowWorldId(MAGetGameState())
 	ItemWorldTypeComboBox->AddOption(TEXT("상관 없음"));
 	ItemWorldTypeComboBox->AddOption(TEXT("웹에서만"));
-	ItemWorldTypeComboBox->AddOption(TEXT("메타버스 포함"));
+	ItemWorldTypeComboBox->AddOption(TEXT("메타버스만"));
 	ItemWorldTypeComboBox->SetSelectedIndex(0);
 	
 	// EItemDealType의 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
