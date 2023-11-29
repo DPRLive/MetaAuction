@@ -15,6 +15,8 @@ UMAChatRoomWidget::UMAChatRoomWidget(const FObjectInitializer& ObjectInitializer
 	:Super(ObjectInitializer)
 {
 	bIsInit = false;
+
+	SetIsFocusable(true);
 }
 
 void UMAChatRoomWidget::NativeConstruct()
@@ -22,6 +24,8 @@ void UMAChatRoomWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	InputText->OnTextCommitted.AddDynamic(this, &ThisClass::InputTextCommitted);
+	InputText->SetClearKeyboardFocusOnCommit(false);
+
 	InputButton->OnClicked.AddDynamic(this, &ThisClass::SendInputText);
 }
 
@@ -34,13 +38,6 @@ void UMAChatRoomWidget::NativeDestruct()
 	}
 
 	Super::NativeDestruct();
-}
-
-FReply UMAChatRoomWidget::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
-{
-	SendInputText();
-
-	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
 }
 
 void UMAChatRoomWidget::Update(const FChatRoomData& InChatRoomData)
@@ -90,11 +87,15 @@ void UMAChatRoomWidget::Update(const FChatRoomData& InChatRoomData)
 			{
 				if (ThisPtr.IsValid() && ThisPtr->CachedChatRoomData.ChatRoomId == InChatroomId)
 				{
-					LOG_WARN(TEXT("Receive Chat : %s -> %s"), *ThisPtr->CachedChatRoomData.Buyer, *ThisPtr->CachedChatRoomData.Seller);
 					ThisPtr->ReceivedChatLog(InChatData);
 				}
 			});
 	}
+}
+
+void UMAChatRoomWidget::SetFocusInputText()
+{
+	InputText->SetFocus();
 }
 
 void UMAChatRoomWidget::SendInputText()
@@ -106,7 +107,6 @@ void UMAChatRoomWidget::SendInputText()
 
 		if (UChatHandler* ChatHandler = MAGetChatHandler(MAGetGameInstance()))
 		{
-			LOG_WARN(TEXT("Send Chat : %s -> %s : %s"), *CachedChatRoomData.Buyer, *CachedChatRoomData.Seller, *ChatLog);
 			ChatHandler->Send1On1Chat(CachedChatRoomData, ChatLog);
 		}
 	}
