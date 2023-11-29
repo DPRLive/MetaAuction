@@ -38,6 +38,7 @@ void UMAChatRoomListWidget::Update()
 					if (UMAChatRoomEntry* Entry = NewObject<UMAChatRoomEntry>())
 					{
 						Entry->Data = Pair.Key;
+						Entry->LastChatData = Pair.Value;
 						ThisPtr->ChatRoomListView->AddItem(Entry);
 					}
 				}

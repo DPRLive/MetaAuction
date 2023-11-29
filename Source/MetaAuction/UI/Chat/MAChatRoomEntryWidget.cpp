@@ -32,23 +32,15 @@ void UMAChatRoomEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
 	if (UMAChatRoomEntry* Entry = Cast<UMAChatRoomEntry>(ListItemObject))
 	{
+		TitleText->SetText(FText::FromString(Entry->Data.Title));
 		SellerNameText->SetText(FText::FromString(Entry->Data.Seller));
+		LastMessageText->SetText(FText::FromString(Entry->LastChatData.Content));
+		LastTimeText->SetText(FText::FromString(Entry->LastChatData.Time.ToString()));
 		UMAWidgetHelperLibrary::RequestImageByItemID(ItemImage, Entry->Data.ItemId);
 
 		if (UChatHandler* ChatHandler = MAGetChatHandler(MAGetGameInstance()))
 		{
 			TWeakObjectPtr<ThisClass> ThisPtr(this);
-
-			// 채팅 정보를 모두 요청하여 마지막 메시지를 초기화합니다. (TODO : 비효율적이므로 추후 고쳐야 합니다.)
-			auto RequestFunc = [ThisPtr](const TArray<FChatData>& Data)
-				{
-					if (ThisPtr.IsValid() && !Data.IsEmpty())
-					{
-						ThisPtr->LastMessageText->SetText(FText::FromString(Data.Last().Content));
-						ThisPtr->LastTimeText->SetText(FText::FromString(Data.Last().Time.ToString()));
-					}
-				};
-			ChatHandler->RequestChatsById(ERequestChatType::Chatroom, Entry->Data.ChatRoomId, RequestFunc);
 
 			// 채팅 기록이 변동될 때 델리게이트 바인딩
 			ChatHandler->OnChatDelegate.Remove(OnChatDelegateHandle);
@@ -61,6 +53,7 @@ void UMAChatRoomEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 							if (Entry->Data.ChatRoomId == InChatroomId)
 							{
 								ThisPtr->LastMessageText->SetText(FText::FromString(InChatData.Content));
+								ThisPtr->LastTimeText->SetText(FText::FromString(InChatData.Time.ToString()));
 							}
 						}
 					}

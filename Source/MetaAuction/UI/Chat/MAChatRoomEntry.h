@@ -18,4 +18,7 @@ public:
 
 	UPROPERTY()
 	FChatRoomData Data;
+
+	UPROPERTY()
+	FChatData LastChatData;
 };
