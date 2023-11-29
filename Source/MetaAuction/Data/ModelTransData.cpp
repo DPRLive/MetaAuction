@@ -4,6 +4,7 @@
 #include "ModelTransData.h"
 
 #include <HAL/FileManager.h>
+#include <Misc/Paths.h>
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(ModelTransData)
 

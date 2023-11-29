@@ -24,7 +24,7 @@ void UMAItemFilterWidget::NativeConstruct()
 	//MAGetNowWorldId(MAGetGameState())
 	ItemWorldTypeComboBox->AddOption(TEXT("상관 없음"));
 	ItemWorldTypeComboBox->AddOption(TEXT("웹에서만"));
-	ItemWorldTypeComboBox->AddOption(TEXT("메타버스 포함"));
+	ItemWorldTypeComboBox->AddOption(TEXT("메타버스만"));
 	ItemWorldTypeComboBox->SetSelectedIndex(0);
 	
 	// EItemDealType의 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
@@ -41,9 +41,9 @@ void UMAItemFilterWidget::NativeConstruct()
 	}
 	ItemDealTypeComboBox->SetSelectedIndex(0);
 
-	// EItemDealType의 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
+	// EItemCanDeal의 첫 항목을 제외한 모든 항목의 DisplayName를 ComboBoxString의 옵션으로 설정합니다.
 	ItemCanDealComboBox->ClearOptions();
-	for (uint8 EnumIndex = static_cast<uint8>(EItemCanDeal::None); EnumIndex < static_cast<uint8>(EItemCanDeal::MAX); ++EnumIndex)
+	for (uint8 EnumIndex = static_cast<uint8>(EItemCanDeal::None) + 1; EnumIndex < static_cast<uint8>(EItemCanDeal::MAX); ++EnumIndex)
 	{
 		FText DisplayName;
 		const UEnum* EnumPtr = FindFirstObjectSafe<UEnum>(TEXT("EItemCanDeal"));
@@ -84,7 +84,10 @@ FItemSearchOption UMAItemFilterWidget::GetCurrentOption()
 	}
 
 	NewOption.ItemType = static_cast<EItemDealType>(ItemDealTypeComboBox->GetSelectedIndex());
-	NewOption.CanDeal = static_cast<EItemCanDeal>(ItemCanDealComboBox->GetSelectedIndex());
+
+	// 첫 항목을 제외하였으므로 + 1
+	NewOption.CanDeal = static_cast<EItemCanDeal>(ItemCanDealComboBox->GetSelectedIndex() + 1);
+
 	return NewOption;
 }
 
