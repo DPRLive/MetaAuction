@@ -7,6 +7,7 @@
 #include "UI/Chat/MAChatInfoWidget.h"
 #include "Common/MALog.h"
 
+#include <Blueprint/WidgetBlueprintLibrary.h>
 #include <Components/HorizontalBox.h>
 #include <Components/Button.h>
 
@@ -83,21 +84,23 @@ void UMAAuctionWidget::ToggleWidget()
 
 	EMouseLockMode InMouseLockMode = EMouseLockMode::DoNotLock;
 	UWidget* InWidgetToFocus = this;
-	bool bFlushInput = false;
 
 	if (GetVisibility() == ESlateVisibility::Visible)
 	{
 		SetVisibility(ESlateVisibility::Hidden);
 
-		FInputModeGameOnly InputMode;
-		PlayerController->SetInputMode(InputMode);
+		TArray<UUserWidget*> AllWidgets;
+		UWidgetBlueprintLibrary::GetAllWidgetsOfClass(GetWorld(), AllWidgets, UUserWidget::StaticClass(), true);
+		int32 AllWidgetsNum = AllWidgets.Num();
 
-		if (bFlushInput)
+		// 모든 위젯의 개수가 2개(HUD, 자기 자신)이면 어떠한 위젯도 열려있지 않으므로 InputMode GameOnly로 변경
+		if (AllWidgetsNum <= 2)
 		{
+			FInputModeGameOnly InputMode;
+			PlayerController->SetInputMode(InputMode);
 			PlayerController->FlushPressedKeys();
+			PlayerController->SetShowMouseCursor(false);
 		}
-
-		PlayerController->SetShowMouseCursor(false);
 
 		NotifyHiddenWidget();
 	}
@@ -113,12 +116,7 @@ void UMAAuctionWidget::ToggleWidget()
 			InputMode.SetWidgetToFocus(InWidgetToFocus->TakeWidget());
 		}
 		PlayerController->SetInputMode(InputMode);
-
-		if (bFlushInput)
-		{
-			PlayerController->FlushPressedKeys();
-		}
-
+		PlayerController->FlushPressedKeys();
 		PlayerController->SetShowMouseCursor(true);
 
 		SetFocus();
