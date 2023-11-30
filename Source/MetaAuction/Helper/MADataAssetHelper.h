@@ -15,7 +15,7 @@ namespace MADataAssetHelper
 	template<typename T>
 	const TObjectPtr<T> GetDataAsset(const FString& InAssetName)
 	{
-		const FString path = FString::Printf(TEXT("/Script/Engine.DataAsset'/Game/MetaAuction/Data/DataAsset/%s.%s'"), *InAssetName, *InAssetName); 
+		const FString path = FString::Printf(TEXT("/Game/MetaAuction/Data/DataAsset/%s.%s"), *InAssetName, *InAssetName); 
 		return LoadObject<T>(nullptr, *path);
 	}
 }
