@@ -33,7 +33,13 @@ void UMAChatRoomEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 	if (UMAChatRoomEntry* Entry = Cast<UMAChatRoomEntry>(ListItemObject))
 	{
 		TitleText->SetText(FText::FromString(Entry->Data.Title));
-		SellerNameText->SetText(FText::FromString(Entry->Data.Seller));
+
+		// 상대방 이름 설정
+		if(Entry->Data.Seller == MAGetMyUserName(GetGameInstance()))
+			SellerNameText->SetText(FText::FromString(Entry->Data.Buyer));
+		else
+			SellerNameText->SetText(FText::FromString(Entry->Data.Seller));
+
 		LastMessageText->SetText(FText::FromString(Entry->LastChatData.Content));
 		LastTimeText->SetText(FText::FromString(Entry->LastChatData.Time.ToString()));
 		UMAWidgetHelperLibrary::RequestImageByItemID(ItemImage, Entry->Data.ItemId);

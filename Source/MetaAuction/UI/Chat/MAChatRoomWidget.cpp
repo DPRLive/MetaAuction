@@ -46,7 +46,13 @@ void UMAChatRoomWidget::Update(const FChatRoomData& InChatRoomData)
 
 	bIsInit = true;
 	TitleText->SetText(FText::FromString(InChatRoomData.Title));
-	SellerNameText->SetText(FText::FromString(InChatRoomData.Seller));
+
+	// 상대방 이름 설정
+	if(InChatRoomData.Seller == MAGetMyUserName(GetGameInstance()))
+		SellerNameText->SetText(FText::FromString(InChatRoomData.Buyer));
+	else
+		SellerNameText->SetText(FText::FromString(InChatRoomData.Seller));
+	
 	PriceText->SetText(FText::AsNumber(InChatRoomData.Price));
 
 	UMAWidgetHelperLibrary::RequestImageByItemID(ItemImage, InChatRoomData.ItemId);
